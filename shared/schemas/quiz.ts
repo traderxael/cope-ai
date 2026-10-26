@@ -1,0 +1,60 @@
+import { z } from 'zod';
+import { LIMITS } from '../limits';
+import { levelSchema, subjectSchema } from './common';
+
+const correctIndexSchema = z.union([
+  z.literal(0),
+  z.literal(1),
+  z.literal(2),
+  z.literal(3),
+]);
+
+export const quizQuestionSchema = z
+  .object({
+    id: z.string().trim().min(1).max(64),
+    prompt: z.string().trim().min(4).max(700),
+    options: z.tuple([
+      z.string().trim().min(1).max(300),
+      z.string().trim().min(1).max(300),
+      z.string().trim().min(1).max(300),
+      z.string().trim().min(1).max(300),
+    ]),
+    correctIndex: correctIndexSchema,
+    explanation: z.string().trim().min(4).max(700),
+  })
+  .superRefine((question, ctx) => {
+    const normalized = question.options.map((option) =>
+      option.trim().toLocaleLowerCase('es'),
+    );
+    if (new Set(normalized).size !== normalized.length) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['options'],
+        message: 'Las opciones no pueden repetirse.',
+      });
+    }
+  });
+
+export const quizRequestSchema = z.object({
+  subject: subjectSchema,
+  level: levelSchema,
+  topic: z
+    .string()
+    .trim()
+    .max(LIMITS.maxTopicChars)
+    .transform((value) => (value ? value : undefined))
+    .optional(),
+});
+
+export const quizContentSchema = z.object({
+  questions: z.array(quizQuestionSchema).length(LIMITS.quizQuestions),
+});
+
+export const quizResponseSchema = quizContentSchema.extend({
+  demo: z.boolean(),
+});
+
+export type QuizQuestion = z.infer<typeof quizQuestionSchema>;
+export type QuizRequest = z.infer<typeof quizRequestSchema>;
+export type QuizContent = z.infer<typeof quizContentSchema>;
+export type QuizResponse = z.infer<typeof quizResponseSchema>;

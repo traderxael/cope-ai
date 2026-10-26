@@ -1,0 +1,37 @@
+{
+  "packageId": "com.traderxael.copeai",
+  "host": "cope-ai.example.com",
+  "fullScopeUrl": "https://cope-ai.example.com/",
+  "runtimeHost": "https://cope-ai.example.com/",
+  "name": "Cope AI",
+  "launcherName": "Cope",
+  "display": "standalone",
+  "themeColor": "#17150F",
+  "themeColorDark": "#11110F",
+  "navigationColor": "#F6F1E7",
+  "navigationColorDark": "#11110F",
+  "navigationDividerColor": "#DED3C1",
+  "navigationDividerColorDark": "#322E26",
+  "backgroundColor": "#F6F1E7",
+  "enableNotifications": false,
+  "startUrl": "/",
+  "iconUrl": "https://cope-ai.example.com/icons/pwa-512x512.png",
+  "maskableIconUrl": "https://cope-ai.example.com/icons/maskable-icon-512x512.png",
+  "appVersionName": "0.1.0",
+  "appVersionCode": 1,
+  "minSdkVersion": 21,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://cope-ai.example.com/manifest.webmanifest",
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "playBilling": {
+    "enabled": false
+  }
+}
