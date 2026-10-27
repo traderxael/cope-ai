@@ -1,18 +1,18 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { readServerConfig } from '../config';
-import { describeError, logError } from '../errors';
-import { prepareChat } from '../routes/chat';
-import { prepareFlashcards } from '../routes/flashcards';
-import { healthPayload } from '../routes/health';
-import { prepareQuiz } from '../routes/quiz';
-import { prepareStudyPlan } from '../routes/study-plan';
+import { readServerConfig } from '../config.js';
+import { describeError, logError } from '../errors.js';
+import { prepareChat } from '../routes/chat.js';
+import { prepareFlashcards } from '../routes/flashcards.js';
+import { healthPayload } from '../routes/health.js';
+import { prepareQuiz } from '../routes/quiz.js';
+import { prepareStudyPlan } from '../routes/study-plan.js';
 import {
   pipeChat,
   readJsonBody,
   requestMeta,
   sendJson,
   sendSseError,
-} from './node';
+} from './node.js';
 
 function methodNotAllowed(
   response: ServerResponse,

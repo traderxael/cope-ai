@@ -6,7 +6,7 @@
   "description": "Tutor de estudio y asistente AI original — PWA instalable con modo demo y proxy OpenAI-compatible",
   "license": "MIT",
   "engines": {
-    "node": ">=22.22.2"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "vite --port 5173 --strictPort",

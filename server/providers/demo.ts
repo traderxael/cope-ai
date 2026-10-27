@@ -6,8 +6,8 @@ import {
   type QuizQuestion,
   type Subject,
   type TutorConfig,
-} from '../../shared/types';
-import { abortError } from '../errors';
+} from '../../shared/types.js';
+import { abortError } from '../errors.js';
 
 export interface DemoChatInput {
   mode: Mode;

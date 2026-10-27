@@ -1,18 +1,18 @@
-import { LIMITS } from '../../shared/limits';
-import { studyPlanRequestSchema } from '../../shared/schemas/study';
-import { parseStudyPlanJson } from '../../shared/study-json';
-import type { StudyPlanResponse } from '../../shared/types';
-import type { ServerConfig } from '../config';
-import { readServerConfig } from '../config';
-import { AppError, describeError, logError } from '../errors';
+import { LIMITS } from '../../shared/limits.js';
+import { studyPlanRequestSchema } from '../../shared/schemas/study.js';
+import { parseStudyPlanJson } from '../../shared/study-json.js';
+import type { StudyPlanResponse } from '../../shared/types.js';
+import type { ServerConfig } from '../config.js';
+import { readServerConfig } from '../config.js';
+import { AppError, describeError, logError } from '../errors.js';
 import {
   buildStudyPlanSystemPrompt,
   buildStudyPlanUserPrompt,
-} from '../prompts/study-plan';
-import { demoStudyPlan } from '../providers/demo-study';
-import { checkOrigin, defaultLimiter, type RateLimiter } from '../security';
-import { generateValidatedJson } from './generate-json';
-import type { RequestContext, RouteFailure } from './types';
+} from '../prompts/study-plan.js';
+import { demoStudyPlan } from '../providers/demo-study.js';
+import { checkOrigin, defaultLimiter, type RateLimiter } from '../security.js';
+import { generateValidatedJson } from './generate-json.js';
+import type { RequestContext, RouteFailure } from './types.js';
 
 export interface StudyPlanSuccess {
   ok: true;

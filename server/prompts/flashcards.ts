@@ -2,7 +2,7 @@ import {
   LEVEL_LABELS,
   SUBJECT_LABELS,
   type FlashcardRequest,
-} from '../../shared/types';
+} from '../../shared/types.js';
 
 export function buildFlashcardsSystemPrompt(
   request: FlashcardRequest,

@@ -1,4 +1,4 @@
-import { quizContentSchema, type QuizQuestion } from './schemas/quiz';
+import { quizContentSchema, type QuizQuestion } from './schemas/quiz.js';
 
 export function extractJsonObject(raw: string): unknown | null {
   if (!raw || !raw.trim()) return null;

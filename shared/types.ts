@@ -4,7 +4,7 @@ import type {
   Mode,
   StudyStyle,
   Subject,
-} from './schemas/common';
+} from './schemas/common.js';
 import type {
   ChatMessage,
   ChatRequest,
@@ -12,12 +12,12 @@ import type {
   ImagePart,
   TextPart,
   TutorConfig,
-} from './schemas/chat';
+} from './schemas/chat.js';
 import type {
   QuizQuestion,
   QuizRequest,
   QuizResponse,
-} from './schemas/quiz';
+} from './schemas/quiz.js';
 import type {
   Flashcard,
   FlashcardRequest,
@@ -28,7 +28,7 @@ import type {
   StudyPlanRequest,
   StudyPlanResponse,
   StudyPlanTask,
-} from './schemas/study';
+} from './schemas/study.js';
 
 export type {
   ChatMessage,

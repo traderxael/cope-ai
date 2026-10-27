@@ -3,7 +3,7 @@ import {
   LEVEL_LABELS,
   SUBJECT_LABELS,
   type QuizRequest,
-} from '../../shared/types';
+} from '../../shared/types.js';
 
 export function buildQuizSystemPrompt(request: QuizRequest): string {
   const count = request.count;

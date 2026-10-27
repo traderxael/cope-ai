@@ -1,4 +1,4 @@
-import { LIMITS } from '../shared/limits';
+import { LIMITS } from '../shared/limits.js';
 
 export interface ServerConfig {
   apiKey: string | null;

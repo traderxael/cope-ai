@@ -1,9 +1,9 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { LIMITS } from '../../shared/limits';
-import { encodeSseEvent } from '../../shared/sse';
-import { AppError, describeError, logError, type ErrorDescription } from '../errors';
-import { getClientIp } from '../security';
-import type { ChatSuccess } from '../routes/chat';
+import { LIMITS } from '../../shared/limits.js';
+import { encodeSseEvent } from '../../shared/sse.js';
+import { AppError, describeError, logError, type ErrorDescription } from '../errors.js';
+import { getClientIp } from '../security.js';
+import type { ChatSuccess } from '../routes/chat.js';
 
 const HEARTBEAT_MS = 15_000;
 

@@ -1,17 +1,17 @@
-import { chatRequestSchema } from '../../shared/schemas/chat';
-import { DEFAULT_TUTOR } from '../../shared/types';
-import type { ServerConfig } from '../config';
-import { readServerConfig } from '../config';
-import { AppError, describeError, logError } from '../errors';
-import { buildAssistantSystemPrompt } from '../prompts/assistant';
-import { buildTutorSystemPrompt } from '../prompts/tutor';
-import { buildDemoAnswer, streamDemoChat } from '../providers/demo';
+import { chatRequestSchema } from '../../shared/schemas/chat.js';
+import { DEFAULT_TUTOR } from '../../shared/types.js';
+import type { ServerConfig } from '../config.js';
+import { readServerConfig } from '../config.js';
+import { AppError, describeError, logError } from '../errors.js';
+import { buildAssistantSystemPrompt } from '../prompts/assistant.js';
+import { buildTutorSystemPrompt } from '../prompts/tutor.js';
+import { buildDemoAnswer, streamDemoChat } from '../providers/demo.js';
 import {
   hasImagesInMessages,
   openChatStream,
-} from '../providers/openai';
-import { checkOrigin, defaultLimiter, type RateLimiter } from '../security';
-import type { RequestContext, RouteFailure } from './types';
+} from '../providers/openai.js';
+import { checkOrigin, defaultLimiter, type RateLimiter } from '../security.js';
+import type { RequestContext, RouteFailure } from './types.js';
 
 export interface ChatSuccess {
   ok: true;

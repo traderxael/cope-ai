@@ -1,5 +1,5 @@
-import type { ServerConfig } from '../config';
-import { completeJson } from '../providers/openai';
+import type { ServerConfig } from '../config.js';
+import { completeJson } from '../providers/openai.js';
 
 const REPAIR_PROMPT =
   'Tu respuesta anterior no fue JSON válido o no cumplió el formato. Devolvé únicamente el objeto JSON solicitado, sin fences ni texto adicional.';

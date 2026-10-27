@@ -3,7 +3,7 @@ import {
   LEVEL_LABELS,
   SUBJECT_LABELS,
   type StudyPlanRequest,
-} from '../../shared/types';
+} from '../../shared/types.js';
 
 export function buildStudyPlanSystemPrompt(
   request: StudyPlanRequest,

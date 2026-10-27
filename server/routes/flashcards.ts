@@ -1,18 +1,18 @@
-import { LIMITS } from '../../shared/limits';
-import { flashcardRequestSchema } from '../../shared/schemas/study';
-import { parseFlashcardsJson } from '../../shared/study-json';
-import type { FlashcardResponse } from '../../shared/types';
-import type { ServerConfig } from '../config';
-import { readServerConfig } from '../config';
-import { AppError, describeError, logError } from '../errors';
+import { LIMITS } from '../../shared/limits.js';
+import { flashcardRequestSchema } from '../../shared/schemas/study.js';
+import { parseFlashcardsJson } from '../../shared/study-json.js';
+import type { FlashcardResponse } from '../../shared/types.js';
+import type { ServerConfig } from '../config.js';
+import { readServerConfig } from '../config.js';
+import { AppError, describeError, logError } from '../errors.js';
 import {
   buildFlashcardsSystemPrompt,
   buildFlashcardsUserPrompt,
-} from '../prompts/flashcards';
-import { demoFlashcards } from '../providers/demo-study';
-import { checkOrigin, defaultLimiter, type RateLimiter } from '../security';
-import { generateValidatedJson } from './generate-json';
-import type { RequestContext, RouteFailure } from './types';
+} from '../prompts/flashcards.js';
+import { demoFlashcards } from '../providers/demo-study.js';
+import { checkOrigin, defaultLimiter, type RateLimiter } from '../security.js';
+import { generateValidatedJson } from './generate-json.js';
+import type { RequestContext, RouteFailure } from './types.js';
 
 export interface FlashcardsSuccess {
   ok: true;

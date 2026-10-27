@@ -1,11 +1,11 @@
-import type { FlashcardContentCard } from '../../shared/schemas/study';
+import type { FlashcardContentCard } from '../../shared/schemas/study.js';
 import {
   LEVEL_LABELS,
   SUBJECT_LABELS,
   type StudyPlanContent,
   type StudyPlanRequest,
   type Subject,
-} from '../../shared/types';
+} from '../../shared/types.js';
 
 const MATH_CARDS: FlashcardContentCard[] = [
   {

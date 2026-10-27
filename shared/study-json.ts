@@ -1,10 +1,10 @@
-import { extractJsonObject } from './quiz-json';
+import { extractJsonObject } from './quiz-json.js';
 import {
   flashcardContentSchema,
   studyPlanContentSchema,
   type FlashcardContentCard,
   type StudyPlanContent,
-} from './schemas/study';
+} from './schemas/study.js';
 
 export function parseFlashcardsJson(
   raw: string,

@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { handleNodeStudyPlan } from '../server/http/handlers';
+import { handleNodeStudyPlan } from '../server/http/handlers.js';
 
 export const config = { maxDuration: 60 };
 

@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { handleNodeHealth } from '../server/http/handlers';
+import { handleNodeHealth } from '../server/http/handlers.js';
 
 export default function handler(
   request: IncomingMessage,

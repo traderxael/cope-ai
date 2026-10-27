@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import { isValidDateOnly } from '../date';
-import { LIMITS } from '../limits';
+import { isValidDateOnly } from '../date.js';
+import { LIMITS } from '../limits.js';
 import {
   difficultySchema,
   levelSchema,
   subjectSchema,
-} from './common';
+} from './common.js';
 
 const flashcardContentCardSchema = z.object({
   front: z.string().trim().min(3).max(300),

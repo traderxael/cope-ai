@@ -3,7 +3,7 @@ import {
   STUDY_STYLE_LABELS,
   SUBJECT_LABELS,
   type TutorConfig,
-} from '../../shared/types';
+} from '../../shared/types.js';
 
 export function buildTutorSystemPrompt(tutor: TutorConfig): string {
   return `Sos Cope, un tutor académico para estudiantes hispanohablantes.

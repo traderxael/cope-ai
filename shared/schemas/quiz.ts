@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { LIMITS } from '../limits';
-import { difficultySchema, levelSchema, subjectSchema } from './common';
+import { LIMITS } from '../limits.js';
+import { difficultySchema, levelSchema, subjectSchema } from './common.js';
 
 const correctIndexSchema = z.union([
   z.literal(0),

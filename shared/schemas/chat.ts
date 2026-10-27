@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import { LIMITS } from '../limits';
+import { LIMITS } from '../limits.js';
 import {
   levelSchema,
   modeSchema,
   studyStyleSchema,
   subjectSchema,
-} from './common';
+} from './common.js';
 
 const IMAGE_DATA_URL =
   /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/;

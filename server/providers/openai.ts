@@ -1,13 +1,13 @@
-import { LIMITS } from '../../shared/limits';
-import type { ChatMessage, ContentPart } from '../../shared/schemas/chat';
-import { parseSseStream } from '../../shared/sse';
-import type { ServerConfig } from '../config';
+import { LIMITS } from '../../shared/limits.js';
+import type { ChatMessage, ContentPart } from '../../shared/schemas/chat.js';
+import { parseSseStream } from '../../shared/sse.js';
+import type { ServerConfig } from '../config.js';
 import {
   AppError,
   abortError,
   isAbortError,
   providerStatusError,
-} from '../errors';
+} from '../errors.js';
 
 type UpstreamPart =
   | { type: 'text'; text: string }
