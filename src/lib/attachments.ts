@@ -58,6 +58,7 @@ export async function prepareAttachment(file: File): Promise<StoredAttachment> {
     mime: 'application/pdf',
     size: file.size,
     text: pdf.text,
+    ...(pdf.truncated ? { truncated: true } : {}),
   };
 }
 

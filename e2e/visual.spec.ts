@@ -36,6 +36,36 @@ test.describe('capturas de referencia', () => {
     });
   });
 
+  test('tutor y plan de estudio', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Tutor' }).click();
+    const panel = page.locator('.tutorAside');
+    await expect(panel).toBeVisible();
+    await panel.getByRole('button', { name: '10' }).click();
+    await panel.getByLabel('Dificultad').selectOption('hard');
+    await panel.locator('.switchRow').click();
+    await page.screenshot({
+      path: 'test-results/screenshots/tutor-desktop.png',
+      animations: 'disabled',
+    });
+
+    await panel.getByRole('button', { name: 'Plan de examen' }).click();
+    const dialog = page.locator('dialog[open]');
+    await dialog.getByRole('button', { name: 'Nuevo plan' }).click();
+    await dialog.getByLabel('Fecha del examen').fill('2026-12-15');
+    await dialog.getByLabel(/Temas/).fill('derivadas, límites');
+    await dialog.getByLabel('Días disponibles').fill('3');
+    await dialog.getByRole('button', { name: 'Generar plan' }).click();
+    await expect(dialog.locator('.planDay')).toHaveCount(3, {
+      timeout: 20_000,
+    });
+    await page.screenshot({
+      path: 'test-results/screenshots/study-plan.png',
+      animations: 'disabled',
+    });
+  });
+
   test('conversación demo', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');

@@ -119,6 +119,21 @@ describe('Composer', () => {
     expect(onRemoveAttachment).toHaveBeenCalledWith('a1');
   });
 
+  it('ofrece escanear con la cámara trasera', async () => {
+    const user = userEvent.setup();
+    const { onAddFiles } = renderComposer({ value: '' });
+    const camera = screen.getByLabelText('Seleccionar foto de la tarea');
+    expect(camera).toHaveAttribute('accept', 'image/*');
+    expect(camera).toHaveAttribute('capture', 'environment');
+    expect(
+      screen.getByRole('button', { name: 'Escanear tarea con la cámara' }),
+    ).toBeInTheDocument();
+
+    const file = new File(['abc'], 'tarea.jpg', { type: 'image/jpeg' });
+    await user.upload(camera, file);
+    expect(onAddFiles).toHaveBeenCalledWith([file]);
+  });
+
   it('muestra y cierra errores', async () => {
     const user = userEvent.setup();
     const { onDismissError } = renderComposer({

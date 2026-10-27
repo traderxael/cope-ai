@@ -29,7 +29,13 @@ export type IconName =
   | 'file'
   | 'shield'
   | 'download'
-  | 'info';
+  | 'info'
+  | 'camera'
+  | 'cards'
+  | 'calendar'
+  | 'chart'
+  | 'timer'
+  | 'target';
 
 const PATHS: Record<IconName, ReactNode> = {
   menu: (
@@ -200,6 +206,42 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <circle cx="12" cy="12" r="9" />
       <path d="M12 11v5M12 8h.01" />
+    </>
+  ),
+  camera: (
+    <>
+      <path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z" />
+      <circle cx="12" cy="13" r="4" />
+    </>
+  ),
+  cards: (
+    <>
+      <rect x="7" y="3" width="12" height="17" rx="2" />
+      <path d="M5 7v13a2 2 0 0 0 2 2h8" />
+    </>
+  ),
+  calendar: (
+    <>
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M8 3v4M16 3v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
+    </>
+  ),
+  chart: (
+    <>
+      <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+    </>
+  ),
+  timer: (
+    <>
+      <circle cx="12" cy="13" r="8" />
+      <path d="M12 9v4l2.5 2.5M9 2h6" />
+    </>
+  ),
+  target: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="5" />
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
     </>
   ),
 };

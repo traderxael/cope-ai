@@ -23,13 +23,13 @@ test.describe('tutor', () => {
       (request) =>
         request.url().includes('/api/quiz') && request.method() === 'POST',
     );
-    await tutorPanel
-      .getByRole('button', { name: 'Generar práctica' })
-      .click();
+    await tutorPanel.getByRole('button', { name: 'Practicar' }).click();
     const request = await quizRequest;
     expect(request.postDataJSON()).toMatchObject({
       subject: 'physics',
       level: 'bachillerato',
+      count: 5,
+      difficulty: 'medium',
     });
 
     await expect(page.locator('.quizCard')).toBeVisible({ timeout: 20_000 });
@@ -58,12 +58,13 @@ test.describe('tutor', () => {
 
     const body = (await chatRequest).postDataJSON() as {
       mode: string;
-      tutor?: { subject: string; level: string };
+      tutor?: { subject: string; level: string; style: string };
     };
     expect(body.mode).toBe('tutor');
     expect(body.tutor).toEqual({
       subject: 'physics',
       level: 'bachillerato',
+      style: 'guided',
     });
 
     await expect(page.locator('.assistantRow').last()).toContainText(
@@ -83,7 +84,7 @@ test.describe('tutor', () => {
     await expect(dialog).toBeVisible();
     await dialog.getByRole('button', { name: 'Química' }).click();
     await dialog.getByLabel('Nivel').selectOption('universidad');
-    await dialog.getByRole('button', { name: 'Generar práctica' }).click();
+    await dialog.getByRole('button', { name: 'Practicar' }).click();
 
     await expect(page.locator('.quizCard')).toBeVisible({ timeout: 20_000 });
     await expect(dialog).toBeHidden();

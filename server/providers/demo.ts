@@ -53,13 +53,32 @@ export function buildDemoAnswer(input: DemoChatInput): string {
     .join('\n');
 
   if (input.mode === 'tutor') {
-    return `Estoy en **modo demo**, así que esta es una respuesta de muestra. Con una clave configurada, el tutor adaptaría el desarrollo a tu consulta real.
+    const solver = input.tutor.style === 'solver';
+    const header = `Estoy en **modo demo**, así que esta es una respuesta de muestra. Con una clave configurada, el tutor adaptaría el desarrollo a tu consulta real.
 
 **Consulta:** “${summary}”
 **Materia:** ${SUBJECT_LABELS[input.tutor.subject]} · **Nivel:** ${LEVEL_LABELS[input.tutor.level]}
-${attachmentNotes ? `\n${attachmentNotes}\n` : ''}
+**Estilo:** ${solver ? 'Solución completa' : 'Guiado'}
+${attachmentNotes ? `\n${attachmentNotes}\n` : ''}`;
+
+    if (!solver) {
+      return `${header}
 ### 1. Entender qué buscamos
 Antes de calcular, identificá los datos y lo que te piden. En un problema de este tipo conviene separar lo conocido de lo que hay que encontrar.
+
+### 2. Elegir una estrategia
+Podemos plantear una ecuación sencilla. Si llamamos $x$ al valor desconocido, la relación inicial sería:
+
+$$2x + 5 = 17$$
+
+**Tu turno:** ¿qué operación conviene hacer primero para dejar a $x$ sola? Probá y te corrijo el paso.
+
+**Pista:** podés empezar restando el mismo número en ambos lados.`;
+    }
+
+    return `${header}
+### 1. Entender qué buscamos
+Identificamos los datos y lo que piden. En un problema de este tipo conviene separar lo conocido de lo que hay que encontrar.
 
 ### 2. Elegir una estrategia
 Podemos resolverlo con una ecuación sencilla. Si llamamos $x$ al valor desconocido, planteamos una relación entre los datos y lo que queremos obtener.
@@ -197,6 +216,46 @@ const MATH_QUIZ: QuizQuestion[] = [
     0,
     'Es una diferencia de cuadrados: a² − b² = (a − b)(a + b). Con a = x y b = 3, queda (x − 3)(x + 3).',
   ),
+  q(
+    'math',
+    6,
+    'Si x/3 = 4, ¿cuánto vale x?',
+    ['7', '12', '1', '3'],
+    1,
+    'Multiplicando ambos lados por 3, x = 12.',
+  ),
+  q(
+    'math',
+    7,
+    '¿Cuánto es 5² − 3²?',
+    ['4', '8', '16', '34'],
+    2,
+    '5² = 25 y 3² = 9. La diferencia es 25 − 9 = 16.',
+  ),
+  q(
+    'math',
+    8,
+    '¿Cuál es el 25 % de 80?',
+    ['10', '20', '25', '40'],
+    1,
+    'El 25 % es un cuarto del total: 80 / 4 = 20.',
+  ),
+  q(
+    'math',
+    9,
+    '¿Cuál es el perímetro de un cuadrado de 6 cm de lado?',
+    ['12 cm', '24 cm', '36 cm', '6 cm'],
+    1,
+    'Un cuadrado tiene cuatro lados iguales: 4 × 6 cm = 24 cm.',
+  ),
+  q(
+    'math',
+    10,
+    'Si 2(x − 3) = 10, ¿cuál es el valor de x?',
+    ['2', '5', '8', '13'],
+    2,
+    'Dividiendo por 2 queda x − 3 = 5. Sumando 3, x = 8.',
+  ),
 ];
 
 const PHYSICS_QUIZ: QuizQuestion[] = [
@@ -239,6 +298,46 @@ const PHYSICS_QUIZ: QuizQuestion[] = [
     ['4,9 m/s', '9,8 m/s', '19,6 m/s', '39,2 m/s'],
     2,
     'La velocidad es v = g · t = 9,8 m/s² × 2 s = 19,6 m/s, despreciando el aire.',
+  ),
+  q(
+    'physics',
+    6,
+    'Una fuerza de 10 N desplaza un objeto 3 m en su dirección. ¿Qué trabajo realiza?',
+    ['3 J', '10 J', '30 J', '60 J'],
+    2,
+    'El trabajo es fuerza por distancia: W = 10 N × 3 m = 30 J.',
+  ),
+  q(
+    'physics',
+    7,
+    'Una masa de 6 g ocupa 2 cm³. ¿Cuál es su densidad?',
+    ['3 g/cm³', '12 g/cm³', '0,33 g/cm³', '8 g/cm³'],
+    0,
+    'La densidad es masa dividida volumen: 6 g / 2 cm³ = 3 g/cm³.',
+  ),
+  q(
+    'physics',
+    8,
+    'Un dispositivo consume 60 J en 3 s. ¿Cuál es su potencia media?',
+    ['20 W', '63 W', '180 W', '3 W'],
+    0,
+    'La potencia es energía dividida tiempo: 60 J / 3 s = 20 W.',
+  ),
+  q(
+    'physics',
+    9,
+    'Una onda tiene velocidad 20 m/s y frecuencia 5 Hz. ¿Cuál es su longitud de onda?',
+    ['4 m', '15 m', '25 m', '100 m'],
+    0,
+    'La longitud de onda es velocidad dividida frecuencia: 20 / 5 = 4 m.',
+  ),
+  q(
+    'physics',
+    10,
+    'Un objeto de 2 kg se mueve a 5 m/s. ¿Cuál es su momento lineal?',
+    ['2,5 kg·m/s', '7 kg·m/s', '10 kg·m/s', '20 kg·m/s'],
+    2,
+    'El momento lineal es masa por velocidad: p = 2 kg × 5 m/s = 10 kg·m/s.',
   ),
 ];
 
@@ -283,6 +382,46 @@ const CHEMISTRY_QUIZ: QuizQuestion[] = [
     1,
     'El NaCl es un compuesto iónico: en agua se disocia en iones Na⁺ y Cl⁻.',
   ),
+  q(
+    'chemistry',
+    6,
+    '¿Cuántos átomos hay en una molécula de H₂O?',
+    ['2', '3', '4', '1'],
+    1,
+    'Hay dos átomos de hidrógeno y uno de oxígeno: 2 + 1 = 3.',
+  ),
+  q(
+    'chemistry',
+    7,
+    'Un elemento con número atómico 6 es:',
+    ['Carbono', 'Oxígeno', 'Nitrógeno', 'Helio'],
+    0,
+    'El número atómico 6 corresponde al carbono, que tiene 6 protones.',
+  ),
+  q(
+    'chemistry',
+    8,
+    'Un enlace covalente se forma cuando los átomos:',
+    ['Transfieren electrones', 'Comparten electrones', 'Pierden protones', 'Comparten neutrones'],
+    1,
+    'En un enlace covalente los átomos comparten pares de electrones.',
+  ),
+  q(
+    'chemistry',
+    9,
+    '¿Cuántas partículas hay, aproximadamente, en 1 mol de sustancia?',
+    ['6,022 × 10²³', '1 × 10²³', '3,14 × 10²³', '9,8 × 10²³'],
+    0,
+    'Un mol contiene el número de Avogadro: aproximadamente 6,022 × 10²³ partículas.',
+  ),
+  q(
+    'chemistry',
+    10,
+    'Una solución con pH 7 es:',
+    ['Ácida', 'Neutra', 'Básica', 'Salina'],
+    1,
+    'A 25 °C, un pH de 7 se considera neutro.',
+  ),
 ];
 
 const GENERAL_QUIZ: QuizQuestion[] = [
@@ -326,6 +465,46 @@ const GENERAL_QUIZ: QuizQuestion[] = [
     1,
     'Alternar bloques de estudio con pausas breves reduce la fatiga y ayuda a mantener la atención.',
   ),
+  q(
+    'general',
+    6,
+    'La técnica Pomodoro alterna bloques de estudio con:',
+    ['Series de televisión', 'Descansos breves', 'Siestas largas', 'Mensajes sin límite'],
+    1,
+    'Pomodoro usa bloques cortos de concentración seguidos de pausas breves.',
+  ),
+  q(
+    'general',
+    7,
+    '¿Cuánto sueño suele recomendar la evidencia para adultos?',
+    ['3 a 4 horas', '5 a 6 horas', '7 a 9 horas', '12 horas'],
+    2,
+    'La mayoría de los adultos necesita entre 7 y 9 horas de sueño para rendir y consolidar lo aprendido.',
+  ),
+  q(
+    'general',
+    8,
+    'Explicar un tema a otra persona es útil porque:',
+    ['Solo repite el texto', 'Obliga a recuperarlo y organizarlo', 'Evita practicar', 'Reemplaza dormir'],
+    1,
+    'Enseñar exige recuperar la información y estructurarla, lo que revela lagunas y refuerza el aprendizaje.',
+  ),
+  q(
+    'general',
+    9,
+    'Un plan de estudio realista divide las tareas grandes en:',
+    ['Tareas más pequeñas y concretas', 'Una sola sesión', 'Temas sin fecha', 'Descansos permanentes'],
+    0,
+    'Dividir en pasos pequeños y concretos facilita empezar, medir el avance y mantener la constancia.',
+  ),
+  q(
+    'general',
+    10,
+    'Al evaluar una fuente, conviene revisar:',
+    ['Solo el título', 'Autor, fecha y evidencias', 'La cantidad de emojis', 'Si es la primera búsqueda'],
+    1,
+    'Revisar autoría, fecha y evidencias ayuda a distinguir información confiable de contenido sin respaldo.',
+  ),
 ];
 
 const QUIZ_BANKS: Record<Subject, QuizQuestion[]> = {
@@ -335,8 +514,8 @@ const QUIZ_BANKS: Record<Subject, QuizQuestion[]> = {
   general: GENERAL_QUIZ,
 };
 
-export function demoQuiz(subject: Subject): QuizQuestion[] {
-  return QUIZ_BANKS[subject].map((question) => ({
+export function demoQuiz(subject: Subject, count = 5): QuizQuestion[] {
+  return QUIZ_BANKS[subject].slice(0, count).map((question) => ({
     ...question,
     options: [...question.options] as QuizQuestion['options'],
   }));

@@ -13,6 +13,8 @@ const SERVER_ENV_KEYS = [
   'COPE_DEMO',
   'COPE_DEMO_DELAY_MS',
   'COPE_RATE_LIMIT_PER_MINUTE',
+  'COPE_QUIZ_RATE_LIMIT_PER_MINUTE',
+  'COPE_STUDY_RATE_LIMIT_PER_MINUTE',
 ] as const;
 
 export default defineConfig(({ mode }) => {
@@ -68,7 +70,7 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           globPatterns: [
-            '**/*.{js,css,html,svg,png,ico,woff2,webmanifest,txt}',
+            '**/*.{js,css,html,svg,png,ico,woff2,webmanifest,txt,mjs}',
           ],
           navigateFallback: '/index.html',
           navigateFallbackDenylist: [/^\/api\//],

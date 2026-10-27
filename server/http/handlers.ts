@@ -2,8 +2,10 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { readServerConfig } from '../config';
 import { describeError, logError } from '../errors';
 import { prepareChat } from '../routes/chat';
+import { prepareFlashcards } from '../routes/flashcards';
 import { healthPayload } from '../routes/health';
 import { prepareQuiz } from '../routes/quiz';
+import { prepareStudyPlan } from '../routes/study-plan';
 import {
   pipeChat,
   readJsonBody,
@@ -105,6 +107,88 @@ export async function handleNodeQuiz(
     }
 
     sendJson(response, 200, result.quiz);
+  } catch (error) {
+    logError(error);
+    const failure = describeError(error);
+    sendJson(response, failure.status, {
+      error: { code: failure.code, message: failure.message },
+    });
+  } finally {
+    response.off('close', onClose);
+  }
+}
+
+export async function handleNodeFlashcards(
+  request: IncomingMessage,
+  response: ServerResponse,
+): Promise<void> {
+  if (request.method !== 'POST') {
+    methodNotAllowed(response, 'POST');
+    return;
+  }
+
+  const controller = new AbortController();
+  const onClose = () => {
+    if (!response.writableEnded) controller.abort();
+  };
+  response.on('close', onClose);
+
+  try {
+    const body = await readJsonBody(request);
+    const result = await prepareFlashcards(body, {
+      ...requestMeta(request),
+      signal: controller.signal,
+    });
+
+    if (!result.ok) {
+      sendJson(response, result.status, {
+        error: { code: result.code, message: result.message },
+      });
+      return;
+    }
+
+    sendJson(response, 200, result.flashcards);
+  } catch (error) {
+    logError(error);
+    const failure = describeError(error);
+    sendJson(response, failure.status, {
+      error: { code: failure.code, message: failure.message },
+    });
+  } finally {
+    response.off('close', onClose);
+  }
+}
+
+export async function handleNodeStudyPlan(
+  request: IncomingMessage,
+  response: ServerResponse,
+): Promise<void> {
+  if (request.method !== 'POST') {
+    methodNotAllowed(response, 'POST');
+    return;
+  }
+
+  const controller = new AbortController();
+  const onClose = () => {
+    if (!response.writableEnded) controller.abort();
+  };
+  response.on('close', onClose);
+
+  try {
+    const body = await readJsonBody(request);
+    const result = await prepareStudyPlan(body, {
+      ...requestMeta(request),
+      signal: controller.signal,
+    });
+
+    if (!result.ok) {
+      sendJson(response, result.status, {
+        error: { code: result.code, message: result.message },
+      });
+      return;
+    }
+
+    sendJson(response, 200, result.plan);
   } catch (error) {
     logError(error);
     const failure = describeError(error);

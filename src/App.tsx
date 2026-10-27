@@ -4,10 +4,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import {
-  LEVEL_LABELS,
-  SUBJECT_LABELS,
-} from '../shared/types';
+import { SUBJECT_LABELS } from '../shared/types';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { Composer } from './components/Composer';
 import { Dialog } from './components/Dialog';
@@ -25,8 +22,15 @@ import { TopBar } from './components/TopBar';
 import { QuizCard } from './features/quiz/QuizCard';
 import { TutorPanel } from './features/tutor/TutorPanel';
 import { useChatApp } from './features/assistant/useChatApp';
+import {
+  DEFAULT_PRACTICE_SETTINGS,
+  type PracticeSettings,
+} from './features/study/practice';
+import { ProgressDialog } from './features/study/ProgressDialog';
+import { FlashcardsDialog } from './features/study/FlashcardsDialog';
+import { StudyPlanDialog } from './features/study/StudyPlanDialog';
 import { applyPwaUpdate, setupPwa } from './lib/pwa';
-import type { Conversation } from './lib/storage';
+import type { Conversation, PracticeResult } from './lib/storage';
 import {
   applyTheme,
   getStoredTheme,
@@ -47,6 +51,9 @@ export default function App() {
   const [draft, setDraft] = useState('');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [tutorOpen, setTutorOpen] = useState(false);
+  const [progressOpen, setProgressOpen] = useState(false);
+  const [flashcardsOpen, setFlashcardsOpen] = useState(false);
+  const [studyPlanOpen, setStudyPlanOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [renameTarget, setRenameTarget] = useState<Conversation | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Conversation | null>(null);
@@ -201,11 +208,45 @@ export default function App() {
   );
 
   const handlePractice = useCallback(
-    (topic?: string) => {
-      void chat.actions.generatePractice(topic);
+    (settings: PracticeSettings) => {
+      void chat.actions.generatePractice(settings);
     },
     [chat.actions],
   );
+
+  const handlePracticeComplete = useCallback(
+    (result: PracticeResult) => {
+      const conversationId = chat.active?.id;
+      void chat.actions.recordPracticeResult({
+        ...result,
+        ...(conversationId ? { conversationId } : {}),
+      });
+      notify('Práctica guardada en tu progreso.', 'success');
+    },
+    [chat.actions, chat.active?.id, notify],
+  );
+
+  const openFlashcards = useCallback(() => {
+    setTutorOpen(false);
+    setFlashcardsOpen(true);
+  }, []);
+
+  const openStudyPlan = useCallback(() => {
+    setTutorOpen(false);
+    setStudyPlanOpen(true);
+  }, []);
+
+  const openProgress = useCallback(() => {
+    setTutorOpen(false);
+    setProgressOpen(true);
+  }, []);
+
+  const clearEverything = useCallback(async () => {
+    await chat.actions.clearAll();
+    setProgressOpen(false);
+    setFlashcardsOpen(false);
+    setStudyPlanOpen(false);
+  }, [chat.actions]);
 
   const handleDeleteConfirm = useCallback(async () => {
     if (!deleteTarget) return;
@@ -230,7 +271,22 @@ export default function App() {
   const mode = active.mode;
   const tutor = active.tutor;
   const isEmpty = active.messages.length === 0 && !chat.quiz;
-  const quizLabel = `${SUBJECT_LABELS[tutor.subject]} · ${LEVEL_LABELS[tutor.level]}`;
+  const latestPdfText = (() => {
+    for (let index = active.messages.length - 1; index >= 0; index -= 1) {
+      const attachments = active.messages[index]?.attachments ?? [];
+      for (
+        let attachmentIndex = attachments.length - 1;
+        attachmentIndex >= 0;
+        attachmentIndex -= 1
+      ) {
+        const attachment = attachments[attachmentIndex];
+        if (attachment?.kind === 'pdf' && attachment.text) {
+          return attachment.text;
+        }
+      }
+    }
+    return undefined;
+  })();
   const toolbarTitle =
     active.messages.length === 0 ? 'Cope AI' : active.title;
 
@@ -251,6 +307,7 @@ export default function App() {
             onRename={setRenameTarget}
             onDelete={setDeleteTarget}
             onSettings={() => setSettingsOpen(true)}
+            onProgress={openProgress}
             onToggleTheme={toggleTheme}
           />
         </aside>
@@ -320,6 +377,20 @@ export default function App() {
               </div>
             ) : null}
 
+            {chat.contextNotice ? (
+              <div className="banner noticeBanner" role="status">
+                <Icon name="info" size={16} />
+                <span>{chat.contextNotice}</span>
+                <button
+                  type="button"
+                  className="bannerDismiss"
+                  onClick={chat.actions.dismissContextNotice}
+                >
+                  Cerrar
+                </button>
+              </div>
+            ) : null}
+
             {chat.storageError ? (
               <div className="banner errorBanner" role="alert">
                 <Icon name="alert" size={16} />
@@ -371,7 +442,9 @@ export default function App() {
                     onSuggestion={(prompt) => {
                       submit(prompt);
                     }}
-                    onPractice={() => handlePractice()}
+                    onPractice={() =>
+                      handlePractice(DEFAULT_PRACTICE_SETTINGS)
+                    }
                     practiceLoading={chat.practiceLoading}
                     disabled={
                       !online ||
@@ -392,11 +465,14 @@ export default function App() {
                 >
                   {chat.quiz ? (
                     <QuizCard
-                      quiz={chat.quiz}
-                      label={quizLabel}
+                      key={chat.quiz.id}
+                      session={chat.quiz}
+                      label={`Práctica de ${SUBJECT_LABELS[chat.quiz.subject]}`}
                       onClose={chat.actions.closeQuiz}
-                      onRetry={() => handlePractice()}
+                      onRetry={handlePractice}
                       retrying={chat.practiceLoading}
+                      online={online}
+                      onComplete={handlePracticeComplete}
                     />
                   ) : null}
                 </MessageList>
@@ -431,6 +507,7 @@ export default function App() {
                 <TutorPanel
                   tutor={tutor}
                   onChange={chat.actions.updateTutor}
+                  online={online}
                   onPractice={handlePractice}
                   practiceLoading={chat.practiceLoading}
                   disabled={
@@ -438,6 +515,9 @@ export default function App() {
                     chat.practiceLoading ||
                     Boolean(chat.quiz)
                   }
+                  onOpenFlashcards={openFlashcards}
+                  onOpenPlan={openStudyPlan}
+                  onOpenProgress={openProgress}
                 />
               </aside>
             ) : null}
@@ -456,6 +536,7 @@ export default function App() {
           onRename={setRenameTarget}
           onDelete={setDeleteTarget}
           onSettings={() => setSettingsOpen(true)}
+          onProgress={openProgress}
           onToggleTheme={toggleTheme}
         />
 
@@ -468,13 +549,37 @@ export default function App() {
           <TutorPanel
             tutor={tutor}
             onChange={chat.actions.updateTutor}
+            online={online}
             onPractice={handlePractice}
             practiceLoading={chat.practiceLoading}
             disabled={
               chat.streaming || chat.practiceLoading || Boolean(chat.quiz)
             }
+            onOpenFlashcards={openFlashcards}
+            onOpenPlan={openStudyPlan}
+            onOpenProgress={openProgress}
           />
         </Dialog>
+
+        <ProgressDialog
+          open={progressOpen}
+          onClose={() => setProgressOpen(false)}
+        />
+
+        <FlashcardsDialog
+          open={flashcardsOpen}
+          onClose={() => setFlashcardsOpen(false)}
+          tutor={tutor}
+          online={online}
+          latestPdfText={latestPdfText}
+        />
+
+        <StudyPlanDialog
+          open={studyPlanOpen}
+          onClose={() => setStudyPlanOpen(false)}
+          tutor={tutor}
+          online={online}
+        />
 
         <SettingsDialog
           open={settingsOpen}
@@ -482,7 +587,7 @@ export default function App() {
           theme={theme}
           onThemeChange={changeTheme}
           demo={chat.demo}
-          onClearAll={chat.actions.clearAll}
+          onClearAll={clearEverything}
         />
 
         <RenameDialog

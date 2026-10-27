@@ -10,6 +10,7 @@ export interface ServerConfig {
   tokenParam: 'max_tokens' | 'max_completion_tokens';
   rateLimitPerMinute: number;
   quizRateLimitPerMinute: number;
+  studyRateLimitPerMinute: number;
   demoDelayMs: number;
   upstreamTimeoutMs: number;
 }
@@ -64,7 +65,18 @@ export function readServerConfig(
       1,
       120,
     ),
-    quizRateLimitPerMinute: LIMITS.quizRateLimitPerMinute,
+    quizRateLimitPerMinute: readInteger(
+      env.COPE_QUIZ_RATE_LIMIT_PER_MINUTE,
+      LIMITS.quizRateLimitPerMinute,
+      1,
+      60,
+    ),
+    studyRateLimitPerMinute: readInteger(
+      env.COPE_STUDY_RATE_LIMIT_PER_MINUTE,
+      LIMITS.studyRateLimitPerMinute,
+      1,
+      60,
+    ),
     demoDelayMs: readInteger(
       env.COPE_DEMO_DELAY_MS,
       LIMITS.demoDelayMs,

@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { QuizResponse } from '../../../shared/types';
+import type { PracticeSession } from '../study/practice';
 import { QuizCard } from './QuizCard';
 
 function makeQuiz(): QuizResponse {
@@ -24,29 +25,67 @@ function makeQuiz(): QuizResponse {
   };
 }
 
-function renderQuiz() {
+function makeSession(overrides: Partial<PracticeSession> = {}): PracticeSession {
+  return {
+    id: 'session-1',
+    quiz: makeQuiz(),
+    settings: { count: 5, difficulty: 'medium', timed: false },
+    subject: 'math',
+    level: 'secundaria',
+    startedAt: Date.now(),
+    ...overrides,
+  };
+}
+
+function renderQuiz(session = makeSession()) {
   const onClose = vi.fn();
   const onRetry = vi.fn();
+  const onComplete = vi.fn();
   const utils = render(
     <QuizCard
-      quiz={makeQuiz()}
-      label="Matemáticas · Secundaria"
+      session={session}
+      label="Práctica de Matemáticas"
       onClose={onClose}
       onRetry={onRetry}
       retrying={false}
+      online
+      onComplete={onComplete}
     />,
   );
-  return { ...utils, onClose, onRetry };
+  return { ...utils, onClose, onRetry, onComplete };
 }
 
 describe('QuizCard', () => {
-  it('oculta explicaciones y respuestas correctas antes de responder', () => {
-    renderQuiz();
+  it('oculta explicaciones y guarda un resultado una sola vez', async () => {
+    const user = userEvent.setup();
+    const { onComplete } = renderQuiz();
     expect(screen.queryByText(/Explicación de la pregunta 1/)).toBeNull();
     expect(screen.getByText('0 de 5')).toBeInTheDocument();
+
+    for (let index = 1; index <= 5; index += 1) {
+      const group = screen.getByRole('group', {
+        name: new RegExp(`Pregunta ${index}`),
+      });
+      await user.click(within(group).getByText('Alfa'));
+    }
+
+    await waitFor(() => expect(onComplete).toHaveBeenCalledTimes(1));
+    expect(onComplete.mock.calls[0]?.[0]).toMatchObject({
+      subject: 'math',
+      level: 'secundaria',
+      difficulty: 'medium',
+      questionCount: 5,
+      score: 5,
+      timed: false,
+      answers: [0, 0, 0, 0, 0],
+    });
+    expect(screen.getByText('5 de 5')).toBeInTheDocument();
+    expect(
+      screen.getByText('Excelente. Dominás el tema.'),
+    ).toBeInTheDocument();
   });
 
-  it('da feedback al responder y bloquea la pregunta', async () => {
+  it('da feedback y bloquea la pregunta al responder', async () => {
     const user = userEvent.setup();
     renderQuiz();
     const group = screen.getByRole('group', { name: /Pregunta 1/ });
@@ -62,22 +101,34 @@ describe('QuizCard', () => {
     expect(screen.getByText('1 de 5')).toBeInTheDocument();
   });
 
-  it('calcula el puntaje final y permite otra práctica', async () => {
+  it('permite otra práctica con la misma configuración', async () => {
     const user = userEvent.setup();
     const { onRetry } = renderQuiz();
-
     for (let index = 1; index <= 5; index += 1) {
       const group = screen.getByRole('group', {
         name: new RegExp(`Pregunta ${index}`),
       });
       await user.click(within(group).getByText('Alfa'));
     }
-
-    expect(screen.getByText('5 de 5')).toBeInTheDocument();
-    expect(
-      screen.getByText('Excelente. Dominás el tema.'),
-    ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /Otra práctica/ }));
-    expect(onRetry).toHaveBeenCalledTimes(1);
+    expect(onRetry).toHaveBeenCalledWith({
+      count: 5,
+      difficulty: 'medium',
+      timed: false,
+    });
+  });
+
+  it('finaliza al agotarse el tiempo y registra el resultado', async () => {
+    const session = makeSession({
+      settings: { count: 5, difficulty: 'medium', timed: true },
+      startedAt: Date.now() - 301_000,
+    });
+    const { onComplete } = renderQuiz(session);
+    await waitFor(() => expect(onComplete).toHaveBeenCalledTimes(1));
+    expect(onComplete.mock.calls[0]?.[0]).toMatchObject({
+      timed: true,
+      durationSeconds: 300,
+    });
+    expect(await screen.findByText('Tiempo agotado')).toBeInTheDocument();
   });
 });

@@ -3,8 +3,10 @@ import type { Connect, Plugin } from 'vite';
 import { describeError, logError } from './server/errors';
 import {
   handleNodeChat,
+  handleNodeFlashcards,
   handleNodeHealth,
   handleNodeQuiz,
+  handleNodeStudyPlan,
 } from './server/http/handlers';
 import { sendJson } from './server/http/node';
 
@@ -17,6 +19,8 @@ const ROUTES: Record<string, NodeHandler> = {
   '/api/chat': handleNodeChat,
   '/api/health': handleNodeHealth,
   '/api/quiz': handleNodeQuiz,
+  '/api/flashcards': handleNodeFlashcards,
+  '/api/study-plan': handleNodeStudyPlan,
 };
 
 function apiMiddleware(): Connect.NextHandleFunction {

@@ -3,8 +3,10 @@
 [![CI](https://github.com/traderxael/cope-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/traderxael/cope-ai/actions/workflows/ci.yml)
 
 Tutor de estudio y asistente AI original, empaquetado como PWA instalable. Incluye
-modo demo sin clave, streaming, práctica de 5 preguntas, contexto de imágenes y
-PDF, historial local y una identidad visual propia.
+modo demo sin clave, streaming, estilos de tutor, práctica de 5 o 10 preguntas
+con dificultad y temporizador, progreso local, flashcards con repaso espaciado,
+plan de examen, escaneo de tareas con cámara, contexto de imágenes y PDF,
+historial local y una identidad visual propia.
 
 > Cope AI es un proyecto independiente. No tiene afiliación con Astra AI ni usa
 > su código, recursos, textos o marca. La app no se construyó descompilando ni
@@ -15,6 +17,10 @@ PDF, historial local y una identidad visual propia.
 | Escritorio | Móvil |
 | --- | --- |
 | <img src="docs/desktop-light.png" alt="Cope AI en escritorio" width="720" /> | <img src="docs/mobile-light.png" alt="Cope AI en móvil" width="220" /> |
+
+| Tutor y configuración | Plan de examen |
+| --- | --- |
+| <img src="docs/tutor-desktop.png" alt="Panel del tutor con estilo, materia, nivel y práctica" width="640" /> | <img src="docs/study-plan.png" alt="Plan de examen con tareas por día" width="640" /> |
 
 <p align="center">
   <img src="docs/conversation-demo.png" alt="Conversación de ejemplo en modo demo" width="760" />
@@ -79,19 +85,39 @@ Variables opcionales:
 | `COPE_DEMO=1` | Fuerza modo demo aunque haya clave (útil para E2E) |
 | `COPE_DEMO_DELAY_MS` | Ritmo del streaming demo (default 15) |
 | `COPE_RATE_LIMIT_PER_MINUTE` | Límite por IP para chat (default 10) |
+| `COPE_QUIZ_RATE_LIMIT_PER_MINUTE` | Límite por IP para práctica (default 5) |
+| `COPE_STUDY_RATE_LIMIT_PER_MINUTE` | Límite por IP para flashcards y planes (default 5) |
 
 ## Funciones
 
-- **Tutor:** materia y nivel, explicaciones socráticas paso a paso, panel de
-  contexto y práctica de 5 preguntas con explicaciones.
+- **Tutor:** materia, nivel y dos estilos. **Guiado** da pistas y preguntas para
+  que resuelvas vos; **Solución** muestra el procedimiento completo y la
+  comprobación.
+- **Práctica:** 5 o 10 preguntas, dificultad, tema opcional y modo con tiempo.
+  Corrige al instante, explica cada respuesta y guarda el resultado.
+- **Progreso:** precisión global y por materia, racha de días y últimas
+  prácticas, calculado sobre el historial local.
+- **Flashcards:** generación por materia o tema (también desde el último PDF),
+  repaso con repetición espaciada y decks persistentes.
+- **Plan de examen:** 3 a 14 días, fecha y temas; tareas de estudio, práctica,
+  repaso y descanso con avance marcable.
 - **Asistente:** chat general con markdown, tablas, código y matemáticas KaTeX.
-- **Adjuntos:** hasta 2 imágenes por conversación (redimensionadas a JPEG) y un
-  PDF por mensaje (texto extraído localmente, sin OCR).
-- **Historial local:** conversaciones en IndexedDB; el servidor no las guarda.
+- **Adjuntos:** hasta 2 imágenes por conversación (redimensionadas a JPEG), foto
+  de tarea con la cámara trasera y un PDF por mensaje (texto extraído localmente,
+  sin OCR).
+- **Historial local:** conversaciones, prácticas, decks y planes en IndexedDB; el
+  servidor no los guarda.
 - **Streaming real:** SSE desde el proxy, con botón de detener y reintento.
 - **Modo demo:** respuestas deterministas en español, sin claves.
 - **PWA:** instalable, shell offline, fuentes empaquetadas y aviso de actualización.
 - **Temas:** claro, oscuro y sistema.
+
+### Datos de estudio
+
+Los resultados de práctica, decks y planes viven en IndexedDB (versión 2) en este
+dispositivo. No hay cuentas ni sincronización. **Ajustes → Borrar todo** elimina
+conversaciones, prácticas, flashcards y planes; también podés borrar un deck o un
+plan desde su panel.
 
 ## Arquitectura
 
@@ -100,7 +126,8 @@ Variables opcionales:
 │  PWA React + TypeScript  │
 │  IndexedDB local         │
 └────────────┬─────────────┘
-             │ POST /api/chat (SSE)      POST /api/quiz (JSON)
+             │ /api/chat (SSE) · /api/quiz · /api/flashcards ·
+             │ /api/study-plan (JSON)
              ▼
 ┌──────────────────────────┐
 │  Handlers compartidos    │  dev/preview: middleware Vite
@@ -115,11 +142,12 @@ Variables opcionales:
 └──────────────────────────┘
 ```
 
-- `shared/`: contratos zod, parser SSE y extracción de JSON reutilizados por
-  cliente y servidor.
-- `server/`: configuración, prompts, proveedores, rutas y seguridad.
+- `shared/`: contratos zod (chat, quiz, flashcards y plan), parser SSE,
+  extracción y reparación de JSON reutilizados por cliente y servidor.
+- `server/`: configuración, prompts, proveedores, rutas y seguridad. Las rutas
+  de estudio reintentan una vez si el proveedor devuelve JSON inválido.
 - `api/`: adaptadores finos para Vercel.
-- `src/`: interfaz, almacenamiento local, adjuntos y cliente SSE.
+- `src/`: interfaz, almacenamiento local, SRS, progreso, adjuntos y cliente SSE.
 
 ### Estructura
 
@@ -156,8 +184,12 @@ scripts/                generación de iconos
 - Topes: 3 MB por body, 24 mensajes, 24.000 caracteres por mensaje, 32.000 en
   total, 2 imágenes de hasta 1,2 MB como data URL, 1 PDF por mensaje (20 páginas
   y 20.000 caracteres extraídos), 1.200 tokens de salida por respuesta de chat.
-- Rate limit en memoria por IP: 10 chat/min y 5 quiz/min. **No es un límite
-  distribuido**: en serverless cada instancia tiene su propia memoria.
+  Práctica: 5 o 10 preguntas y 5.000 tokens. Flashcards: 6 a 10 tarjetas,
+  8.000 caracteres de material y 2.500 tokens. Plan: 3 a 14 días, 8 temas y
+  3.000 tokens.
+- Rate limit en memoria por IP: 10 chat/min, 5 práctica/min y 5 generaciones de
+  estudio/min. **No es un límite distribuido**: en serverless cada instancia
+  tiene su propia memoria.
 - Errores sanitizados: nunca se devuelven claves, headers ni cuerpos crudos del
   proveedor.
 - Markdown sin HTML crudo, protocolos permitidos y KaTeX sin `trust`.
@@ -180,8 +212,9 @@ cualquiera puede consumir tu cuota. Antes de hacerlo:
    `npm run build` y la salida `dist`.
 2. Cargá `OPENAI_API_KEY`, `OPENAI_BASE_URL` y `OPENAI_MODEL` como variables de
    entorno (Production y Preview). No las pongas en el repo.
-3. Desplegá. Las funciones `api/chat.ts` y `api/quiz.ts` se despliegan con el
-   proyecto; `vercel.json` fija `maxDuration` y las cabeceras/CSP.
+3. Desplegá. Las funciones `api/chat.ts`, `api/quiz.ts`, `api/flashcards.ts` y
+   `api/study-plan.ts` se despliegan con el proyecto; `vercel.json` fija
+   `maxDuration` y las cabeceras/CSP.
 4. Verificá `/api/health` y una conversación real. El streaming en producción
    requiere el runtime Node de Vercel.
 5. Instalá la PWA desde Chrome en Android o escritorio.
@@ -198,12 +231,15 @@ original: requiere Android SDK, Gradle, un keystore propio y Play Console.
 
 ## Pruebas
 
-- **Unitarias/integración:** parser SSE, esquemas, prompts, rate limit, provider
-  con upstream falso, extracción de JSON, IndexedDB, payload y adjuntos.
-- **Componentes:** markdown seguro, quiz, composer y lista de mensajes.
+- **Unitarias/integración:** parser SSE, esquemas de chat/quiz/estudio, prompts,
+  rate limit, proveedor con upstream falso, reparación de JSON, SRS, progreso,
+  IndexedDB con migración v1→v2, payload y adjuntos.
+- **Componentes:** tutor, cámara, markdown seguro, quiz, composer y lista de
+  mensajes.
 - **E2E:** Chrome/Chromium real contra el build de producción en modo demo:
-  asistente, persistencia, tutor, quiz, imágenes, PDF, PWA/offline,
-  accesibilidad y capturas.
+  asistente, persistencia, estilo de tutor, práctica de 10 con tiempo y
+  progreso, flashcards con repaso, plan de examen, cámara, PDF, borrado durante
+  streaming, PWA/offline, accesibilidad de los diálogos y capturas.
 
 ```bash
 npm run verify
@@ -215,11 +251,11 @@ suite automática porque dependen de tu clave y tu cuenta.
 
 ## Privacidad
 
-- Las conversaciones, imágenes procesadas y texto extraído de PDF se guardan en
-  IndexedDB en tu navegador.
+- Las conversaciones, imágenes procesadas, texto extraído de PDF, resultados de
+  práctica, decks y planes se guardan en IndexedDB en tu navegador.
 - El PDF original no se sube desde el dispositivo: solo viaja el texto extraído.
-- Las imágenes y los mensajes sí se envían al proveedor configurado cuando usás
-  IA real.
+- Las imágenes (incluidas las fotos de tarea) y los mensajes sí se envían al
+  proveedor configurado cuando usás IA real.
 - Cope AI no incluye analítica, cuentas ni sincronización en la nube.
 
 ## Licencia

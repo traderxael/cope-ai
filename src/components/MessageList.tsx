@@ -5,8 +5,8 @@ import {
 } from 'react';
 import type { StoredAttachment, StoredMessage } from '../lib/storage';
 import { Icon } from './Icon';
+import { LazyMarkdown } from './LazyMarkdown';
 import { Logo } from './Logo';
-import { Markdown } from './Markdown';
 
 interface MessageListProps {
   conversationId: string;
@@ -61,9 +61,20 @@ function AttachmentGallery({
         </div>
       ) : null}
       {documents.map((document) => (
-        <span key={document.id} className="pdfAttachment">
+        <span
+          key={document.id}
+          className="pdfAttachment"
+          title={
+            document.truncated
+              ? 'El texto del PDF se truncó al límite permitido.'
+              : undefined
+          }
+        >
           <Icon name="file" size={16} />
           <span>{document.name}</span>
+          {document.truncated ? (
+            <span className="pdfTruncated">texto truncado</span>
+          ) : null}
         </span>
       ))}
     </div>
@@ -199,7 +210,7 @@ export function MessageList({
                       </div>
                     </div>
                   ) : message.content ? (
-                    <Markdown content={message.content} />
+                    <LazyMarkdown content={message.content} />
                   ) : (
                     <div
                       className="typingIndicator"

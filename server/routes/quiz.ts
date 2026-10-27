@@ -1,3 +1,4 @@
+import { LIMITS } from '../../shared/limits';
 import { parseQuizJson } from '../../shared/quiz-json';
 import { quizRequestSchema } from '../../shared/schemas/quiz';
 import type { QuizResponse } from '../../shared/types';
@@ -6,8 +7,8 @@ import { readServerConfig } from '../config';
 import { AppError, describeError, logError } from '../errors';
 import { buildQuizSystemPrompt, buildQuizUserPrompt } from '../prompts/quiz';
 import { demoQuiz } from '../providers/demo';
-import { completeJson } from '../providers/openai';
 import { checkOrigin, defaultLimiter, type RateLimiter } from '../security';
+import { generateValidatedJson } from './generate-json';
 import type { RequestContext, RouteFailure } from './types';
 
 export interface QuizSuccess {
@@ -21,9 +22,6 @@ export interface QuizDeps {
   config?: ServerConfig;
   limiter?: RateLimiter;
 }
-
-const REPAIR_PROMPT =
-  'Tu respuesta anterior no fue JSON válido o no cumplió el formato. Devolvé únicamente el objeto JSON solicitado, sin fences ni texto adicional.';
 
 export async function prepareQuiz(
   body: unknown,
@@ -69,7 +67,10 @@ export async function prepareQuiz(
   if (config.demo) {
     return {
       ok: true,
-      quiz: { questions: demoQuiz(request.subject), demo: true },
+      quiz: {
+        questions: demoQuiz(request.subject, request.count),
+        demo: true,
+      },
     };
   }
 
@@ -77,27 +78,19 @@ export async function prepareQuiz(
   const userPrompt = buildQuizUserPrompt(request);
 
   try {
-    let raw = await completeJson({
+    const questions = await generateValidatedJson({
       config,
       systemPrompt,
-      messages: [{ role: 'user', content: userPrompt }],
+      userPrompt,
       signal: context.signal,
+      maxTokens: LIMITS.maxQuizOutputTokens,
+      parse: (raw) => {
+        const parsedQuestions = parseQuizJson(raw);
+        return parsedQuestions?.length === request.count
+          ? parsedQuestions
+          : null;
+      },
     });
-
-    let questions = parseQuizJson(raw);
-    if (!questions) {
-      raw = await completeJson({
-        config,
-        systemPrompt,
-        messages: [
-          { role: 'user', content: userPrompt },
-          { role: 'assistant', content: raw.slice(0, 4_000) },
-          { role: 'user', content: REPAIR_PROMPT },
-        ],
-        signal: context.signal,
-      });
-      questions = parseQuizJson(raw);
-    }
 
     if (!questions) {
       return {

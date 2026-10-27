@@ -16,6 +16,7 @@ interface SidebarProps {
   onRename: (conversation: Conversation) => void;
   onDelete: (conversation: Conversation) => void;
   onSettings: () => void;
+  onProgress: () => void;
   onToggleTheme: () => void;
   onClose?: () => void;
 }
@@ -52,6 +53,7 @@ export function Sidebar({
   onRename,
   onDelete,
   onSettings,
+  onProgress,
   onToggleTheme,
   onClose,
 }: SidebarProps) {
@@ -177,6 +179,14 @@ export function Sidebar({
         </p>
 
         <div className="sidebarFooterActions">
+          <button
+            type="button"
+            className="sidebarAction"
+            onClick={onProgress}
+          >
+            <Icon name="chart" size={17} />
+            Progreso
+          </button>
           <button
             type="button"
             className="sidebarAction"

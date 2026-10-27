@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { LIMITS } from '../limits';
-import { levelSchema, subjectSchema } from './common';
+import { difficultySchema, levelSchema, subjectSchema } from './common';
 
 const correctIndexSchema = z.union([
   z.literal(0),
@@ -44,10 +44,17 @@ export const quizRequestSchema = z.object({
     .max(LIMITS.maxTopicChars)
     .transform((value) => (value ? value : undefined))
     .optional(),
+  count: z
+    .union([z.literal(5), z.literal(10)])
+    .default(LIMITS.defaultQuizQuestions),
+  difficulty: difficultySchema.default('medium'),
 });
 
 export const quizContentSchema = z.object({
-  questions: z.array(quizQuestionSchema).length(LIMITS.quizQuestions),
+  questions: z
+    .array(quizQuestionSchema)
+    .min(LIMITS.minQuizQuestions)
+    .max(LIMITS.maxQuizQuestions),
 });
 
 export const quizResponseSchema = quizContentSchema.extend({

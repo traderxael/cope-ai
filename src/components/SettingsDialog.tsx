@@ -140,14 +140,17 @@ export function SettingsDialog({
           </span>
         </div>
         <p className="settingsHint">
-          Las conversaciones, las imágenes procesadas y el texto extraído de
-          los PDF se guardan en IndexedDB. El PDF original no se sube desde tu
-          dispositivo.
+          Las conversaciones, las imágenes procesadas, el texto extraído de los
+          PDF, las prácticas, las flashcards y los planes se guardan en
+          IndexedDB. El PDF original no se sube desde tu dispositivo.
         </p>
 
         {confirmClear ? (
           <div className="dangerConfirm" role="alert">
-            <p>¿Borrar todas las conversaciones guardadas? No se puede deshacer.</p>
+            <p>
+              ¿Borrar todas las conversaciones, prácticas, flashcards y planes
+              guardados? No se puede deshacer.
+            </p>
             <div className="dangerActions">
               <button
                 type="button"
@@ -174,7 +177,7 @@ export function SettingsDialog({
             onClick={() => setConfirmClear(true)}
           >
             <Icon name="trash" size={16} />
-            Borrar todo el historial
+            Borrar todo el historial y progreso
           </button>
         )}
       </div>

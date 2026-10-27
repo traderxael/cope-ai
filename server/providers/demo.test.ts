@@ -23,13 +23,23 @@ describe('demoQuiz', () => {
     first[0]!.options[0] = 'Cambiada';
     expect(demoQuiz('math')[0]!.options[0]).not.toBe('Cambiada');
   });
+
+  it('puede devolver diez preguntas válidas', () => {
+    for (const subject of ALL_SUBJECTS) {
+      const questions = demoQuiz(subject, 10);
+      expect(questions).toHaveLength(10);
+      expect(quizContentSchema.safeParse({ questions }).success, subject).toBe(
+        true,
+      );
+    }
+  });
 });
 
 describe('buildDemoAnswer', () => {
   it('el tutor muestra materia, nivel y una fórmula', () => {
     const answer = buildDemoAnswer({
       mode: 'tutor',
-      tutor: { subject: 'math', level: 'secundaria' },
+      tutor: { subject: 'math', level: 'secundaria', style: 'guided' },
       messages,
       hasImages: false,
       hasDocument: false,
@@ -44,7 +54,7 @@ describe('buildDemoAnswer', () => {
   it('el asistente incluye markdown y un bloque de código', () => {
     const answer = buildDemoAnswer({
       mode: 'assistant',
-      tutor: { subject: 'general', level: 'secundaria' },
+      tutor: { subject: 'general', level: 'secundaria', style: 'guided' },
       messages,
       hasImages: true,
       hasDocument: true,

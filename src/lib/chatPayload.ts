@@ -14,6 +14,25 @@ function safeDocumentName(name: string): string {
   return (clean || 'documento').slice(0, 90);
 }
 
+export interface ChatBuildNotices {
+  omittedImages: number;
+  truncatedDocuments: number;
+  droppedMessages: number;
+}
+
+export interface ChatBuildResult {
+  request: ChatRequest;
+  notices: ChatBuildNotices;
+}
+
+function emptyNotices(): ChatBuildNotices {
+  return {
+    omittedImages: 0,
+    truncatedDocuments: 0,
+    droppedMessages: 0,
+  };
+}
+
 function selectedImageIds(messages: StoredMessage[]): Set<string> {
   const selected = new Set<string>();
   for (
@@ -33,16 +52,43 @@ function selectedImageIds(messages: StoredMessage[]): Set<string> {
   return selected;
 }
 
-function buildUserText(message: StoredMessage): string {
+function buildUserText(
+  message: StoredMessage,
+  images: Set<string>,
+  notices: ChatBuildNotices,
+): string {
   const attachments = message.attachments ?? [];
-  const hasImages = attachments.some((attachment) => attachment.kind === 'image');
-  const fallback = hasImages
-    ? 'Analizá la imagen adjunta.'
-    : 'Analizá el material adjunto.';
-  let text = message.content.trim() || fallback;
+  const imageAttachments = attachments.filter(
+    (attachment) => attachment.kind === 'image',
+  );
+  const selectedImages = imageAttachments.filter(
+    (attachment) => attachment.dataUrl && images.has(attachment.id),
+  );
+  const hasImages = imageAttachments.length > 0;
+  const hasSelectedImage = selectedImages.length > 0;
+
+  if (hasImages && !hasSelectedImage) {
+    notices.omittedImages += imageAttachments.length;
+  }
+
+  let text = message.content.trim();
+  if (!text) {
+    text = hasImages
+      ? hasSelectedImage
+        ? 'Analizá la imagen adjunta.'
+        : 'Imagen anterior omitida del contexto.'
+      : 'Analizá el material adjunto.';
+  } else if (
+    hasImages &&
+    !hasSelectedImage &&
+    text === 'Analizá la imagen adjunta.'
+  ) {
+    text = 'Imagen anterior omitida del contexto.';
+  }
 
   for (const document of attachments) {
     if (document.kind !== 'pdf' || !document.text) continue;
+    if (document.truncated) notices.truncatedDocuments += 1;
     text += `\n\n[Documento adjunto: ${safeDocumentName(document.name)}]\n<documento>\n${document.text}\n</documento>`;
   }
 
@@ -50,6 +96,7 @@ function buildUserText(message: StoredMessage): string {
     text =
       text.slice(0, LIMITS.maxTextPerMessage - 40).trimEnd() +
       '\n\n[documento truncado]';
+    notices.truncatedDocuments += 1;
   }
   return text;
 }
@@ -57,8 +104,9 @@ function buildUserText(message: StoredMessage): string {
 function buildUserContent(
   message: StoredMessage,
   images: Set<string>,
+  notices: ChatBuildNotices,
 ): string | ContentPart[] | null {
-  const text = buildUserText(message);
+  const text = buildUserText(message, images, notices);
   const attachments = (message.attachments ?? []).filter(
     (attachment): attachment is StoredAttachment & { dataUrl: string } =>
       attachment.kind === 'image' &&
@@ -89,16 +137,22 @@ function textLength(content: string | ContentPart[]): number {
   );
 }
 
-function dropLeadingAssistant(messages: ChatMessage[]): void {
-  while (messages[0]?.role === 'assistant') messages.shift();
+function dropLeadingAssistant(messages: ChatMessage[]): number {
+  let dropped = 0;
+  while (messages[0]?.role === 'assistant') {
+    messages.shift();
+    dropped += 1;
+  }
+  return dropped;
 }
 
-export function buildChatRequest(
+export function buildChatRequestWithNotices(
   mode: ChatRequest['mode'],
   tutor: ChatRequest['tutor'],
   messages: StoredMessage[],
-): ChatRequest {
+): ChatBuildResult {
   const images = selectedImageIds(messages);
+  const notices = emptyNotices();
   const mapped: ChatMessage[] = [];
 
   for (const message of messages) {
@@ -116,13 +170,16 @@ export function buildChatRequest(
       continue;
     }
 
-    const content = buildUserContent(message, images);
+    const content = buildUserContent(message, images, notices);
     if (!content) continue;
     mapped.push({ role: 'user', content });
   }
 
-  while (mapped.length > LIMITS.maxMessages) mapped.shift();
-  dropLeadingAssistant(mapped);
+  while (mapped.length > LIMITS.maxMessages) {
+    mapped.shift();
+    notices.droppedMessages += 1;
+  }
+  notices.droppedMessages += dropLeadingAssistant(mapped);
 
   let total = mapped.reduce(
     (sum, message) => sum + textLength(message.content),
@@ -130,7 +187,8 @@ export function buildChatRequest(
   );
   while (total > LIMITS.maxTotalText && mapped.length > 1) {
     mapped.shift();
-    dropLeadingAssistant(mapped);
+    notices.droppedMessages += 1;
+    notices.droppedMessages += dropLeadingAssistant(mapped);
     total = mapped.reduce(
       (sum, message) => sum + textLength(message.content),
       0,
@@ -142,8 +200,40 @@ export function buildChatRequest(
   }
 
   return {
-    mode,
-    messages: mapped,
-    ...(mode === 'tutor' && tutor ? { tutor } : {}),
+    request: {
+      mode,
+      messages: mapped,
+      ...(mode === 'tutor' && tutor ? { tutor } : {}),
+    },
+    notices,
   };
+}
+
+export function buildChatRequest(
+  mode: ChatRequest['mode'],
+  tutor: ChatRequest['tutor'],
+  messages: StoredMessage[],
+): ChatRequest {
+  return buildChatRequestWithNotices(mode, tutor, messages).request;
+}
+
+export function contextNoticeMessage(
+  notices: ChatBuildNotices,
+): string | null {
+  const parts: string[] = [];
+  if (notices.omittedImages > 0) {
+    parts.push(
+      notices.omittedImages === 1
+        ? '1 imagen anterior omitida'
+        : `${notices.omittedImages} imágenes anteriores omitidas`,
+    );
+  }
+  if (notices.truncatedDocuments > 0) {
+    parts.push('se acortó el texto de un documento');
+  }
+  if (notices.droppedMessages > 0) {
+    parts.push('se recortaron mensajes antiguos');
+  }
+  if (parts.length === 0) return null;
+  return `Contexto ajustado: ${parts.join('; ')}.`;
 }

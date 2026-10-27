@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { chatRequestSchema } from '../../shared/schemas/chat';
-import { buildChatRequest } from './chatPayload';
+import {
+  buildChatRequest,
+  buildChatRequestWithNotices,
+  contextNoticeMessage,
+} from './chatPayload';
 import type { StoredAttachment, StoredMessage } from './storage';
 
 let counter = 0;
@@ -139,12 +143,13 @@ describe('buildChatRequest', () => {
   it('incluye configuración de tutor solo en modo tutor', () => {
     const tutor = buildChatRequest(
       'tutor',
-      { subject: 'physics', level: 'bachillerato' },
+      { subject: 'physics', level: 'bachillerato', style: 'guided' },
       [message('user', 'explícame')],
     );
     expect(tutor.tutor).toEqual({
       subject: 'physics',
       level: 'bachillerato',
+      style: 'guided',
     });
     expect(chatRequestSchema.safeParse(tutor).success).toBe(true);
 
@@ -165,5 +170,112 @@ describe('buildChatRequest', () => {
     expect(request.messages.length).toBeLessThanOrEqual(24);
     expect(request.messages[0]?.role).toBe('user');
     expect(request.messages[request.messages.length - 1]?.role).toBe('user');
+  });
+});
+
+describe('buildChatRequestWithNotices', () => {
+  it('avisa cuando una imagen vieja queda fuera del contexto', () => {
+    const { request, notices } = buildChatRequestWithNotices(
+      'assistant',
+      undefined,
+      [
+        message('user', '', [image('i1')]),
+        message('assistant', 'ok'),
+        message('user', '', [image('i2')]),
+        message('assistant', 'ok'),
+        message('user', '', [image('i3')]),
+      ],
+    );
+    expect(notices.omittedImages).toBe(1);
+    expect(request.messages[0]?.content).toBe(
+      'Imagen anterior omitida del contexto.',
+    );
+    expect(contextNoticeMessage(notices)).toBe(
+      'Contexto ajustado: 1 imagen anterior omitida.',
+    );
+  });
+
+  it('reemplaza el texto genérico de una imagen omitida', () => {
+    const { notices } = buildChatRequestWithNotices('assistant', undefined, [
+      message('user', 'Analizá la imagen adjunta.', [image('i1')]),
+      message('assistant', 'ok'),
+      message('user', '', [image('i2')]),
+      message('assistant', 'ok'),
+      message('user', '', [image('i3')]),
+    ]);
+    expect(notices.omittedImages).toBe(1);
+  });
+
+  it('avisa cuando el texto de un PDF viene truncado', () => {
+    const { notices } = buildChatRequestWithNotices('assistant', undefined, [
+      message('user', 'Resumí', [{ ...pdf('d1'), truncated: true }]),
+    ]);
+    expect(notices.truncatedDocuments).toBe(1);
+    expect(contextNoticeMessage(notices)).toContain(
+      'se acortó el texto de un documento',
+    );
+  });
+
+  it('cuenta los mensajes descartados por límites', () => {
+    const messages: StoredMessage[] = [];
+    for (let index = 0; index < 20; index += 1) {
+      messages.push(message('user', `pregunta ${index}`));
+      messages.push(message('assistant', `respuesta ${index}`));
+    }
+    messages.push(message('user', 'última'));
+    const { notices } = buildChatRequestWithNotices(
+      'assistant',
+      undefined,
+      messages,
+    );
+    expect(notices.droppedMessages).toBeGreaterThan(0);
+    expect(contextNoticeMessage(notices)).toContain(
+      'se recortaron mensajes antiguos',
+    );
+  });
+
+  it('no devuelve aviso cuando no se recortó nada', () => {
+    const { notices } = buildChatRequestWithNotices('assistant', undefined, [
+      message('user', 'hola'),
+      message('assistant', 'respuesta'),
+      message('user', 'seguimos'),
+    ]);
+    expect(notices).toEqual({
+      omittedImages: 0,
+      truncatedDocuments: 0,
+      droppedMessages: 0,
+    });
+    expect(contextNoticeMessage(notices)).toBeNull();
+  });
+});
+
+describe('contextNoticeMessage', () => {
+  it('concuerda singular y plural', () => {
+    expect(
+      contextNoticeMessage({
+        omittedImages: 1,
+        truncatedDocuments: 0,
+        droppedMessages: 0,
+      }),
+    ).toBe('Contexto ajustado: 1 imagen anterior omitida.');
+    expect(
+      contextNoticeMessage({
+        omittedImages: 2,
+        truncatedDocuments: 0,
+        droppedMessages: 0,
+      }),
+    ).toBe('Contexto ajustado: 2 imágenes anteriores omitidas.');
+  });
+
+  it('combina varios avisos', () => {
+    expect(
+      contextNoticeMessage({
+        omittedImages: 1,
+        truncatedDocuments: 2,
+        droppedMessages: 3,
+      }),
+    ).toBe(
+      'Contexto ajustado: 1 imagen anterior omitida; se acortó el texto de un documento; se recortaron mensajes antiguos.',
+    );
   });
 });

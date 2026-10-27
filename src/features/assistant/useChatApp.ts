@@ -4,7 +4,6 @@ import {
   DEFAULT_TUTOR,
   type ChatRequest,
   type Mode,
-  type QuizResponse,
   type TutorConfig,
 } from '../../../shared/types';
 import {
@@ -18,22 +17,31 @@ import {
   attachmentLimitError,
   prepareAttachment,
 } from '../../lib/attachments';
-import { buildChatRequest } from '../../lib/chatPayload';
+import {
+  buildChatRequestWithNotices,
+  contextNoticeMessage,
+} from '../../lib/chatPayload';
 import { isAbortError } from '../../lib/errors';
 import {
-  clearConversations,
+  clearAllData,
   deleteConversation as deleteStoredConversation,
   getConversation,
   listConversations,
   makeConversation,
   newId,
   saveConversation,
+  savePracticeResult,
   sortConversations,
   titleFromContent,
   type Conversation,
+  type PracticeResult,
   type StoredAttachment,
   type StoredMessage,
 } from '../../lib/storage';
+import {
+  type PracticeSession,
+  type PracticeSettings,
+} from '../study/practice';
 
 export interface ChatAppActions {
   newChat: () => void;
@@ -51,7 +59,9 @@ export interface ChatAppActions {
   dismissAttachmentError: () => void;
   dismissComposerError: () => void;
   dismissStorageError: () => void;
-  generatePractice: (topic?: string) => Promise<void>;
+  dismissContextNotice: () => void;
+  generatePractice: (settings: PracticeSettings) => Promise<void>;
+  recordPracticeResult: (result: PracticeResult) => Promise<void>;
   closeQuiz: () => void;
   dismissPracticeError: () => void;
 }
@@ -69,8 +79,9 @@ export interface ChatAppState {
   composerError: string | null;
   practiceLoading: boolean;
   practiceError: string | null;
-  quiz: QuizResponse | null;
+  quiz: PracticeSession | null;
   storageError: string | null;
+  contextNotice: string | null;
   actions: ChatAppActions;
 }
 
@@ -108,8 +119,9 @@ export function useChatApp(): ChatAppState {
   const [composerError, setComposerError] = useState<string | null>(null);
   const [practiceLoading, setPracticeLoading] = useState(false);
   const [practiceError, setPracticeError] = useState<string | null>(null);
-  const [quiz, setQuiz] = useState<QuizResponse | null>(null);
+  const [quiz, setQuiz] = useState<PracticeSession | null>(null);
   const [storageError, setStorageError] = useState<string | null>(null);
+  const [contextNotice, setContextNotice] = useState<string | null>(null);
 
   const mountedRef = useRef(true);
   const abortRef = useRef<AbortController | null>(null);
@@ -354,6 +366,7 @@ export function useChatApp(): ChatAppState {
     setPracticeLoading(false);
     setQuiz(null);
     setProcessing(false);
+    setContextNotice(null);
   }, []);
 
   const newChat = useCallback(() => {
@@ -420,13 +433,15 @@ export function useChatApp(): ChatAppState {
       };
 
       let request: ChatRequest;
+      let nextNotice: string | null;
       try {
-        const candidate = buildChatRequest(
+        const built = buildChatRequestWithNotices(
           next.mode,
           next.mode === 'tutor' ? next.tutor : undefined,
           next.messages,
         );
-        const parsed = chatRequestSchema.safeParse(candidate);
+        nextNotice = contextNoticeMessage(built.notices);
+        const parsed = chatRequestSchema.safeParse(built.request);
         if (!parsed.success) {
           setComposerError(
             'El mensaje o la conversación superan el límite permitido.',
@@ -444,6 +459,7 @@ export function useChatApp(): ChatAppState {
       setAttachmentError(null);
       setComposerError(null);
       setPracticeError(null);
+      setContextNotice(nextNotice);
       attachmentGenerationRef.current += 1;
 
       void persistConversation(next);
@@ -485,13 +501,15 @@ export function useChatApp(): ChatAppState {
     };
 
     let request: ChatRequest;
+    let nextNotice: string | null;
     try {
-      const candidate = buildChatRequest(
+      const built = buildChatRequestWithNotices(
         base.mode,
         base.mode === 'tutor' ? base.tutor : undefined,
         base.messages,
       );
-      const parsed = chatRequestSchema.safeParse(candidate);
+      nextNotice = contextNoticeMessage(built.notices);
+      const parsed = chatRequestSchema.safeParse(built.request);
       if (!parsed.success) {
         setComposerError(
           'La conversación ya no se puede enviar: supera el límite de contexto.',
@@ -506,6 +524,7 @@ export function useChatApp(): ChatAppState {
 
     applyActive(base);
     setComposerError(null);
+    setContextNotice(nextNotice);
     void persistConversation(base);
     startStreaming(request, base);
   }, [
@@ -543,10 +562,13 @@ export function useChatApp(): ChatAppState {
 
   const deleteConversation = useCallback(
     async (id: string) => {
-      const deletedActive = activeRef.current?.id === id ? activeRef.current : null;
+      const deletedActive =
+        activeRef.current?.id === id ? activeRef.current : null;
       deletedIdsRef.current.add(id);
-      if (deletedActive) abortRef.current?.abort();
-      resetTransient();
+      if (deletedActive) {
+        abortRef.current?.abort();
+        resetTransient();
+      }
 
       try {
         await deleteStoredConversation(id);
@@ -585,7 +607,7 @@ export function useChatApp(): ChatAppState {
     ids.forEach((id) => deletedIdsRef.current.add(id));
 
     try {
-      await clearConversations();
+      await clearAllData();
     } catch {
       ids.forEach((id) => deletedIdsRef.current.delete(id));
       setStorageError('No se pudo borrar el historial.');
@@ -689,10 +711,14 @@ export function useChatApp(): ChatAppState {
   }, []);
 
   const generatePractice = useCallback(
-    async (topic?: string) => {
+    async (settings: PracticeSettings) => {
       const current = activeRef.current;
       if (!current || practiceLoading || streaming) return;
 
+      const cleaned: PracticeSettings = {
+        ...settings,
+        topic: settings.topic?.trim() || undefined,
+      };
       const generation = quizGenerationRef.current + 1;
       quizGenerationRef.current = generation;
       const controller = new AbortController();
@@ -705,7 +731,9 @@ export function useChatApp(): ChatAppState {
           {
             subject: current.tutor.subject,
             level: current.tutor.level,
-            topic: topic?.trim() || undefined,
+            topic: cleaned.topic,
+            count: cleaned.count,
+            difficulty: cleaned.difficulty,
           },
           controller.signal,
         );
@@ -713,7 +741,14 @@ export function useChatApp(): ChatAppState {
           quizGenerationRef.current === generation &&
           mountedRef.current
         ) {
-          setQuiz(result);
+          setQuiz({
+            id: newId(),
+            quiz: result,
+            settings: cleaned,
+            subject: current.tutor.subject,
+            level: current.tutor.level,
+            startedAt: Date.now(),
+          });
           if (result.demo) setDemo(true);
         }
       } catch (error) {
@@ -739,6 +774,17 @@ export function useChatApp(): ChatAppState {
       }
     },
     [practiceLoading, streaming],
+  );
+
+  const recordPracticeResult = useCallback(
+    async (result: PracticeResult) => {
+      try {
+        await savePracticeResult(result);
+      } catch {
+        setStorageError('No se pudo guardar la práctica en este dispositivo.');
+      }
+    },
+    [],
   );
 
   const closeQuiz = useCallback(() => {
@@ -801,6 +847,7 @@ export function useChatApp(): ChatAppState {
     practiceError,
     quiz,
     storageError,
+    contextNotice,
     actions: {
       newChat,
       selectConversation,
@@ -817,7 +864,9 @@ export function useChatApp(): ChatAppState {
       dismissAttachmentError: () => setAttachmentError(null),
       dismissComposerError: () => setComposerError(null),
       dismissStorageError: () => setStorageError(null),
+      dismissContextNotice: () => setContextNotice(null),
       generatePractice,
+      recordPracticeResult,
       closeQuiz,
       dismissPracticeError: () => setPracticeError(null),
     },

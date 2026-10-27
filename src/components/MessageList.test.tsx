@@ -2,9 +2,13 @@
 
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import type { StoredMessage } from '../lib/storage';
 import { MessageList } from './MessageList';
+
+beforeAll(async () => {
+  await import('./Markdown');
+}, 60_000);
 
 function message(overrides: Partial<StoredMessage>): StoredMessage {
   return {
@@ -41,7 +45,7 @@ describe('MessageList', () => {
 
     expect(screen.getByText('Hola')).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'Respuesta' }),
+      await screen.findByRole('heading', { name: 'Respuesta' }),
     ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /Copiar/ }));
     expect(onCopy).toHaveBeenCalledWith(assistantContent);

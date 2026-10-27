@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { LIMITS } from '../limits';
-import { levelSchema, modeSchema, subjectSchema } from './common';
+import {
+  levelSchema,
+  modeSchema,
+  studyStyleSchema,
+  subjectSchema,
+} from './common';
 
 const IMAGE_DATA_URL =
   /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
@@ -60,6 +65,7 @@ export const chatMessageSchema = z
 export const tutorConfigSchema = z.object({
   subject: subjectSchema,
   level: levelSchema,
+  style: studyStyleSchema.default('guided'),
 });
 
 export const chatRequestSchema = z

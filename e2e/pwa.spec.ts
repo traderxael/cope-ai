@@ -29,16 +29,19 @@ test.describe('PWA', () => {
     expect(manifest.display).toBe('standalone');
     expect(manifest.icons.length).toBeGreaterThanOrEqual(2);
 
-    const apiCached = await page.evaluate(async () => {
+    const cachedUrls = await page.evaluate(async () => {
       const names = await caches.keys();
       const urls: string[] = [];
       for (const name of names) {
         const cache = await caches.open(name);
         for (const request of await cache.keys()) urls.push(request.url);
       }
-      return urls.some((url) => url.includes('/api/'));
+      return urls;
     });
-    expect(apiCached).toBe(false);
+    expect(cachedUrls.some((url) => url.includes('/api/'))).toBe(false);
+    expect(
+      cachedUrls.some((url) => url.includes('pdf.worker')),
+    ).toBe(true);
 
     await page
       .getByLabel('Mensaje para Cope')
@@ -75,6 +78,14 @@ test.describe('PWA', () => {
     await expect(
       page.getByRole('button', { name: 'Enviar mensaje' }),
     ).toBeDisabled();
+
+    await page.getByRole('button', { name: 'Tutor' }).click();
+    await expect(
+      page.locator('.tutorAside').getByRole('button', { name: 'Practicar' }),
+    ).toBeDisabled();
+    await expect(
+      page.locator('.tutorAside').getByRole('button', { name: 'Flashcards' }),
+    ).toBeEnabled();
 
     await context.setOffline(false);
   });

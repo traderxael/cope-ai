@@ -44,6 +44,29 @@ describe('prepareQuiz', () => {
     expect(result.quiz.questions).toHaveLength(5);
   });
 
+  it('genera diez preguntas cuando se piden', async () => {
+    const result = await prepareQuiz(
+      { ...validBody, count: 10, difficulty: 'hard' },
+      context,
+      { config: demoConfig, limiter: new RateLimiter() },
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.quiz.questions).toHaveLength(10);
+    expect(
+      new Set(result.quiz.questions.map((question) => question.id)).size,
+    ).toBe(10);
+  });
+
+  it('rechaza cantidades no soportadas', async () => {
+    const result = await prepareQuiz(
+      { ...validBody, count: 7 },
+      context,
+      { config: demoConfig, limiter: new RateLimiter() },
+    );
+    expect(result).toMatchObject({ ok: false, status: 400 });
+  });
+
   it('rechaza una solicitud inválida', async () => {
     const result = await prepareQuiz(
       { subject: 'math' },
@@ -83,6 +106,32 @@ describe('prepareQuiz', () => {
     if (!result.ok) return;
     expect(result.quiz.demo).toBe(false);
     expect(result.quiz.questions).toHaveLength(5);
+  });
+
+  it('parsea una práctica de diez preguntas del proveedor', async () => {
+    upstream = await startFakeUpstream((_record, response) => {
+      sendJsonUpstream(response, {
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({ questions: makeQuestions(10) }),
+            },
+          },
+        ],
+      });
+    });
+
+    const result = await prepareQuiz(
+      { ...validBody, count: 10 },
+      context,
+      {
+        config: providerConfig(upstream.baseUrl),
+        limiter: new RateLimiter(),
+      },
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.quiz.questions).toHaveLength(10);
   });
 
   it('tolera fences de markdown', async () => {

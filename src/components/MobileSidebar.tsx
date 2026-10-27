@@ -14,6 +14,7 @@ interface MobileSidebarProps {
   onRename: (conversation: Conversation) => void;
   onDelete: (conversation: Conversation) => void;
   onSettings: () => void;
+  onProgress: () => void;
   onToggleTheme: () => void;
 }
 
@@ -29,6 +30,7 @@ export function MobileSidebar({
   onRename,
   onDelete,
   onSettings,
+  onProgress,
   onToggleTheme,
 }: MobileSidebarProps) {
   return (
@@ -63,6 +65,10 @@ export function MobileSidebar({
         onSettings={() => {
           onClose();
           onSettings();
+        }}
+        onProgress={() => {
+          onClose();
+          onProgress();
         }}
         onToggleTheme={onToggleTheme}
         onClose={onClose}

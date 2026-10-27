@@ -1,9 +1,17 @@
 import { parseSseStream } from '../../shared/sse';
 import { quizResponseSchema } from '../../shared/schemas/quiz';
+import {
+  flashcardResponseSchema,
+  studyPlanResponseSchema,
+} from '../../shared/schemas/study';
 import type {
   ChatRequest,
+  FlashcardRequest,
+  FlashcardResponse,
   QuizRequest,
   QuizResponse,
+  StudyPlanRequest,
+  StudyPlanResponse,
 } from '../../shared/types';
 import { isAbortError } from './errors';
 
@@ -181,11 +189,89 @@ export async function requestQuiz(
   }
 
   const parsed = quizResponseSchema.safeParse(payload);
-  if (!parsed.success) {
+  if (!parsed.success || parsed.data.questions.length !== request.count) {
     throw new ApiError(
       502,
       'invalid_quiz',
       'La práctica llegó en un formato inválido.',
+    );
+  }
+  return parsed.data;
+}
+
+export async function requestFlashcards(
+  request: FlashcardRequest,
+  signal?: AbortSignal,
+): Promise<FlashcardResponse> {
+  const response = await fetch('/api/flashcards', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify(request),
+    cache: 'no-store',
+    signal,
+  });
+
+  if (!response.ok) throw await readError(response);
+
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new ApiError(
+      502,
+      'invalid_flashcards',
+      'Las flashcards llegaron en un formato inválido.',
+    );
+  }
+
+  const parsed = flashcardResponseSchema.safeParse(payload);
+  if (!parsed.success || parsed.data.cards.length !== request.count) {
+    throw new ApiError(
+      502,
+      'invalid_flashcards',
+      'Las flashcards llegaron en un formato inválido.',
+    );
+  }
+  return parsed.data;
+}
+
+export async function requestStudyPlan(
+  request: StudyPlanRequest,
+  signal?: AbortSignal,
+): Promise<StudyPlanResponse> {
+  const response = await fetch('/api/study-plan', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify(request),
+    cache: 'no-store',
+    signal,
+  });
+
+  if (!response.ok) throw await readError(response);
+
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new ApiError(
+      502,
+      'invalid_plan',
+      'El plan de estudio llegó en un formato inválido.',
+    );
+  }
+
+  const parsed = studyPlanResponseSchema.safeParse(payload);
+  if (!parsed.success || parsed.data.plan.days.length !== request.days) {
+    throw new ApiError(
+      502,
+      'invalid_plan',
+      'El plan de estudio llegó en un formato inválido.',
     );
   }
   return parsed.data;

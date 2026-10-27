@@ -17,11 +17,13 @@ test.describe('adjuntos', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
 
-    await page.locator('input[type=file]').setInputFiles({
-      name: 'pixel.png',
-      mimeType: 'image/png',
-      buffer: PNG,
-    });
+    await page
+      .getByLabel('Seleccionar archivo para adjuntar')
+      .setInputFiles({
+        name: 'pixel.png',
+        mimeType: 'image/png',
+        buffer: PNG,
+      });
     await expect(page.getByText('pixel.png')).toBeVisible();
 
     const chatRequest = page.waitForRequest(
@@ -66,11 +68,13 @@ test.describe('adjuntos', () => {
     const pdf = await pdfPage.pdf({ format: 'A4' });
     await pdfPage.close();
 
-    await page.locator('input[type=file]').setInputFiles({
-      name: 'notas.pdf',
-      mimeType: 'application/pdf',
-      buffer: pdf,
-    });
+    await page
+      .getByLabel('Seleccionar archivo para adjuntar')
+      .setInputFiles({
+        name: 'notas.pdf',
+        mimeType: 'application/pdf',
+        buffer: pdf,
+      });
     await expect(page.getByText('notas.pdf')).toBeVisible({
       timeout: 20_000,
     });
@@ -98,13 +102,62 @@ test.describe('adjuntos', () => {
     );
   });
 
+  test('escanea una tarea con la cámara trasera', async ({ page }) => {
+    const JPEG = await sharp({
+      create: {
+        width: 64,
+        height: 64,
+        channels: 3,
+        background: '#f4c430',
+      },
+    })
+      .jpeg()
+      .toBuffer();
+
+    await page.goto('/');
+    const camera = page.getByLabel('Seleccionar foto de la tarea');
+    await expect(camera).toHaveAttribute('capture', 'environment');
+    await expect(camera).toHaveAttribute('accept', 'image/*');
+
+    await camera.setInputFiles({
+      name: 'tarea.jpg',
+      mimeType: 'image/jpeg',
+      buffer: JPEG,
+    });
+    await expect(page.getByText('tarea.jpg')).toBeVisible();
+
+    const chatRequest = page.waitForRequest(
+      (request) =>
+        request.url().includes('/api/chat') && request.method() === 'POST',
+    );
+    await page.getByLabel('Mensaje para Cope').fill('Resolvé esta tarea');
+    await page.getByRole('button', { name: 'Enviar mensaje' }).click();
+
+    const body = (await chatRequest).postDataJSON() as {
+      messages: Array<{ content: unknown }>;
+    };
+    const content = body.messages[0]?.content;
+    expect(Array.isArray(content)).toBe(true);
+    expect(
+      (content as Array<{ type: string }>).filter(
+        (part) => part.type === 'image_url',
+      ),
+    ).toHaveLength(1);
+    await expect(page.locator('.assistantRow').last()).toContainText(
+      'Recibí una imagen',
+      { timeout: 20_000 },
+    );
+  });
+
   test('muestra un error con un archivo no soportado', async ({ page }) => {
     await page.goto('/');
-    await page.locator('input[type=file]').setInputFiles({
-      name: 'notas.txt',
-      mimeType: 'text/plain',
-      buffer: Buffer.from('hola'),
-    });
+    await page
+      .getByLabel('Seleccionar archivo para adjuntar')
+      .setInputFiles({
+        name: 'notas.txt',
+        mimeType: 'text/plain',
+        buffer: Buffer.from('hola'),
+      });
     await expect(page.getByRole('alert')).toContainText(
       'Solo se pueden adjuntar',
     );

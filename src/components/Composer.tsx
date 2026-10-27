@@ -40,6 +40,7 @@ export function Composer({
 }: ComposerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const dragDepthRef = useRef(0);
   const [dragging, setDragging] = useState(false);
 
@@ -138,6 +139,7 @@ export function Composer({
                   </span>
                   <span className="attachmentSize">
                     {formatBytes(attachment.size)}
+                    {attachment.truncated ? ' · texto truncado' : ''}
                   </span>
                 </span>
                 <button
@@ -173,6 +175,19 @@ export function Composer({
               event.target.value = '';
             }}
           />
+          <input
+            ref={cameraInputRef}
+            type="file"
+            className="srOnly"
+            accept="image/*"
+            capture="environment"
+            tabIndex={-1}
+            aria-label="Seleccionar foto de la tarea"
+            onChange={(event) => {
+              pickFiles(event.target.files);
+              event.target.value = '';
+            }}
+          />
           <button
             type="button"
             className="composerTool"
@@ -182,6 +197,16 @@ export function Composer({
             disabled={processing || streaming}
           >
             <Icon name="paperclip" size={20} />
+          </button>
+          <button
+            type="button"
+            className="composerTool cameraTool"
+            aria-label="Escanear tarea con la cámara"
+            title="Escanear tarea con la cámara"
+            onClick={() => cameraInputRef.current?.click()}
+            disabled={processing || streaming}
+          >
+            <Icon name="camera" size={20} />
           </button>
 
           <textarea

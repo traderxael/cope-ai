@@ -15,6 +15,42 @@ test.describe('accesibilidad', () => {
     expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
   });
 
+  test('los diálogos de estudio no tienen violaciones graves', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Tutor' }).click();
+    const panel = page.locator('.tutorAside');
+    await expect(panel).toBeVisible();
+
+    const dialog = page.locator('dialog[open]');
+    const checkDialog = async () => {
+      const results = await new AxeBuilder({ page }).analyze();
+      const serious = results.violations.filter(
+        (violation) =>
+          violation.impact === 'serious' || violation.impact === 'critical',
+      );
+      expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
+    };
+
+    await panel.getByRole('button', { name: 'Flashcards' }).click();
+    await expect(dialog.getByRole('heading', { name: 'Flashcards' })).toBeVisible();
+    await checkDialog();
+    await dialog.getByRole('button', { name: 'Cerrar', exact: true }).click();
+
+    await panel.getByRole('button', { name: 'Plan de examen' }).click();
+    await expect(
+      dialog.getByRole('heading', { name: 'Plan de examen' }),
+    ).toBeVisible();
+    await checkDialog();
+    await dialog.getByRole('button', { name: 'Cerrar', exact: true }).click();
+
+    await panel.getByRole('button', { name: 'Progreso' }).click();
+    await expect(dialog.getByRole('heading', { name: 'Progreso' })).toBeVisible();
+    await checkDialog();
+  });
+
   test('el enlace de salto recibe foco', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');

@@ -1,13 +1,30 @@
-import { useEffect, useRef, useState } from 'react';
-import type { QuizResponse } from '../../../shared/types';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import {
+  DIFFICULTY_LABELS,
+  LEVEL_LABELS,
+  SUBJECT_LABELS,
+} from '../../../shared/types';
+import {
+  practiceTimeLimitSeconds,
+  type PracticeSession,
+  type PracticeSettings,
+} from '../study/practice';
+import { newId, type PracticeResult } from '../../lib/storage';
 import { Icon } from '../../components/Icon';
 
 interface QuizCardProps {
-  quiz: QuizResponse;
+  session: PracticeSession;
   label: string;
   onClose: () => void;
-  onRetry: () => void;
+  onRetry: (settings: PracticeSettings) => void;
   retrying: boolean;
+  online: boolean;
+  onComplete: (result: PracticeResult) => void;
 }
 
 function scoreMessage(score: number, total: number): string {
@@ -18,25 +35,34 @@ function scoreMessage(score: number, total: number): string {
   return 'Es un buen punto de partida. Revisá las explicaciones y probá otra vez.';
 }
 
+function formatTime(seconds: number): string {
+  const safe = Math.max(0, seconds);
+  const minutes = Math.floor(safe / 60);
+  const rest = safe % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`;
+}
+
 export function QuizCard({
-  quiz,
+  session,
   label,
   onClose,
   onRetry,
   retrying,
+  online,
+  onComplete,
 }: QuizCardProps) {
+  const { quiz, settings } = session;
+  const timeLimitSeconds = practiceTimeLimitSeconds(settings);
   const cardRef = useRef<HTMLElement>(null);
+  const feedbackRefs = useRef<Array<HTMLParagraphElement | null>>([]);
+  const completedRef = useRef(false);
   const [answers, setAnswers] = useState<Array<number | null>>(() =>
     Array.from({ length: quiz.questions.length }, () => null),
   );
-
-  useEffect(() => {
-    setAnswers(Array.from({ length: quiz.questions.length }, () => null));
-  }, [quiz]);
-
-  useEffect(() => {
-    cardRef.current?.scrollIntoView?.({ block: 'start', behavior: 'auto' });
-  }, []);
+  const [completed, setCompleted] = useState(false);
+  const [expired, setExpired] = useState(false);
+  const [remaining, setRemaining] = useState(timeLimitSeconds);
+  const [timerNotice, setTimerNotice] = useState('');
 
   const answeredCount = answers.filter((answer) => answer !== null).length;
   const allAnswered = answeredCount === quiz.questions.length;
@@ -46,13 +72,88 @@ export function QuizCard({
     0,
   );
 
+  useEffect(() => {
+    cardRef.current?.scrollIntoView?.({ block: 'start', behavior: 'auto' });
+  }, []);
+
+  const finish = useCallback(
+    (isExpired: boolean) => {
+      if (completedRef.current) return;
+      completedRef.current = true;
+      const completedAt = Date.now();
+      const elapsed = Math.max(
+        0,
+        Math.round((completedAt - session.startedAt) / 1000),
+      );
+      const finalScore = quiz.questions.reduce(
+        (total, question, index) =>
+          answers[index] === question.correctIndex ? total + 1 : total,
+        0,
+      );
+      setCompleted(true);
+      setExpired(isExpired);
+      onComplete({
+        id: newId(),
+        subject: session.subject,
+        level: session.level,
+        difficulty: settings.difficulty,
+        topic: settings.topic,
+        questionCount: quiz.questions.length,
+        timed: settings.timed,
+        durationSeconds: settings.timed
+          ? Math.min(elapsed, timeLimitSeconds)
+          : elapsed,
+        startedAt: session.startedAt,
+        completedAt,
+        score: finalScore,
+        questions: quiz.questions,
+        answers,
+      });
+    },
+    [answers, onComplete, quiz.questions, session, settings, timeLimitSeconds],
+  );
+
+  useEffect(() => {
+    if (allAnswered) finish(false);
+  }, [allAnswered, finish]);
+
+  useEffect(() => {
+    if (!settings.timed || completed) return;
+    const update = () => {
+      const elapsed = Math.floor((Date.now() - session.startedAt) / 1000);
+      const seconds = Math.max(0, timeLimitSeconds - elapsed);
+      setRemaining(seconds);
+      if (seconds <= 0) finish(true);
+    };
+    update();
+    const interval = window.setInterval(update, 1000);
+    return () => window.clearInterval(interval);
+  }, [
+    completed,
+    finish,
+    session.startedAt,
+    settings.timed,
+    timeLimitSeconds,
+  ]);
+
+  useEffect(() => {
+    if (!settings.timed) return;
+    if ([60, 30, 10].includes(remaining)) {
+      setTimerNotice(`Quedan ${remaining} segundos.`);
+    }
+  }, [remaining, settings.timed]);
+
   const answer = (questionIndex: number, optionIndex: number) => {
+    if (completed) return;
     setAnswers((previous) => {
       if (previous[questionIndex] !== null) return previous;
       const next = [...previous];
       next[questionIndex] = optionIndex;
       return next;
     });
+    window.setTimeout(() => {
+      feedbackRefs.current[questionIndex]?.focus();
+    }, 30);
   };
 
   return (
@@ -61,8 +162,25 @@ export function QuizCard({
         <div>
           <p className="eyebrow">Práctica</p>
           <h2 id="quiz-title">{label}</h2>
+          <p className="quizMeta">
+            {SUBJECT_LABELS[session.subject]} · {LEVEL_LABELS[session.level]} ·{' '}
+            {DIFFICULTY_LABELS[settings.difficulty]} ·{' '}
+            {quiz.questions.length} preguntas
+          </p>
         </div>
         <div className="quizHeaderActions">
+          {settings.timed ? (
+            <span
+              className={
+                remaining <= 30 ? 'quizTimer isUrgent' : 'quizTimer'
+              }
+              role="timer"
+              aria-label="Tiempo restante"
+            >
+              <Icon name="timer" size={16} />
+              {formatTime(remaining)}
+            </span>
+          ) : null}
           {quiz.demo ? <span className="chip demoChip">Demo</span> : null}
           <button
             type="button"
@@ -74,6 +192,10 @@ export function QuizCard({
           </button>
         </div>
       </header>
+
+      <p className="srOnly" aria-live="polite">
+        {timerNotice}
+      </p>
 
       <div className="quizProgressRow">
         <div
@@ -104,7 +226,7 @@ export function QuizCard({
             <fieldset
               className="quizQuestion"
               key={question.id}
-              disabled={answered}
+              disabled={answered || completed}
             >
               <legend>
                 <span className="quizNumber">
@@ -137,7 +259,7 @@ export function QuizCard({
                         value={optionIndex}
                         checked={selected === optionIndex}
                         onChange={() => answer(questionIndex, optionIndex)}
-                        disabled={answered}
+                        disabled={answered || completed}
                       />
                       <span className="optionLetter">
                         {String.fromCharCode(65 + optionIndex)}
@@ -162,6 +284,10 @@ export function QuizCard({
               </div>
               {answered ? (
                 <p
+                  ref={(element) => {
+                    feedbackRefs.current[questionIndex] = element;
+                  }}
+                  tabIndex={-1}
                   className={
                     selected === question.correctIndex
                       ? 'quizFeedback isCorrect'
@@ -180,22 +306,31 @@ export function QuizCard({
         })}
       </form>
 
-      {allAnswered ? (
+      {completed ? (
         <div className="quizSummary" role="status">
           <div>
-            <p className="eyebrow">Resultado</p>
+            <p className="eyebrow">
+              {expired ? 'Tiempo agotado' : 'Resultado'}
+            </p>
             <p className="quizScore">
               {score}
               <span> / {quiz.questions.length}</span>
             </p>
-            <p>{scoreMessage(score, quiz.questions.length)}</p>
+            <p>
+              {expired
+                ? 'Se terminó el tiempo. Revisá las explicaciones y probá otra vez.'
+                : scoreMessage(score, quiz.questions.length)}
+            </p>
+            <p className="quizSavedNote">
+              Resultado guardado en este dispositivo.
+            </p>
           </div>
           <div className="quizSummaryActions">
             <button
               type="button"
               className="button secondary"
-              onClick={onRetry}
-              disabled={retrying}
+              onClick={() => onRetry(settings)}
+              disabled={retrying || !online}
             >
               {retrying ? (
                 <>
@@ -217,7 +352,9 @@ export function QuizCard({
       ) : (
         <p className="quizHint">
           <Icon name="info" size={15} />
-          Elegí una opción en cada pregunta para ver el resultado.
+          {settings.timed
+            ? 'El tiempo corre. Elegí una opción en cada pregunta.'
+            : 'Elegí una opción en cada pregunta para ver el resultado.'}
         </p>
       )}
     </section>

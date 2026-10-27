@@ -5,7 +5,9 @@
   "outputDirectory": "dist",
   "functions": {
     "api/chat.ts": { "maxDuration": 60 },
-    "api/quiz.ts": { "maxDuration": 60 }
+    "api/quiz.ts": { "maxDuration": 60 },
+    "api/flashcards.ts": { "maxDuration": 60 },
+    "api/study-plan.ts": { "maxDuration": 60 }
   },
   "headers": [
     {

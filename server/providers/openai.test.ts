@@ -36,6 +36,7 @@ function config(baseUrl: string, overrides: Partial<ServerConfig> = {}): ServerC
     tokenParam: 'max_tokens',
     rateLimitPerMinute: 10,
     quizRateLimitPerMinute: 5,
+    studyRateLimitPerMinute: 5,
     demoDelayMs: 0,
     upstreamTimeoutMs: 1_000,
     ...overrides,
