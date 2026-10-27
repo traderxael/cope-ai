@@ -30,6 +30,12 @@ export default defineConfig({
     env: {
       COPE_DEMO: '1',
       COPE_DEMO_DELAY_MS: '8',
+      COPE_RATE_LIMIT_PER_MINUTE: '100',
+      COPE_QUIZ_RATE_LIMIT_PER_MINUTE: '100',
+      COPE_STUDY_RATE_LIMIT_PER_MINUTE: '100',
+      COPE_ORAL_RATE_LIMIT_PER_MINUTE: '100',
+      COPE_TTS_RATE_LIMIT_PER_MINUTE: '100',
+      COPE_VOICE_CLONE_RATE_LIMIT_PER_MINUTE: '100',
     },
   },
 });
