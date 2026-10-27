@@ -101,9 +101,11 @@ export async function prepareVoiceClone(
   try {
     const form = new FormData();
     form.append('name', `Cope AI ${new Date().toISOString().slice(0, 19)}`);
+    const sample = new Uint8Array(audio.byteLength);
+    sample.set(audio);
     form.append(
       'files',
-      new Blob([audio], { type: 'audio/mpeg' }),
+      new Blob([sample], { type: 'audio/mpeg' }),
       'muestra.mp3',
     );
     const response = await fetchImpl('https://api.elevenlabs.io/v1/voices/add', {
