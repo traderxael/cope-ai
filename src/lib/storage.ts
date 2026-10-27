@@ -4,6 +4,10 @@ import {
   type Difficulty,
   type Level,
   type Mode,
+  type OralExamConfig,
+  type OralGradeResponse,
+  type OralQuestion,
+  type PersonalityConfig,
   type PlanTaskType,
   type QuizQuestion,
   type Subject,
@@ -31,6 +35,8 @@ export interface StoredMessage {
   demo?: boolean;
   stopped?: boolean;
   error?: boolean;
+  pending?: boolean;
+  incomplete?: boolean;
 }
 
 export interface Conversation {
@@ -106,6 +112,19 @@ export interface StudyPlan {
   updatedAt: number;
 }
 
+export interface OralExamSession {
+  id: string;
+  config: OralExamConfig;
+  personality: PersonalityConfig;
+  questions: OralQuestion[];
+  answers: Record<string, string>;
+  grade?: OralGradeResponse;
+  status: 'in_progress' | 'graded';
+  startedAt: number;
+  completedAt?: number;
+  updatedAt: number;
+}
+
 interface CopeDatabase extends DBSchema {
   conversations: {
     key: string;
@@ -127,10 +146,15 @@ interface CopeDatabase extends DBSchema {
     value: StudyPlan;
     indexes: { 'by-created': number };
   };
+  oralExams: {
+    key: string;
+    value: OralExamSession;
+    indexes: { 'by-updated': number };
+  };
 }
 
 const DB_NAME = 'cope-ai';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 let databasePromise: Promise<IDBPDatabase<CopeDatabase>> | null = null;
 let persistenceRequested = false;
@@ -147,6 +171,18 @@ function normalizeConversation(conversation: Conversation): Conversation {
   return {
     ...conversation,
     tutor: normalizeTutor(conversation.tutor),
+    messages: conversation.messages.map((message) =>
+      message.pending
+        ? {
+            ...message,
+            pending: false,
+            error: true,
+            content:
+              message.content.trim() ||
+              'La respuesta se interrumpió antes de guardarse. Probá de nuevo.',
+          }
+        : message,
+    ),
   };
 }
 
@@ -181,6 +217,13 @@ function database() {
             keyPath: 'id',
           });
           store.createIndex('by-created', 'createdAt');
+        }
+
+        if (!db.objectStoreNames.contains('oralExams')) {
+          const store = db.createObjectStore('oralExams', {
+            keyPath: 'id',
+          });
+          store.createIndex('by-updated', 'updatedAt');
         }
 
         if (
@@ -298,13 +341,20 @@ export async function clearConversations(): Promise<void> {
 export async function clearAllData(): Promise<void> {
   const db = await database();
   const transaction = db.transaction(
-    ['conversations', 'practiceResults', 'flashcardDecks', 'studyPlans'],
+    [
+      'conversations',
+      'practiceResults',
+      'flashcardDecks',
+      'studyPlans',
+      'oralExams',
+    ],
     'readwrite',
   );
   await transaction.objectStore('conversations').clear();
   await transaction.objectStore('practiceResults').clear();
   await transaction.objectStore('flashcardDecks').clear();
   await transaction.objectStore('studyPlans').clear();
+  await transaction.objectStore('oralExams').clear();
   await transaction.done;
 }
 
@@ -382,6 +432,27 @@ export async function listStudyPlans(): Promise<StudyPlan[]> {
 export async function deleteStudyPlan(id: string): Promise<void> {
   const db = await database();
   const transaction = db.transaction('studyPlans', 'readwrite');
+  await transaction.store.delete(id);
+  await transaction.done;
+}
+
+export async function saveOralExam(session: OralExamSession): Promise<void> {
+  const db = await database();
+  const transaction = db.transaction('oralExams', 'readwrite');
+  await transaction.store.put(session);
+  await transaction.done;
+  void requestStoragePersistence();
+}
+
+export async function listOralExams(): Promise<OralExamSession[]> {
+  const db = await database();
+  const all = await db.getAllFromIndex('oralExams', 'by-updated');
+  return all.reverse();
+}
+
+export async function deleteOralExam(id: string): Promise<void> {
+  const db = await database();
+  const transaction = db.transaction('oralExams', 'readwrite');
   await transaction.store.delete(id);
   await transaction.done;
 }

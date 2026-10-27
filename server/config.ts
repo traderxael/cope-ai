@@ -11,6 +11,14 @@ export interface ServerConfig {
   rateLimitPerMinute: number;
   quizRateLimitPerMinute: number;
   studyRateLimitPerMinute: number;
+  oralRateLimitPerMinute: number;
+  ttsRateLimitPerMinute: number;
+  voiceCloneRateLimitPerMinute: number;
+  elevenLabsApiKey: string | null;
+  elevenLabsVoiceId: string | null;
+  elevenLabsModelId: string;
+  voiceCloneEnabled: boolean;
+  voiceCloneCode: string | null;
   demoDelayMs: number;
   upstreamTimeoutMs: number;
 }
@@ -77,6 +85,30 @@ export function readServerConfig(
       1,
       60,
     ),
+    oralRateLimitPerMinute: readInteger(
+      env.COPE_ORAL_RATE_LIMIT_PER_MINUTE,
+      LIMITS.oralRateLimitPerMinute,
+      1,
+      30,
+    ),
+    ttsRateLimitPerMinute: readInteger(
+      env.COPE_TTS_RATE_LIMIT_PER_MINUTE,
+      LIMITS.ttsRateLimitPerMinute,
+      1,
+      60,
+    ),
+    voiceCloneRateLimitPerMinute: readInteger(
+      env.COPE_VOICE_CLONE_RATE_LIMIT_PER_MINUTE,
+      LIMITS.voiceCloneRateLimitPerMinute,
+      1,
+      10,
+    ),
+    elevenLabsApiKey: env.ELEVENLABS_API_KEY?.trim() || null,
+    elevenLabsVoiceId: env.ELEVENLABS_VOICE_ID?.trim() || null,
+    elevenLabsModelId:
+      env.ELEVENLABS_MODEL_ID?.trim() || 'eleven_multilingual_v2',
+    voiceCloneEnabled: env.COPE_VOICE_CLONE === '1',
+    voiceCloneCode: env.COPE_VOICE_CLONE_CODE?.trim() || null,
     demoDelayMs: readInteger(
       env.COPE_DEMO_DELAY_MS,
       LIMITS.demoDelayMs,

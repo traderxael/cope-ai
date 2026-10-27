@@ -127,14 +127,27 @@ test.describe('suite de estudio', () => {
     await expect(dialog.locator('.flashcardCard')).toBeVisible({
       timeout: 20_000,
     });
-    await dialog.getByRole('button', { name: 'Mostrar respuesta' }).click();
-    await expect(dialog.locator('.flashcardBack')).toBeVisible();
-    await dialog.getByRole('button', { name: 'Bien' }).click();
-    await expect(dialog.locator('.studyDialogToolbar')).toContainText('1 de 6');
+    for (let index = 0; index < 6; index += 1) {
+      await dialog.getByRole('button', { name: 'Mostrar respuesta' }).click();
+      await expect(dialog.locator('.flashcardBack')).toBeVisible();
+      await dialog.getByRole('button', { name: 'Bien' }).click();
+      if (index < 5) {
+        await expect(dialog.locator('.studyDialogToolbar')).toContainText(
+          `${index + 1} de 6`,
+        );
+      }
+    }
+    await expect(dialog.locator('.studyEmpty')).toContainText(
+      'Repaso completo',
+    );
 
     await dialog.getByRole('button', { name: 'Volver' }).click();
     await expect(dialog.locator('.deckItem')).toHaveCount(1);
     await expect(dialog.locator('.deckItem')).toContainText('6 tarjetas');
+    await dialog.getByRole('button', { name: 'Repasar' }).click();
+    await expect(dialog.locator('.studyEmpty')).toContainText('Todo al día');
+    await dialog.getByRole('button', { name: 'Repasar igual' }).click();
+    await expect(dialog.locator('.flashcardCard')).toBeVisible();
     await dialog.getByRole('button', { name: 'Cerrar', exact: true }).click();
     await expect(dialog).toBeHidden();
 

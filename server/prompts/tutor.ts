@@ -1,12 +1,18 @@
 import {
+  DEFAULT_PERSONALITY,
   LEVEL_LABELS,
   STUDY_STYLE_LABELS,
   SUBJECT_LABELS,
+  type PersonalityConfig,
   type TutorConfig,
 } from '../../shared/types.js';
+import { buildPersonalityFragment } from './personality.js';
 
-export function buildTutorSystemPrompt(tutor: TutorConfig): string {
-  return `Sos Cope, un tutor académico para estudiantes hispanohablantes.
+export function buildTutorSystemPrompt(
+  tutor: TutorConfig,
+  personality: PersonalityConfig = DEFAULT_PERSONALITY,
+): string {
+  return `Sos ${personality.name}, un tutor académico para estudiantes hispanohablantes.
 
 Materia: ${SUBJECT_LABELS[tutor.subject]}
 Nivel: ${LEVEL_LABELS[tutor.level]}
@@ -38,5 +44,6 @@ Estilo Guiado:
 Estilo Solución:
 - Mostrá una resolución completa y ordenada, con los pasos justificados.
 - Incluí el resultado final claramente marcado y una comprobación.
-- Señalá el error más frecuente y un consejo para evitarlo.`;
+- Señalá el error más frecuente y un consejo para evitarlo.
+${buildPersonalityFragment(personality)}`;
 }

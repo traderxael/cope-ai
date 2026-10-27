@@ -24,7 +24,7 @@ interface QuizCardProps {
   onRetry: (settings: PracticeSettings) => void;
   retrying: boolean;
   online: boolean;
-  onComplete: (result: PracticeResult) => void;
+  onComplete: (result: PracticeResult) => Promise<boolean> | boolean;
 }
 
 function scoreMessage(score: number, total: number): string {
@@ -56,6 +56,10 @@ export function QuizCard({
   const cardRef = useRef<HTMLElement>(null);
   const feedbackRefs = useRef<Array<HTMLParagraphElement | null>>([]);
   const completedRef = useRef(false);
+  const lastResultRef = useRef<PracticeResult | null>(null);
+  const [saveState, setSaveState] = useState<
+    'saving' | 'saved' | 'error' | null
+  >(null);
   const [answers, setAnswers] = useState<Array<number | null>>(() =>
     Array.from({ length: quiz.questions.length }, () => null),
   );
@@ -76,6 +80,17 @@ export function QuizCard({
     cardRef.current?.scrollIntoView?.({ block: 'start', behavior: 'auto' });
   }, []);
 
+  const saveResult = useCallback(
+    (result: PracticeResult) => {
+      lastResultRef.current = result;
+      setSaveState('saving');
+      void Promise.resolve(onComplete(result))
+        .then((saved) => setSaveState(saved ? 'saved' : 'error'))
+        .catch(() => setSaveState('error'));
+    },
+    [onComplete],
+  );
+
   const finish = useCallback(
     (isExpired: boolean) => {
       if (completedRef.current) return;
@@ -90,9 +105,7 @@ export function QuizCard({
           answers[index] === question.correctIndex ? total + 1 : total,
         0,
       );
-      setCompleted(true);
-      setExpired(isExpired);
-      onComplete({
+      const result: PracticeResult = {
         id: newId(),
         subject: session.subject,
         level: session.level,
@@ -108,9 +121,19 @@ export function QuizCard({
         score: finalScore,
         questions: quiz.questions,
         answers,
-      });
+      };
+      setCompleted(true);
+      setExpired(isExpired);
+      saveResult(result);
     },
-    [answers, onComplete, quiz.questions, session, settings, timeLimitSeconds],
+    [
+      answers,
+      quiz.questions,
+      saveResult,
+      session,
+      settings,
+      timeLimitSeconds,
+    ],
   );
 
   useEffect(() => {
@@ -321,9 +344,32 @@ export function QuizCard({
                 ? 'Se terminó el tiempo. Revisá las explicaciones y probá otra vez.'
                 : scoreMessage(score, quiz.questions.length)}
             </p>
-            <p className="quizSavedNote">
-              Resultado guardado en este dispositivo.
+            <p
+              className={
+                saveState === 'error'
+                  ? 'quizSavedNote isError'
+                  : 'quizSavedNote'
+              }
+              role="status"
+            >
+              {saveState === 'saving'
+                ? 'Guardando resultado…'
+                : saveState === 'error'
+                  ? 'No se pudo guardar el resultado en este dispositivo.'
+                  : 'Resultado guardado en este dispositivo.'}
             </p>
+            {saveState === 'error' ? (
+              <button
+                type="button"
+                className="textButton"
+                onClick={() => {
+                  if (lastResultRef.current) saveResult(lastResultRef.current);
+                }}
+              >
+                <Icon name="refresh" size={15} />
+                Guardar de nuevo
+              </button>
+            ) : null}
           </div>
           <div className="quizSummaryActions">
             <button

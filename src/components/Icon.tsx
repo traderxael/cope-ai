@@ -35,7 +35,9 @@ export type IconName =
   | 'calendar'
   | 'chart'
   | 'timer'
-  | 'target';
+  | 'target'
+  | 'mic'
+  | 'volume';
 
 const PATHS: Record<IconName, ReactNode> = {
   menu: (
@@ -242,6 +244,20 @@ const PATHS: Record<IconName, ReactNode> = {
       <circle cx="12" cy="12" r="9" />
       <circle cx="12" cy="12" r="5" />
       <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+    </>
+  ),
+  mic: (
+    <>
+      <path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z" />
+      <path d="M5 11a7 7 0 0 0 14 0" />
+      <path d="M12 18v3M8 21h8" />
+    </>
+  ),
+  volume: (
+    <>
+      <path d="M11 5 6 9H3v6h3l5 4V5Z" />
+      <path d="M15 9a4 4 0 0 1 0 6" />
+      <path d="M18 6a8 8 0 0 1 0 12" />
     </>
   ),
 };

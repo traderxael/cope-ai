@@ -2,7 +2,7 @@ import { openDB } from 'idb';
 import { describe, expect, it } from 'vitest';
 import { listConversations } from './storage';
 
-describe('IndexedDB v1 → v2', () => {
+describe('IndexedDB v1 → v3', () => {
   it('conserva conversaciones, agrega los stores nuevos y completa el estilo', async () => {
     const legacy = await openDB('cope-ai', 1, {
       upgrade(db) {
@@ -32,12 +32,13 @@ describe('IndexedDB v1 → v2', () => {
     expect(raw.tutor.style).toBe('guided');
 
     const transaction = migrated.transaction(
-      ['practiceResults', 'flashcardDecks', 'studyPlans'],
+      ['practiceResults', 'flashcardDecks', 'studyPlans', 'oralExams'],
       'readonly',
     );
     expect(await transaction.objectStore('practiceResults').count()).toBe(0);
     expect(await transaction.objectStore('flashcardDecks').count()).toBe(0);
     expect(await transaction.objectStore('studyPlans').count()).toBe(0);
+    expect(await transaction.objectStore('oralExams').count()).toBe(0);
     migrated.close();
   });
 });

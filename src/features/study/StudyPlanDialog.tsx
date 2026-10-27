@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
   addDaysDateOnly,
-  dateOnlyFromEpochLocal,
   formatDateOnlyEs,
   todayDateOnlyLocal,
 } from '../../../shared/date';
@@ -117,6 +116,13 @@ export function StudyPlanDialog({
       setError(`Podés indicar hasta ${LIMITS.maxPlanTopics} temas.`);
       return;
     }
+    const earliestExam = addDaysDateOnly(today, dayCount - 1);
+    if (examDate < earliestExam) {
+      setError(
+        `Para ${dayCount} días de plan, el examen debe ser el ${formatDateOnlyEs(earliestExam)} o después.`,
+      );
+      return;
+    }
 
     setBusy(true);
     setError(null);
@@ -192,9 +198,11 @@ export function StudyPlanDialog({
     }
   };
 
+  const today = todayDateOnlyLocal();
   const planStart = selected
-    ? dateOnlyFromEpochLocal(selected.createdAt)
-    : todayDateOnlyLocal();
+    ? addDaysDateOnly(selected.examDate, -(selected.days.length - 1))
+    : today;
+  const planExpired = selected ? selected.examDate < today : false;
 
   return (
     <Dialog
@@ -361,6 +369,7 @@ export function StudyPlanDialog({
                         <small>
                           Examen: {formatDateOnlyEs(plan.examDate)} ·{' '}
                           {plan.subject ? SUBJECT_LABELS[plan.subject] : ''}
+                          {plan.examDate < today ? ' · vencido' : ''}
                         </small>
                       </span>
                       <span className="planListProgress">
@@ -391,7 +400,9 @@ export function StudyPlanDialog({
             >
               <header className="planDetailHeader">
                 <div>
-                  <p className="eyebrow">Plan activo</p>
+                  <p className="eyebrow">
+                    {planExpired ? 'Plan vencido' : 'Plan activo'}
+                  </p>
                   <h3 id="plan-detail-title">{selected.title}</h3>
                   <p>
                     Examen: {formatDateOnlyEs(selected.examDate)} ·{' '}

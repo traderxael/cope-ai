@@ -140,6 +140,20 @@ describe('buildChatRequest', () => {
     expect(content).toContain('script');
   });
 
+  it('adjunta la personalidad global al payload', () => {
+    const { request } = buildChatRequestWithNotices(
+      'assistant',
+      undefined,
+      [message('user', 'hola')],
+      { preset: 'examinador', name: 'Profe Ana' },
+    );
+    expect(request.personality).toEqual({
+      preset: 'examinador',
+      name: 'Profe Ana',
+    });
+    expect(chatRequestSchema.safeParse(request).success).toBe(true);
+  });
+
   it('incluye configuración de tutor solo en modo tutor', () => {
     const tutor = buildChatRequest(
       'tutor',

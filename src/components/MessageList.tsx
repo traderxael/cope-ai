@@ -13,6 +13,7 @@ interface MessageListProps {
   messages: StoredMessage[];
   streamingId: string | null;
   streaming: boolean;
+  assistantName?: string;
   onRetry: () => void;
   onCopy: (text: string) => void;
   children?: ReactNode;
@@ -86,6 +87,7 @@ export function MessageList({
   messages,
   streamingId,
   streaming,
+  assistantName = 'Cope',
   onRetry,
   onCopy,
   children,
@@ -167,14 +169,14 @@ export function MessageList({
               <article
                 className="messageRow assistantRow"
                 key={message.id}
-                aria-label="Respuesta de Cope"
+                aria-label={`Respuesta de ${assistantName}`}
               >
                 <div className="assistantAvatar" aria-hidden="true">
                   <Logo size={30} />
                 </div>
                 <div className="assistantBody">
                   <div className="assistantMeta">
-                    <span className="assistantName">Cope</span>
+                    <span className="assistantName">{assistantName}</span>
                     {message.demo ? (
                       <span className="chip demoChip">Demo</span>
                     ) : null}
@@ -222,6 +224,22 @@ export function MessageList({
                       <span />
                     </div>
                   )}
+
+                  {message.incomplete ? (
+                    <div className="stoppedNote">
+                      <span>La respuesta se cortó antes de terminar.</span>
+                      {isLast && !streaming ? (
+                        <button
+                          type="button"
+                          className="textButton"
+                          onClick={onRetry}
+                        >
+                          <Icon name="refresh" size={15} />
+                          Reintentar
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
 
                   {message.stopped ? (
                     <div className="stoppedNote">

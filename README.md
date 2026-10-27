@@ -3,9 +3,10 @@
 [![CI](https://github.com/traderxael/cope-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/traderxael/cope-ai/actions/workflows/ci.yml)
 
 Tutor de estudio y asistente AI original, empaquetado como PWA instalable. Incluye
-modo demo sin clave, streaming, estilos de tutor, práctica de 5 o 10 preguntas
-con dificultad y temporizador, progreso local, flashcards con repaso espaciado,
-plan de examen, escaneo de tareas con cámara, contexto de imágenes y PDF,
+modo demo sin clave, streaming, personalidad configurable, estilos de tutor,
+práctica de 5 o 10 preguntas con dificultad y temporizador, progreso local,
+flashcards con repaso espaciado, plan de examen, examen oral simulado con voz y
+clonación opcional, escaneo de tareas con cámara, contexto de imágenes y PDF,
 historial local y una identidad visual propia.
 
 > Cope AI es un proyecto independiente. No tiene afiliación con Astra AI ni usa
@@ -21,6 +22,10 @@ historial local y una identidad visual propia.
 | Tutor y configuración | Plan de examen |
 | --- | --- |
 | <img src="docs/tutor-desktop.png" alt="Panel del tutor con estilo, materia, nivel y práctica" width="640" /> | <img src="docs/study-plan.png" alt="Plan de examen con tareas por día" width="640" /> |
+
+| Personalidad y voz | Examen oral |
+| --- | --- |
+| <img src="docs/personality-settings.png" alt="Ajustes de personalidad y voz de Cope AI" width="420" /> | <img src="docs/oral-exam.png" alt="Examen oral simulado con pregunta y respuesta por voz" width="640" /> |
 
 <p align="center">
   <img src="docs/conversation-demo.png" alt="Conversación de ejemplo en modo demo" width="760" />
@@ -87,9 +92,20 @@ Variables opcionales:
 | `COPE_RATE_LIMIT_PER_MINUTE` | Límite por IP para chat (default 10) |
 | `COPE_QUIZ_RATE_LIMIT_PER_MINUTE` | Límite por IP para práctica (default 5) |
 | `COPE_STUDY_RATE_LIMIT_PER_MINUTE` | Límite por IP para flashcards y planes (default 5) |
+| `COPE_ORAL_RATE_LIMIT_PER_MINUTE` | Límite por IP para exámenes orales (default 3) |
+| `ELEVENLABS_API_KEY` | Clave server-side para voz externa y clonación |
+| `ELEVENLABS_VOICE_ID` | Voz predefinida de ElevenLabs (necesaria para la voz externa) |
+| `ELEVENLABS_MODEL_ID` | Modelo de voz (default `eleven_multilingual_v2`) |
+| `COPE_VOICE_CLONE=1` | Habilita la clonación desde una muestra MP3 |
+| `COPE_VOICE_CLONE_CODE` | Código de propietario para clonar y usar voz externa |
+| `COPE_TTS_RATE_LIMIT_PER_MINUTE` | Límite por IP de reproducciones externas (default 10) |
+| `COPE_VOICE_CLONE_RATE_LIMIT_PER_MINUTE` | Límite por IP de clonaciones (default 2) |
 
 ## Funciones
 
+- **Personalidad:** nombre, preset (Cope, examinador estricto, tutor cercano,
+  reto exigente) e instrucciones libres. Se aplica al chat, al tutor y al
+  examinador; se guarda solo en este dispositivo.
 - **Tutor:** materia, nivel y dos estilos. **Guiado** da pistas y preguntas para
   que resuelvas vos; **Solución** muestra el procedimiento completo y la
   comprobación.
@@ -98,26 +114,36 @@ Variables opcionales:
 - **Progreso:** precisión global y por materia, racha de días y últimas
   prácticas, calculado sobre el historial local.
 - **Flashcards:** generación por materia o tema (también desde el último PDF),
-  repaso con repetición espaciada y decks persistentes.
+  repaso con repetición espaciada y decks persistentes. “Todo al día” no
+  reprograma tarjetas sin vencer.
 - **Plan de examen:** 3 a 14 días, fecha y temas; tareas de estudio, práctica,
   repaso y descanso con avance marcable.
+- **Examen oral:** preguntas abiertas con rúbrica, respuesta por texto o
+  micrófono, corrección con puntajes y zonas de desempeño, respuesta modelo e
+  historial local. La voz del navegador está siempre disponible.
+- **Voz externa opcional:** ElevenLabs puede leer las preguntas como MP3. La
+  clonación de una muestra MP3 es opcional, requiere consentimiento y código de
+  propietario, y no guarda el audio en el servidor.
 - **Asistente:** chat general con markdown, tablas, código y matemáticas KaTeX.
 - **Adjuntos:** hasta 2 imágenes por conversación (redimensionadas a JPEG), foto
   de tarea con la cámara trasera y un PDF por mensaje (texto extraído localmente,
   sin OCR).
-- **Historial local:** conversaciones, prácticas, decks y planes en IndexedDB; el
-  servidor no los guarda.
-- **Streaming real:** SSE desde el proxy, con botón de detener y reintento.
-- **Modo demo:** respuestas deterministas en español, sin claves.
+- **Historial local:** conversaciones, prácticas, decks, planes y exámenes orales
+  en IndexedDB; el servidor no los guarda.
+- **Streaming real:** SSE desde el proxy, con botón de detener, respuesta parcial
+  conservada y reintento.
+- **Modo demo:** respuestas y exámenes deterministas en español, sin claves.
 - **PWA:** instalable, shell offline, fuentes empaquetadas y aviso de actualización.
 - **Temas:** claro, oscuro y sistema.
 
 ### Datos de estudio
 
-Los resultados de práctica, decks y planes viven en IndexedDB (versión 2) en este
-dispositivo. No hay cuentas ni sincronización. **Ajustes → Borrar todo** elimina
-conversaciones, prácticas, flashcards y planes; también podés borrar un deck o un
-plan desde su panel.
+Los resultados de práctica, decks, planes y exámenes orales viven en IndexedDB
+(versión 3) en este dispositivo. No hay cuentas ni sincronización. **Ajustes →
+Borrar todo** elimina conversaciones, prácticas, flashcards, planes y exámenes;
+también podés borrar un deck, un plan o un examen desde su panel. La personalidad
+y la preferencia de voz se guardan aparte para poder restablecerlas sin perder el
+historial.
 
 ## Arquitectura
 
@@ -127,7 +153,8 @@ plan desde su panel.
 │  IndexedDB local         │
 └────────────┬─────────────┘
              │ /api/chat (SSE) · /api/quiz · /api/flashcards ·
-             │ /api/study-plan (JSON)
+             │ /api/study-plan · /api/oral-exam (JSON) ·
+             │ /api/tts · /api/voice-clone
              ▼
 ┌──────────────────────────┐
 │  Handlers compartidos    │  dev/preview: middleware Vite
@@ -136,18 +163,19 @@ plan desde su panel.
 └────────────┬─────────────┘
              │ Authorization: Bearer (solo servidor)
              ▼
-┌──────────────────────────┐
-│  Proveedor OpenAI-       │
-│  compatible              │
-└──────────────────────────┘
+┌──────────────────────────┐       ┌──────────────────────┐
+│  Proveedor OpenAI-       │       │  ElevenLabs (opcional)│
+│  compatible              │       │  TTS MP3 / clonación  │
+└──────────────────────────┘       └──────────────────────┘
 ```
 
-- `shared/`: contratos zod (chat, quiz, flashcards y plan), parser SSE,
-  extracción y reparación de JSON reutilizados por cliente y servidor.
+- `shared/`: contratos zod (chat, quiz, estudio, personalidad, oral y voz),
+  parser SSE, extracción/reparación de JSON y cálculo de zonas.
 - `server/`: configuración, prompts, proveedores, rutas y seguridad. Las rutas
-  de estudio reintentan una vez si el proveedor devuelve JSON inválido.
-- `api/`: adaptadores finos para Vercel.
-- `src/`: interfaz, almacenamiento local, SRS, progreso, adjuntos y cliente SSE.
+  JSON reintentan una vez dentro de un presupuesto de tiempo acotado.
+- `api/`: adaptadores finos para Vercel, incluido TTS/clonación opcional.
+- `src/`: interfaz, almacenamiento local, SRS, progreso, voz del navegador,
+  adjuntos y cliente SSE.
 
 ### Estructura
 
@@ -186,10 +214,16 @@ scripts/                generación de iconos
   y 20.000 caracteres extraídos), 1.200 tokens de salida por respuesta de chat.
   Práctica: 5 o 10 preguntas y 5.000 tokens. Flashcards: 6 a 10 tarjetas,
   8.000 caracteres de material y 2.500 tokens. Plan: 3 a 14 días, 8 temas y
-  3.000 tokens.
-- Rate limit en memoria por IP: 10 chat/min, 5 práctica/min y 5 generaciones de
-  estudio/min. **No es un límite distribuido**: en serverless cada instancia
-  tiene su propia memoria.
+  3.000 tokens. Oral: 3, 5 u 8 preguntas, 4.000 caracteres por respuesta.
+  TTS: 600 caracteres por reproducción y muestra de voz de hasta 5 MB.
+- Rate limit en memoria por IP: 10 chat/min, 5 práctica/min, 5 generaciones de
+  estudio/min, 3 exámenes orales/min, 10 reproducciones externas/min y
+  2 clonaciones/min. **No es un límite distribuido**: en serverless cada
+  instancia tiene su propia memoria.
+- La voz externa y la clonación requieren `COPE_VOICE_CLONE_CODE`; el código se
+  compara en tiempo constante y se guarda solo en `sessionStorage`. La muestra
+  MP3 no se guarda en Cope AI. La clonación es un dato biométrico: exige
+  consentimiento explícito, permiso del hablante y posibilidad de borrado.
 - Errores sanitizados: nunca se devuelven claves, headers ni cuerpos crudos del
   proveedor.
 - Markdown sin HTML crudo, protocolos permitidos y KaTeX sin `trust`.
@@ -212,12 +246,14 @@ cualquiera puede consumir tu cuota. Antes de hacerlo:
    `npm run build` y la salida `dist`.
 2. Cargá `OPENAI_API_KEY`, `OPENAI_BASE_URL` y `OPENAI_MODEL` como variables de
    entorno (Production y Preview). No las pongas en el repo.
-3. Desplegá. Las funciones `api/chat.ts`, `api/quiz.ts`, `api/flashcards.ts` y
-   `api/study-plan.ts` se despliegan con el proyecto; `vercel.json` fija
-   `maxDuration` y las cabeceras/CSP.
+3. Desplegá. Se incluyen `api/chat.ts`, `api/quiz.ts`,
+   `api/flashcards.ts`, `api/study-plan.ts`, `api/oral-exam.ts`, `api/tts.ts`
+   y `api/voice-clone.ts`; `vercel.json` fija `maxDuration` y las cabeceras/CSP.
 4. Verificá `/api/health` y una conversación real. El streaming en producción
    requiere el runtime Node de Vercel.
-5. Instalá la PWA desde Chrome en Android o escritorio.
+5. Para voz externa, cargá las variables de ElevenLabs y el código de propietario
+   solo en Vercel. Sin ellas, el examen oral sigue usando la voz del navegador.
+6. Instalá la PWA desde Chrome en Android o escritorio.
 
 ## PWA y Android (TWA)
 
@@ -231,15 +267,17 @@ original: requiere Android SDK, Gradle, un keystore propio y Play Console.
 
 ## Pruebas
 
-- **Unitarias/integración:** parser SSE, esquemas de chat/quiz/estudio, prompts,
-  rate limit, proveedor con upstream falso, reparación de JSON, SRS, progreso,
-  IndexedDB con migración v1→v2, payload y adjuntos.
-- **Componentes:** tutor, cámara, markdown seguro, quiz, composer y lista de
-  mensajes.
+- **Unitarias/integración:** parser SSE, esquemas de chat/quiz/estudio,
+  personalidad, oral, voz, prompts, rate limit, proveedor con upstream falso,
+  reparación de JSON con presupuesto, SRS, progreso, IndexedDB con migración
+  v1→v3, payload y adjuntos.
+- **Componentes:** tutor, personalidad, voz, cámara, markdown seguro, quiz,
+  composer y lista de mensajes.
 - **E2E:** Chrome/Chromium real contra el build de producción en modo demo:
-  asistente, persistencia, estilo de tutor, práctica de 10 con tiempo y
-  progreso, flashcards con repaso, plan de examen, cámara, PDF, borrado durante
-  streaming, PWA/offline, accesibilidad de los diálogos y capturas.
+  asistente, respuesta parcial tras corte, estilo y personalidad del tutor,
+  práctica de 10 con tiempo y progreso, flashcards con repaso, plan de examen,
+  examen oral completo con historial, cámara, PDF, borrado durante streaming,
+  PWA/offline, accesibilidad de los diálogos y capturas.
 
 ```bash
 npm run verify
@@ -252,10 +290,18 @@ suite automática porque dependen de tu clave y tu cuenta.
 ## Privacidad
 
 - Las conversaciones, imágenes procesadas, texto extraído de PDF, resultados de
-  práctica, decks y planes se guardan en IndexedDB en tu navegador.
+  práctica, decks, planes y exámenes orales se guardan en IndexedDB en tu
+  navegador.
+- La personalidad y la preferencia de voz se guardan en almacenamiento local; el
+  código de propietario vive solo en `sessionStorage`.
 - El PDF original no se sube desde el dispositivo: solo viaja el texto extraído.
 - Las imágenes (incluidas las fotos de tarea) y los mensajes sí se envían al
   proveedor configurado cuando usás IA real.
+- En el examen oral, el micrófono usa el reconocimiento del navegador: el audio
+  no se envía a Cope AI, solo el texto transcripto.
+- Si habilitás voz externa, el texto de la pregunta se envía a ElevenLabs para
+  generar MP3. Si clonás una voz, la muestra MP3 se envía a ElevenLabs y no se
+  conserva en Cope AI.
 - Cope AI no incluye analítica, cuentas ni sincronización en la nube.
 
 ## Licencia

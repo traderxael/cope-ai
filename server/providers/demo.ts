@@ -1,8 +1,11 @@
 import {
+  DEFAULT_PERSONALITY,
   LEVEL_LABELS,
+  PERSONALITY_LABELS,
   SUBJECT_LABELS,
   type ChatMessage,
   type Mode,
+  type PersonalityConfig,
   type QuizQuestion,
   type Subject,
   type TutorConfig,
@@ -12,6 +15,7 @@ import { abortError } from '../errors.js';
 export interface DemoChatInput {
   mode: Mode;
   tutor: TutorConfig;
+  personality?: PersonalityConfig;
   messages: ChatMessage[];
   hasImages: boolean;
   hasDocument: boolean;
@@ -41,6 +45,8 @@ function summarize(text: string, max = 180): string {
 
 export function buildDemoAnswer(input: DemoChatInput): string {
   const summary = summarize(lastUserText(input.messages));
+  const personality = input.personality ?? DEFAULT_PERSONALITY;
+  const personaLine = `**Personalidad:** ${PERSONALITY_LABELS[personality.preset]} · **Nombre:** ${personality.name}`;
   const attachmentNotes = [
     input.hasImages
       ? '> Recibí una imagen. En modo demo no puedo analizarla; con un modelo con visión se enviaría como contexto.'
@@ -59,6 +65,7 @@ export function buildDemoAnswer(input: DemoChatInput): string {
 **Consulta:** “${summary}”
 **Materia:** ${SUBJECT_LABELS[input.tutor.subject]} · **Nivel:** ${LEVEL_LABELS[input.tutor.level]}
 **Estilo:** ${solver ? 'Solución completa' : 'Guiado'}
+${personaLine}
 ${attachmentNotes ? `\n${attachmentNotes}\n` : ''}`;
 
     if (!solver) {
@@ -102,9 +109,10 @@ Reemplazá el valor en la ecuación original: $2 \\cdot 6 + 5 = 17$. El resultad
 **Para comprobar tu comprensión:** ¿qué operación harías si en lugar de $+5$ la ecuación tuviera $-3$?`;
   }
 
-  return `Estoy en **modo demo**, así que esta es una respuesta de muestra. Con una clave configurada, Cope respondería con el contenido completo de tu consulta.
+  return `Estoy en **modo demo**, así que esta es una respuesta de muestra. Con una clave configurada, ${personality.name} respondería con el contenido completo de tu consulta.
 
 **Consulta:** “${summary}”
+${personaLine}
 ${attachmentNotes ? `\n${attachmentNotes}\n` : ''}
 ### Una forma de encararlo
 1. **Aclarar el objetivo:** definir qué resultado necesitás y qué restricciones tenés.

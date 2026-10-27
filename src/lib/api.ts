@@ -4,10 +4,19 @@ import {
   flashcardResponseSchema,
   studyPlanResponseSchema,
 } from '../../shared/schemas/study';
+import {
+  oralExamResponseSchema,
+  oralGradeResponseSchema,
+  type OralExamConfig,
+  type OralExamResponse,
+  type OralGradeResponse,
+  type OralQuestion,
+} from '../../shared/schemas/oral-exam';
 import type {
   ChatRequest,
   FlashcardRequest,
   FlashcardResponse,
+  PersonalityConfig,
   QuizRequest,
   QuizResponse,
   StudyPlanRequest,
@@ -15,10 +24,16 @@ import type {
 } from '../../shared/types';
 import { isAbortError } from './errors';
 
+export interface VoiceCapabilities {
+  tts: boolean;
+  clone: boolean;
+}
+
 export interface HealthResponse {
   ok: boolean;
   demo: boolean;
   configured: boolean;
+  voice: VoiceCapabilities;
 }
 
 export class ApiError extends Error {
@@ -80,10 +95,15 @@ export async function fetchHealth(
   });
   if (!response.ok) throw await readError(response);
   const payload = (await response.json()) as Partial<HealthResponse>;
+  const voice = payload.voice ?? { tts: false, clone: false };
   return {
     ok: payload.ok === true,
     demo: payload.demo === true,
     configured: payload.configured === true,
+    voice: {
+      tts: voice.tts === true,
+      clone: voice.clone === true,
+    },
   };
 }
 
@@ -272,6 +292,129 @@ export async function requestStudyPlan(
       502,
       'invalid_plan',
       'El plan de estudio llegó en un formato inválido.',
+    );
+  }
+  return parsed.data;
+}
+
+async function postOralExam(
+  body: unknown,
+  signal?: AbortSignal,
+): Promise<unknown> {
+  const response = await fetch('/api/oral-exam', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify(body),
+    cache: 'no-store',
+    signal,
+  });
+  if (!response.ok) throw await readError(response);
+  try {
+    return await response.json();
+  } catch {
+    throw new ApiError(
+      502,
+      'invalid_oral_exam',
+      'El examen oral llegó en un formato inválido.',
+    );
+  }
+}
+
+export async function requestOralExam(
+  config: OralExamConfig,
+  personality: PersonalityConfig,
+  signal?: AbortSignal,
+): Promise<OralExamResponse> {
+  const payload = await postOralExam(
+    { action: 'generate', config, personality },
+    signal,
+  );
+  const parsed = oralExamResponseSchema.safeParse(payload);
+  if (!parsed.success || parsed.data.questions.length !== config.count) {
+    throw new ApiError(
+      502,
+      'invalid_oral_exam',
+      'El examen oral llegó en un formato inválido.',
+    );
+  }
+  return parsed.data;
+}
+
+export async function cloneVoice(
+  file: File,
+  ownerCode: string,
+  signal?: AbortSignal,
+): Promise<string> {
+  const response = await fetch('/api/voice-clone', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'audio/mpeg',
+      'x-cope-owner': ownerCode,
+    },
+    body: file,
+    cache: 'no-store',
+    signal,
+  });
+  if (!response.ok) throw await readError(response);
+  const payload = (await response.json().catch(() => null)) as {
+    voiceId?: unknown;
+  } | null;
+  if (typeof payload?.voiceId !== 'string' || !payload.voiceId.trim()) {
+    throw new ApiError(
+      502,
+      'invalid_voice',
+      'El servicio devolvió una voz inválida.',
+    );
+  }
+  return payload.voiceId.trim();
+}
+
+export async function deleteVoice(
+  voiceId: string,
+  ownerCode: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  const response = await fetch(
+    `/api/voice-clone?voiceId=${encodeURIComponent(voiceId)}`,
+    {
+      method: 'DELETE',
+      headers: { 'x-cope-owner': ownerCode },
+      cache: 'no-store',
+      signal,
+    },
+  );
+  if (!response.ok) throw await readError(response);
+}
+
+export async function requestOralGrade(
+  config: OralExamConfig,
+  questions: OralQuestion[],
+  answers: Record<string, string>,
+  personality: PersonalityConfig,
+  signal?: AbortSignal,
+): Promise<OralGradeResponse> {
+  const payload = await postOralExam(
+    {
+      action: 'grade',
+      config,
+      personality,
+      questions,
+      answers: questions.map((question) => ({
+        questionId: question.id,
+        answer: answers[question.id] ?? '',
+      })),
+    },
+    signal,
+  );
+  const parsed = oralGradeResponseSchema.safeParse(payload);
+  if (!parsed.success || parsed.data.results.length !== questions.length) {
+    throw new ApiError(
+      502,
+      'invalid_oral_grade',
+      'La corrección del examen llegó en un formato inválido.',
     );
   }
   return parsed.data;

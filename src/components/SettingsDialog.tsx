@@ -1,15 +1,22 @@
 import { useEffect, useState } from 'react';
+import type { PersonalityConfig } from '../../shared/types';
+import type { VoiceCapabilities } from '../lib/api';
 import { formatBytes } from '../lib/attachments';
 import { storageEstimate } from '../lib/storage';
 import { type Theme } from '../lib/theme';
 import { Dialog } from './Dialog';
 import { Icon } from './Icon';
+import { PersonalitySettings } from './PersonalitySettings';
+import { VoiceSettings } from './VoiceSettings';
 
 interface SettingsDialogProps {
   open: boolean;
   onClose: () => void;
   theme: Theme;
   onThemeChange: (theme: Theme) => void;
+  personality: PersonalityConfig;
+  onPersonalityChange: (personality: PersonalityConfig) => void;
+  voice: VoiceCapabilities;
   demo: boolean | null;
   onClearAll: () => Promise<void>;
 }
@@ -29,6 +36,9 @@ export function SettingsDialog({
   onClose,
   theme,
   onThemeChange,
+  personality,
+  onPersonalityChange,
+  voice,
   demo,
   onClearAll,
 }: SettingsDialogProps) {
@@ -125,6 +135,25 @@ export function SettingsDialog({
             OPENAI_MODEL en .env.local.
           </p>
         ) : null}
+      </div>
+
+      <div className="settingsSection">
+        <h3>Personalidad de la IA</h3>
+        <p className="settingsHint">
+          Elige cómo te acompaña en el tutor, el asistente y el examen oral.
+        </p>
+        <PersonalitySettings
+          personality={personality}
+          onChange={onPersonalityChange}
+        />
+      </div>
+
+      <div className="settingsSection">
+        <h3>Voz</h3>
+        <p className="settingsHint">
+          El examen oral puede leer las preguntas y escuchar tus respuestas.
+        </p>
+        <VoiceSettings capabilities={voice} active={open} />
       </div>
 
       <div className="settingsSection">

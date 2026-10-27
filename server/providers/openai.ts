@@ -209,7 +209,7 @@ export async function openChatStream(
   options: ChatCompletionOptions,
 ): Promise<AsyncGenerator<string>> {
   const { model } = requireConfigured(options.config);
-  const timeoutMs = options.timeoutMs ?? LIMITS.upstreamTimeoutMs;
+  const timeoutMs = options.timeoutMs ?? LIMITS.chatTimeoutMs;
   const guard = createTimeout(options.signal, timeoutMs);
   const body: UpstreamRequest = {
     model,
@@ -289,7 +289,7 @@ export async function completeJson(
   options: JsonCompletionOptions,
 ): Promise<string> {
   const { model } = requireConfigured(options.config);
-  const timeoutMs = options.timeoutMs ?? LIMITS.upstreamTimeoutMs;
+  const timeoutMs = options.timeoutMs ?? LIMITS.jsonAttemptTimeoutMs;
   const guard = createTimeout(options.signal, timeoutMs);
   const body: UpstreamRequest = {
     model,

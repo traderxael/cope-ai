@@ -66,6 +66,43 @@ test.describe('capturas de referencia', () => {
     });
   });
 
+  test('personalidad y examen oral', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page
+      .locator('.desktopSidebar')
+      .getByRole('button', { name: 'Ajustes' })
+      .click();
+    const settings = page.locator('dialog[open]');
+    await settings
+      .locator('.personalitySettings')
+      .scrollIntoViewIfNeeded();
+    await settings.screenshot({
+      path: 'test-results/screenshots/personality-settings.png',
+      animations: 'disabled',
+    });
+    await settings.getByRole('button', { name: 'Cerrar', exact: true }).click();
+
+    await page.getByRole('button', { name: 'Tutor' }).click();
+    await page
+      .locator('.tutorAside')
+      .getByRole('button', { name: 'Examen oral' })
+      .click();
+    const oral = page.locator('dialog[open]');
+    await oral.getByRole('button', { name: 'Nuevo examen' }).click();
+    await oral.screenshot({
+      path: 'test-results/screenshots/oral-setup.png',
+      animations: 'disabled',
+    });
+    await oral.getByRole('button', { name: '3' }).click();
+    await oral.getByRole('button', { name: 'Generar examen oral' }).click();
+    await expect(oral.locator('.oralPrompt')).toBeVisible({ timeout: 20_000 });
+    await oral.screenshot({
+      path: 'test-results/screenshots/oral-exam.png',
+      animations: 'disabled',
+    });
+  });
+
   test('conversación demo', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');

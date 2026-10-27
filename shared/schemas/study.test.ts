@@ -211,6 +211,16 @@ describe('studyPlanContentSchema', () => {
     expect(studyPlanContentSchema.safeParse(content).success).toBe(false);
   });
 
+  it('exige días contiguos desde 1', () => {
+    const gap = planContent(3);
+    gap.days[2] = planDay(4);
+    expect(studyPlanContentSchema.safeParse(gap).success).toBe(false);
+
+    const startsAtTwo = planContent(3);
+    startsAtTwo.days[0] = planDay(2);
+    expect(studyPlanContentSchema.safeParse(startsAtTwo).success).toBe(false);
+  });
+
   it('limita minutos y cantidad de tareas por día', () => {
     const short = planContent(3);
     short.days[0]!.tasks[0]!.minutes = LIMITS.minPlanTaskMinutes - 1;

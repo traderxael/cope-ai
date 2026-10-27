@@ -1,0 +1,115 @@
+import { expect, test } from '@playwright/test';
+
+test.describe('examen oral', () => {
+  test('genera, responde, corrige y conserva el historial', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Tutor' }).click();
+    const panel = page.locator('.tutorAside');
+    await panel.getByRole('button', { name: 'Examen oral' }).click();
+
+    const dialog = page.locator('dialog[open]');
+    await expect(
+      dialog.getByRole('heading', { name: 'Examen oral', exact: true }),
+    ).toBeVisible();
+    await dialog.getByRole('button', { name: 'Nuevo examen' }).click();
+    await dialog.getByLabel('Materia').selectOption('physics');
+    await dialog.getByLabel('Nivel').selectOption('bachillerato');
+    await dialog.getByLabel('Dificultad').selectOption('medium');
+    await dialog.getByLabel(/Temas/).fill('ley de Ohm, circuitos');
+    await dialog.getByRole('button', { name: '3' }).click();
+
+    const generateRequest = page.waitForRequest(
+      (request) =>
+        request.url().includes('/api/oral-exam') &&
+        request.method() === 'POST',
+    );
+    await dialog.getByRole('button', { name: 'Generar examen oral' }).click();
+    const generateBody = (await generateRequest).postDataJSON() as {
+      action: string;
+      config: { subject: string; level: string; count: number };
+      personality: { preset: string; name: string };
+    };
+    expect(generateBody).toMatchObject({
+      action: 'generate',
+      config: {
+        subject: 'physics',
+        level: 'bachillerato',
+        count: 3,
+      },
+    });
+    expect(generateBody.personality.name).toBe('Cope');
+
+    await expect(dialog.locator('.oralPrompt')).toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(dialog.locator('.oralPrompt h3')).not.toBeEmpty();
+
+    for (let index = 0; index < 3; index += 1) {
+      await dialog
+        .getByLabel('Tu respuesta')
+        .fill(
+          `Respuesta ${index + 1}: explico el concepto, justifico el resultado y doy un ejemplo.`,
+        );
+      if (index < 2) {
+        await dialog
+          .getByRole('button', { name: 'Siguiente pregunta' })
+          .click();
+        await expect(dialog.locator('.studyDialogToolbar')).toContainText(
+          `Pregunta ${index + 2} de 3`,
+        );
+      }
+    }
+
+    const gradeRequest = page.waitForRequest(
+      (request) =>
+        request.url().includes('/api/oral-exam') &&
+        request.method() === 'POST',
+    );
+    await dialog
+      .getByRole('button', { name: 'Terminar y corregir' })
+      .click();
+    expect((await gradeRequest).postDataJSON()).toMatchObject({
+      action: 'grade',
+      config: { count: 3 },
+    });
+
+    await expect(dialog.locator('.oralResultScore')).toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(dialog.locator('.oralZone')).toBeVisible();
+    await expect(dialog.locator('.oralReviewItem')).toHaveCount(3);
+    await expect(dialog.locator('.oralNextSteps')).toBeVisible();
+
+    await dialog.getByRole('button', { name: 'Cerrar', exact: true }).click();
+    await expect(dialog).toBeHidden();
+
+    await page.reload();
+    await page.getByRole('button', { name: 'Tutor' }).click();
+    await page
+      .locator('.tutorAside')
+      .getByRole('button', { name: 'Examen oral' })
+      .click();
+    const reopened = page.locator('dialog[open]');
+    await expect(reopened.locator('.oralExamItem')).toHaveCount(1);
+    await expect(reopened.locator('.oralExamItem')).toContainText('/100');
+    await reopened.getByRole('button', { name: 'Ver resultado' }).click();
+    await expect(reopened.locator('.oralReviewItem')).toHaveCount(3);
+  });
+
+  test('sin configuración externa usa la voz del navegador', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Tutor' }).click();
+    await page
+      .locator('.tutorAside')
+      .getByRole('button', { name: 'Examen oral' })
+      .click();
+    const dialog = page.locator('dialog[open]');
+    await dialog.getByRole('button', { name: 'Nuevo examen' }).click();
+    await expect(dialog.getByLabel('Voz')).toHaveValue('cercana');
+    await expect(dialog.getByLabel('Voz')).toBeEnabled();
+  });
+});

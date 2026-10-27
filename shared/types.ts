@@ -6,6 +6,18 @@ import type {
   Subject,
 } from './schemas/common.js';
 import type {
+  PersonalityConfig,
+  PersonalityPreset,
+} from './schemas/personality.js';
+import type {
+  OralExamConfig,
+  OralExamRequest,
+  OralExamResponse,
+  OralGradeResponse,
+  OralGradeResult,
+  OralQuestion,
+} from './schemas/oral-exam.js';
+import type {
   ChatMessage,
   ChatRequest,
   ContentPart,
@@ -41,6 +53,14 @@ export type {
   ImagePart,
   Level,
   Mode,
+  OralExamConfig,
+  OralExamRequest,
+  OralExamResponse,
+  OralGradeResponse,
+  OralGradeResult,
+  OralQuestion,
+  PersonalityConfig,
+  PersonalityPreset,
   PlanTaskType,
   QuizQuestion,
   QuizRequest,
@@ -95,6 +115,36 @@ export const PLAN_TASK_TYPE_LABELS: Record<
   review: 'Repaso',
   rest: 'Descanso',
 };
+
+export const PERSONALITY_LABELS: Record<PersonalityPreset, string> = {
+  cope: 'Cope',
+  examinador: 'Examinador estricto',
+  cercano: 'Tutor cercano',
+  exigente: 'Reto exigente',
+};
+
+export const PERSONALITY_DESCRIPTIONS: Record<PersonalityPreset, string> = {
+  cope: 'Equilibrado y claro: explica, pregunta y verifica.',
+  examinador: 'Formal y riguroso: evalúa precisión y evidencia.',
+  cercano: 'Paciente y cálido: ejemplos, pasos y ánimo.',
+  exigente: 'Te lleva al límite: más dificultad y justificación.',
+};
+
+export const DEFAULT_PERSONALITY: PersonalityConfig = {
+  preset: 'cope',
+  name: 'Cope',
+};
+
+export const ORAL_ZONE_LABELS: Record<
+  'segura' | 'practica' | 'refuerzo',
+  string
+> = {
+  segura: 'Zona segura',
+  practica: 'Zona de práctica',
+  refuerzo: 'Zona de refuerzo',
+};
+
+export const ORAL_COUNT_OPTIONS = [3, 5, 8] as const;
 
 export const DEFAULT_TUTOR: TutorConfig = {
   subject: 'math',

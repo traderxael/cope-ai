@@ -5,8 +5,11 @@ import {
   handleNodeChat,
   handleNodeFlashcards,
   handleNodeHealth,
+  handleNodeOralExam,
   handleNodeQuiz,
   handleNodeStudyPlan,
+  handleNodeTts,
+  handleNodeVoiceClone,
 } from './server/http/handlers';
 import { sendJson } from './server/http/node';
 
@@ -21,6 +24,9 @@ const ROUTES: Record<string, NodeHandler> = {
   '/api/quiz': handleNodeQuiz,
   '/api/flashcards': handleNodeFlashcards,
   '/api/study-plan': handleNodeStudyPlan,
+  '/api/oral-exam': handleNodeOralExam,
+  '/api/tts': handleNodeTts,
+  '/api/voice-clone': handleNodeVoiceClone,
 };
 
 function apiMiddleware(): Connect.NextHandleFunction {

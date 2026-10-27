@@ -35,6 +35,7 @@ interface TutorPanelProps {
   disabled?: boolean;
   onOpenFlashcards: () => void;
   onOpenPlan: () => void;
+  onOpenOralExam: () => void;
   onOpenProgress: () => void;
 }
 
@@ -47,6 +48,7 @@ export function TutorPanel({
   disabled = false,
   onOpenFlashcards,
   onOpenPlan,
+  onOpenOralExam,
   onOpenProgress,
 }: TutorPanelProps) {
   const titleId = useId();
@@ -275,6 +277,10 @@ export function TutorPanel({
         <button type="button" className="studyTool" onClick={onOpenPlan}>
           <Icon name="calendar" size={18} />
           <span>Plan de examen</span>
+        </button>
+        <button type="button" className="studyTool" onClick={onOpenOralExam}>
+          <Icon name="mic" size={18} />
+          <span>Examen oral</span>
         </button>
         <button type="button" className="studyTool" onClick={onOpenProgress}>
           <Icon name="chart" size={18} />

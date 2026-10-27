@@ -17,6 +17,7 @@ function renderPanel(overrides: Partial<Parameters<typeof TutorPanel>[0]> = {}) 
   const onPractice = vi.fn();
   const onOpenFlashcards = vi.fn();
   const onOpenPlan = vi.fn();
+  const onOpenOralExam = vi.fn();
   const onOpenProgress = vi.fn();
   const props = {
     tutor,
@@ -26,6 +27,7 @@ function renderPanel(overrides: Partial<Parameters<typeof TutorPanel>[0]> = {}) 
     practiceLoading: false,
     onOpenFlashcards,
     onOpenPlan,
+    onOpenOralExam,
     onOpenProgress,
     ...overrides,
   };
@@ -36,6 +38,7 @@ function renderPanel(overrides: Partial<Parameters<typeof TutorPanel>[0]> = {}) 
     onPractice,
     onOpenFlashcards,
     onOpenPlan,
+    onOpenOralExam,
     onOpenProgress,
   };
 }
@@ -86,14 +89,17 @@ describe('TutorPanel', () => {
 
   it('abre las herramientas de estudio', async () => {
     const user = userEvent.setup();
-    const { onOpenFlashcards, onOpenPlan, onOpenProgress } = renderPanel();
+    const { onOpenFlashcards, onOpenPlan, onOpenOralExam, onOpenProgress } =
+      renderPanel();
 
     await user.click(screen.getByRole('button', { name: 'Flashcards' }));
     await user.click(screen.getByRole('button', { name: 'Plan de examen' }));
+    await user.click(screen.getByRole('button', { name: 'Examen oral' }));
     await user.click(screen.getByRole('button', { name: 'Progreso' }));
 
     expect(onOpenFlashcards).toHaveBeenCalledTimes(1);
     expect(onOpenPlan).toHaveBeenCalledTimes(1);
+    expect(onOpenOralExam).toHaveBeenCalledTimes(1);
     expect(onOpenProgress).toHaveBeenCalledTimes(1);
   });
 });

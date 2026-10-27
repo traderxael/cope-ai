@@ -4,6 +4,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { QuizResponse } from '../../../shared/types';
+import type { PracticeResult } from '../../lib/storage';
 import type { PracticeSession } from '../study/practice';
 import { QuizCard } from './QuizCard';
 
@@ -37,10 +38,12 @@ function makeSession(overrides: Partial<PracticeSession> = {}): PracticeSession 
   };
 }
 
-function renderQuiz(session = makeSession()) {
+function renderQuiz(
+  session = makeSession(),
+  onComplete = vi.fn(async (_result: PracticeResult) => true),
+) {
   const onClose = vi.fn();
   const onRetry = vi.fn();
-  const onComplete = vi.fn();
   const utils = render(
     <QuizCard
       session={session}
@@ -83,6 +86,38 @@ describe('QuizCard', () => {
     expect(
       screen.getByText('Excelente. Dominás el tema.'),
     ).toBeInTheDocument();
+    expect(
+      await screen.findByText('Resultado guardado en este dispositivo.'),
+    ).toBeInTheDocument();
+  });
+
+  it('informa si no se pudo guardar y permite reintentar', async () => {
+    const user = userEvent.setup();
+    const onComplete = vi
+      .fn<(result: PracticeResult) => Promise<boolean>>()
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    renderQuiz(makeSession(), onComplete);
+
+    for (let index = 1; index <= 5; index += 1) {
+      const group = screen.getByRole('group', {
+        name: new RegExp(`Pregunta ${index}`),
+      });
+      await user.click(within(group).getByText('Alfa'));
+    }
+
+    expect(
+      await screen.findByText(
+        'No se pudo guardar el resultado en este dispositivo.',
+      ),
+    ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole('button', { name: /Guardar de nuevo/ }),
+    );
+    expect(
+      await screen.findByText('Resultado guardado en este dispositivo.'),
+    ).toBeInTheDocument();
+    expect(onComplete).toHaveBeenCalledTimes(2);
   });
 
   it('da feedback y bloquea la pregunta al responder', async () => {

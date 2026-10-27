@@ -3,6 +3,7 @@ import type {
   ChatMessage,
   ChatRequest,
   ContentPart,
+  PersonalityConfig,
 } from '../../shared/types';
 import type { StoredAttachment, StoredMessage } from './storage';
 
@@ -150,6 +151,7 @@ export function buildChatRequestWithNotices(
   mode: ChatRequest['mode'],
   tutor: ChatRequest['tutor'],
   messages: StoredMessage[],
+  personality?: PersonalityConfig,
 ): ChatBuildResult {
   const images = selectedImageIds(messages);
   const notices = emptyNotices();
@@ -204,6 +206,7 @@ export function buildChatRequestWithNotices(
       mode,
       messages: mapped,
       ...(mode === 'tutor' && tutor ? { tutor } : {}),
+      ...(personality ? { personality } : {}),
     },
     notices,
   };
@@ -213,8 +216,10 @@ export function buildChatRequest(
   mode: ChatRequest['mode'],
   tutor: ChatRequest['tutor'],
   messages: StoredMessage[],
+  personality?: PersonalityConfig,
 ): ChatRequest {
-  return buildChatRequestWithNotices(mode, tutor, messages).request;
+  return buildChatRequestWithNotices(mode, tutor, messages, personality)
+    .request;
 }
 
 export function contextNoticeMessage(

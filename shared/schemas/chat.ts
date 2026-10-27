@@ -6,6 +6,7 @@ import {
   studyStyleSchema,
   subjectSchema,
 } from './common.js';
+import { personalityConfigSchema } from './personality.js';
 
 const IMAGE_DATA_URL =
   /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
@@ -73,6 +74,7 @@ export const chatRequestSchema = z
     mode: modeSchema,
     messages: z.array(chatMessageSchema).min(1).max(LIMITS.maxMessages),
     tutor: tutorConfigSchema.optional(),
+    personality: personalityConfigSchema.optional(),
   })
   .superRefine((request, ctx) => {
     if (request.mode === 'tutor' && !request.tutor) {

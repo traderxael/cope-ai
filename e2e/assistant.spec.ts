@@ -47,6 +47,43 @@ test.describe('asistente', () => {
     expect(overflow).toBeLessThanOrEqual(1);
   });
 
+  test('conserva una respuesta parcial y permite reintentar al recargar', async ({
+    page,
+  }) => {
+    await page.route('**/api/chat', (route) =>
+      route.fulfill({
+        status: 200,
+        headers: { 'content-type': 'text/event-stream; charset=utf-8' },
+        body: 'event: delta\ndata: {"text":"Respuesta parcial"}\n\n',
+      }),
+    );
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page
+      .getByLabel('Mensaje para Cope')
+      .fill('Contame algo que se corte');
+    await page.getByRole('button', { name: 'Enviar mensaje' }).click();
+
+    await expect(page.locator('.assistantRow').last()).toContainText(
+      'Respuesta parcial',
+    );
+    await expect(
+      page.locator('.assistantRow').last().locator('.stoppedNote'),
+    ).toContainText('se cortó');
+    await expect(
+      page.getByRole('button', { name: 'Reintentar' }),
+    ).toBeVisible();
+
+    await page.reload();
+    await expect(page.locator('.assistantRow').last()).toContainText(
+      'Respuesta parcial',
+    );
+    await expect(
+      page.locator('.assistantRow').last().locator('.stoppedNote'),
+    ).toContainText('se cortó');
+  });
+
   test('borrar otra conversación no corta la respuesta en curso', async ({
     page,
   }) => {

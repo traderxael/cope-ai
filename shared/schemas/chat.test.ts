@@ -37,6 +37,23 @@ describe('chatRequestSchema', () => {
     ).toBe(false);
   });
 
+  it('acepta y normaliza una personalidad global', () => {
+    const parsed = chatRequestSchema.parse(
+      request({
+        personality: {
+          preset: 'examinador',
+          name: '  Profe Ana ',
+          instructions: 'Sé formal.',
+        },
+      }),
+    );
+    expect(parsed.personality).toEqual({
+      preset: 'examinador',
+      name: 'Profe Ana',
+      instructions: 'Sé formal.',
+    });
+  });
+
   it('rechaza roles de sistema', () => {
     expect(
       chatRequestSchema.safeParse(

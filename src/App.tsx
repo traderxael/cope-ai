@@ -29,6 +29,7 @@ import {
 import { ProgressDialog } from './features/study/ProgressDialog';
 import { FlashcardsDialog } from './features/study/FlashcardsDialog';
 import { StudyPlanDialog } from './features/study/StudyPlanDialog';
+import { OralExamDialog } from './features/oral-exam/OralExamDialog';
 import { applyPwaUpdate, setupPwa } from './lib/pwa';
 import type { Conversation, PracticeResult } from './lib/storage';
 import {
@@ -54,6 +55,7 @@ export default function App() {
   const [progressOpen, setProgressOpen] = useState(false);
   const [flashcardsOpen, setFlashcardsOpen] = useState(false);
   const [studyPlanOpen, setStudyPlanOpen] = useState(false);
+  const [oralExamOpen, setOralExamOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [renameTarget, setRenameTarget] = useState<Conversation | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Conversation | null>(null);
@@ -150,9 +152,17 @@ export default function App() {
   }, [chat.actions]);
 
   const newChatRef = useRef(handleNewChat);
+  const draftRef = useRef(draft);
+  const attachmentCountRef = useRef(chat.pendingAttachments.length);
   useEffect(() => {
     newChatRef.current = handleNewChat;
   }, [handleNewChat]);
+  useEffect(() => {
+    draftRef.current = draft;
+  }, [draft]);
+  useEffect(() => {
+    attachmentCountRef.current = chat.pendingAttachments.length;
+  }, [chat.pendingAttachments.length]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -162,7 +172,9 @@ export default function App() {
         event.metaKey ||
         event.altKey ||
         event.key.toLowerCase() !== 'n' ||
-        document.querySelector('dialog[open]')
+        document.querySelector('dialog[open]') ||
+        draftRef.current.trim().length > 0 ||
+        attachmentCountRef.current > 0
       ) {
         return;
       }
@@ -215,13 +227,14 @@ export default function App() {
   );
 
   const handlePracticeComplete = useCallback(
-    (result: PracticeResult) => {
+    async (result: PracticeResult) => {
       const conversationId = chat.active?.id;
-      void chat.actions.recordPracticeResult({
+      const saved = await chat.actions.recordPracticeResult({
         ...result,
         ...(conversationId ? { conversationId } : {}),
       });
-      notify('Práctica guardada en tu progreso.', 'success');
+      if (saved) notify('Práctica guardada en tu progreso.', 'success');
+      return saved;
     },
     [chat.actions, chat.active?.id, notify],
   );
@@ -236,9 +249,19 @@ export default function App() {
     setStudyPlanOpen(true);
   }, []);
 
+  const openOralExam = useCallback(() => {
+    setTutorOpen(false);
+    setOralExamOpen(true);
+  }, []);
+
   const openProgress = useCallback(() => {
     setTutorOpen(false);
     setProgressOpen(true);
+  }, []);
+
+  const openSettingsFromOral = useCallback(() => {
+    setOralExamOpen(false);
+    setSettingsOpen(true);
   }, []);
 
   const clearEverything = useCallback(async () => {
@@ -246,6 +269,7 @@ export default function App() {
     setProgressOpen(false);
     setFlashcardsOpen(false);
     setStudyPlanOpen(false);
+    setOralExamOpen(false);
   }, [chat.actions]);
 
   const handleDeleteConfirm = useCallback(async () => {
@@ -460,6 +484,7 @@ export default function App() {
                   messages={active.messages}
                   streamingId={chat.streamingId}
                   streaming={chat.streaming}
+                  assistantName={chat.personality.name}
                   onRetry={chat.actions.retryLast}
                   onCopy={(text) => void copy(text)}
                 >
@@ -517,6 +542,7 @@ export default function App() {
                   }
                   onOpenFlashcards={openFlashcards}
                   onOpenPlan={openStudyPlan}
+                  onOpenOralExam={openOralExam}
                   onOpenProgress={openProgress}
                 />
               </aside>
@@ -557,6 +583,7 @@ export default function App() {
             }
             onOpenFlashcards={openFlashcards}
             onOpenPlan={openStudyPlan}
+            onOpenOralExam={openOralExam}
             onOpenProgress={openProgress}
           />
         </Dialog>
@@ -581,11 +608,24 @@ export default function App() {
           online={online}
         />
 
+        <OralExamDialog
+          open={oralExamOpen}
+          onClose={() => setOralExamOpen(false)}
+          tutor={tutor}
+          personality={chat.personality}
+          voice={chat.voice}
+          online={online}
+          onOpenSettings={openSettingsFromOral}
+        />
+
         <SettingsDialog
           open={settingsOpen}
           onClose={() => setSettingsOpen(false)}
           theme={theme}
           onThemeChange={changeTheme}
+          personality={chat.personality}
+          onPersonalityChange={chat.actions.updatePersonality}
+          voice={chat.voice}
           demo={chat.demo}
           onClearAll={clearEverything}
         />

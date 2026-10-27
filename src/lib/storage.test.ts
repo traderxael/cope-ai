@@ -19,7 +19,11 @@ import {
   savePracticeResult,
   saveStudyPlan,
   titleFromContent,
+  deleteOralExam,
+  listOralExams,
+  saveOralExam,
   type FlashcardDeck,
+  type OralExamSession,
   type StudyPlan,
 } from './storage';
 
@@ -69,6 +73,34 @@ function deck(overrides: Partial<FlashcardDeck> = {}): FlashcardDeck {
       },
     ],
     createdAt: 1_700_000_000_000,
+    updatedAt: 1_700_000_000_000 + sequence,
+    ...overrides,
+  };
+}
+
+function oralExam(overrides: Partial<OralExamSession> = {}): OralExamSession {
+  sequence += 1;
+  return {
+    id: `oral-${sequence}`,
+    config: {
+      subject: 'math',
+      level: 'secundaria',
+      difficulty: 'medium',
+      topics: [],
+      count: 3,
+    },
+    personality: { preset: 'cope', name: 'Cope' },
+    questions: [
+      {
+        id: 'q1',
+        prompt: 'Pregunta oral de prueba.',
+        expectedPoints: ['Punto uno', 'Punto dos'],
+        rubric: 'Explica y justifica.',
+      },
+    ],
+    answers: { q1: 'Una respuesta.' },
+    status: 'in_progress',
+    startedAt: 1_700_000_000_000,
     updatedAt: 1_700_000_000_000 + sequence,
     ...overrides,
   };
@@ -170,8 +202,33 @@ describe('helpers', () => {
     expect(conversation.tutor.style).toBe('guided');
   });
 
+  it('convierte un mensaje pendiente en error reintentable al recargar', async () => {
+    const raw = await openDB('cope-ai', 3);
+    await raw.put('conversations', {
+      ...makeConversation(),
+      id: 'interrumpida',
+      messages: [
+        {
+          id: 'a1',
+          role: 'assistant',
+          content: '',
+          createdAt: 1,
+          pending: true,
+        },
+      ],
+    });
+    raw.close();
+
+    const conversation = await getConversation('interrumpida');
+    expect(conversation?.messages[0]).toMatchObject({
+      pending: false,
+      error: true,
+    });
+    expect(conversation?.messages[0]?.content).toContain('se interrumpió');
+  });
+
   it('normaliza el estilo del tutor al leer datos antiguos', async () => {
-    const raw = await openDB('cope-ai', 2);
+    const raw = await openDB('cope-ai', 3);
     const legacy = makeConversation();
     await raw.put('conversations', {
       ...legacy,
@@ -256,12 +313,26 @@ describe('study plans storage', () => {
   });
 });
 
+describe('oral exam storage', () => {
+  it('guarda, lista y borra exámenes orales', async () => {
+    await saveOralExam(oralExam({ id: 'uno', updatedAt: 100 }));
+    await saveOralExam(oralExam({ id: 'dos', updatedAt: 200 }));
+
+    const listed = await listOralExams();
+    expect(listed.map((item) => item.id)).toEqual(['dos', 'uno']);
+
+    await deleteOralExam('dos');
+    expect((await listOralExams()).map((item) => item.id)).toEqual(['uno']);
+  });
+});
+
 describe('clearAllData', () => {
-  it('vacía conversaciones, prácticas, decks y planes', async () => {
+  it('vacía conversaciones, prácticas, decks, planes y exámenes orales', async () => {
     await saveConversation(makeConversation());
     await savePracticeResult(practiceResult());
     await saveFlashcardDeck(deck());
     await saveStudyPlan(studyPlan());
+    await saveOralExam(oralExam());
 
     await clearAllData();
 
@@ -269,5 +340,6 @@ describe('clearAllData', () => {
     expect(await listPracticeResults()).toEqual([]);
     expect(await listFlashcardDecks()).toEqual([]);
     expect(await listStudyPlans()).toEqual([]);
+    expect(await listOralExams()).toEqual([]);
   });
 });

@@ -101,10 +101,27 @@ function MarkdownTable({
   );
 }
 
+function MarkdownImage({
+  node: _node,
+  alt,
+  ...props
+}: ComponentPropsWithoutRef<'img'> & ExtraProps) {
+  return (
+    <img
+      {...props}
+      alt={alt ?? ''}
+      loading="lazy"
+      decoding="async"
+      referrerPolicy="no-referrer"
+    />
+  );
+}
+
 const components: Components = {
   pre: CodeBlock,
   a: MarkdownLink,
   table: MarkdownTable,
+  img: MarkdownImage,
 };
 
 export const Markdown = memo(function Markdown({

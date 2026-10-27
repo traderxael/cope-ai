@@ -95,6 +95,15 @@ export const studyPlanContentSchema = z
         path: ['days'],
         message: 'Los días del plan deben ser únicos.',
       });
+      return;
+    }
+    const sorted = [...days].sort((a, b) => a - b);
+    if (sorted.some((day, index) => day !== index + 1)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['days'],
+        message: 'Los días del plan deben ser contiguos desde el día 1.',
+      });
     }
   });
 

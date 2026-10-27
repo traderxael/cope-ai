@@ -2,6 +2,7 @@ export interface RequestContext {
   ip: string;
   origin: string | null;
   host: string | null;
+  ownerCode?: string | null;
   signal?: AbortSignal;
 }
 

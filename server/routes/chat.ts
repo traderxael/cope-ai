@@ -1,5 +1,5 @@
 import { chatRequestSchema } from '../../shared/schemas/chat.js';
-import { DEFAULT_TUTOR } from '../../shared/types.js';
+import { DEFAULT_PERSONALITY, DEFAULT_TUTOR } from '../../shared/types.js';
 import type { ServerConfig } from '../config.js';
 import { readServerConfig } from '../config.js';
 import { AppError, describeError, logError } from '../errors.js';
@@ -105,6 +105,7 @@ export async function prepareChat(
     const answer = buildDemoAnswer({
       mode: request.mode,
       tutor: request.tutor ?? DEFAULT_TUTOR,
+      personality: request.personality ?? DEFAULT_PERSONALITY,
       messages: request.messages,
       hasImages: images,
       hasDocument: hasDocument(request.messages),
@@ -119,10 +120,11 @@ export async function prepareChat(
     };
   }
 
+  const personality = request.personality ?? DEFAULT_PERSONALITY;
   const systemPrompt =
     request.mode === 'tutor'
-      ? buildTutorSystemPrompt(request.tutor ?? DEFAULT_TUTOR)
-      : buildAssistantSystemPrompt();
+      ? buildTutorSystemPrompt(request.tutor ?? DEFAULT_TUTOR, personality)
+      : buildAssistantSystemPrompt(personality);
 
   try {
     const stream = await openChatStream({

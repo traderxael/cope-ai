@@ -44,6 +44,7 @@ export function FlashcardsDialog({
   const [deck, setDeck] = useState<FlashcardDeck | null>(null);
   const [queue, setQueue] = useState<Flashcard[]>([]);
   const [reviewTotal, setReviewTotal] = useState(0);
+  const [forcedReview, setForcedReview] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const [topic, setTopic] = useState('');
   const [count, setCount] = useState<6 | 8 | 10>(8);
@@ -58,6 +59,10 @@ export function FlashcardsDialog({
     setView('list');
     setDeck(null);
     setQueue([]);
+    setForcedReview(false);
+    setTopic('');
+    setCount(8);
+    setUsePdf(false);
     setError(null);
     void listFlashcardDecks()
       .then((stored) => {
@@ -74,16 +79,28 @@ export function FlashcardsDialog({
     };
   }, [open]);
 
-  const startReview = (selected: FlashcardDeck) => {
+  const startReview = (selected: FlashcardDeck, force = false) => {
     const now = Date.now();
     const due = selected.cards.filter((card) => card.dueAt <= now);
-    const queueCards = due.length > 0 ? due : selected.cards;
+    const queueCards = due.length > 0 ? due : force ? selected.cards : [];
     setDeck(selected);
     setQueue(queueCards);
     setReviewTotal(queueCards.length);
+    setForcedReview(force && due.length === 0);
     setRevealed(false);
     setError(null);
     setView('review');
+  };
+
+  const nextDueLabel = (selected: FlashcardDeck | null): string => {
+    if (!selected?.cards.length) return 'más adelante';
+    const next = Math.min(...selected.cards.map((card) => card.dueAt));
+    return new Date(next).toLocaleString('es', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   const generate = async () => {
@@ -367,21 +384,47 @@ export function FlashcardsDialog({
               Volver
             </button>
             <span>
-              {deck?.title} · {reviewTotal - queue.length} de {reviewTotal}
+              {deck?.title}
+              {reviewTotal > 0
+                ? ` · ${reviewTotal - queue.length} de ${reviewTotal}`
+                : ''}
+              {forcedReview && reviewTotal > 0 ? ' · repaso anticipado' : ''}
             </span>
           </div>
 
           {!current ? (
-            <div className="studyEmpty">
-              <span className="studyEmptyIcon">
-                <Icon name="check" size={24} />
-              </span>
-              <h3>Repaso completo</h3>
-              <p>
-                Las tarjetas quedaron programadas según tu respuesta. Volvé
-                cuando toque el próximo repaso.
-              </p>
-            </div>
+            reviewTotal === 0 ? (
+              <div className="studyEmpty">
+                <span className="studyEmptyIcon">
+                  <Icon name="check" size={24} />
+                </span>
+                <h3>Todo al día</h3>
+                <p>
+                  La próxima tarjeta vence el {nextDueLabel(deck)}. No hace
+                  falta reprogramar nada todavía.
+                </p>
+                {deck ? (
+                  <button
+                    type="button"
+                    className="button secondary small"
+                    onClick={() => startReview(deck, true)}
+                  >
+                    Repasar igual
+                  </button>
+                ) : null}
+              </div>
+            ) : (
+              <div className="studyEmpty">
+                <span className="studyEmptyIcon">
+                  <Icon name="check" size={24} />
+                </span>
+                <h3>Repaso completo</h3>
+                <p>
+                  Las tarjetas quedaron programadas según tu respuesta. Volvé
+                  cuando toque el próximo repaso.
+                </p>
+              </div>
+            )
           ) : (
             <div className="flashcardCard">
               <p className="eyebrow">Frente</p>

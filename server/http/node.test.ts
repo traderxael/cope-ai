@@ -67,7 +67,15 @@ describe('requestMeta', () => {
       ip: '198.51.100.8',
       origin: 'https://cope.app',
       host: 'cope.app',
+      ownerCode: null,
     });
+  });
+
+  it('lee el código de propietario', () => {
+    const request = makeRequest('', {
+      'x-cope-owner': 'secreto',
+    });
+    expect(requestMeta(request).ownerCode).toBe('secreto');
   });
 
   it('usa x-forwarded-host si falta host', () => {

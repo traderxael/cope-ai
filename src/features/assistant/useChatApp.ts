@@ -4,6 +4,7 @@ import {
   DEFAULT_TUTOR,
   type ChatRequest,
   type Mode,
+  type PersonalityConfig,
   type TutorConfig,
 } from '../../../shared/types';
 import {
@@ -11,6 +12,7 @@ import {
   fetchHealth,
   requestQuiz,
   streamChat,
+  type VoiceCapabilities,
 } from '../../lib/api';
 import {
   AttachmentError,
@@ -22,6 +24,7 @@ import {
   contextNoticeMessage,
 } from '../../lib/chatPayload';
 import { isAbortError } from '../../lib/errors';
+import { loadPersonality, savePersonality } from '../../lib/personality';
 import {
   clearAllData,
   deleteConversation as deleteStoredConversation,
@@ -54,6 +57,7 @@ export interface ChatAppActions {
   clearAll: () => Promise<void>;
   setMode: (mode: Mode) => void;
   updateTutor: (partial: Partial<TutorConfig>) => void;
+  updatePersonality: (personality: PersonalityConfig) => void;
   addFiles: (files: File[]) => Promise<void>;
   removeAttachment: (id: string) => void;
   dismissAttachmentError: () => void;
@@ -61,7 +65,7 @@ export interface ChatAppActions {
   dismissStorageError: () => void;
   dismissContextNotice: () => void;
   generatePractice: (settings: PracticeSettings) => Promise<void>;
-  recordPracticeResult: (result: PracticeResult) => Promise<void>;
+  recordPracticeResult: (result: PracticeResult) => Promise<boolean>;
   closeQuiz: () => void;
   dismissPracticeError: () => void;
 }
@@ -80,6 +84,8 @@ export interface ChatAppState {
   practiceLoading: boolean;
   practiceError: string | null;
   quiz: PracticeSession | null;
+  personality: PersonalityConfig;
+  voice: VoiceCapabilities;
   storageError: string | null;
   contextNotice: string | null;
   actions: ChatAppActions;
@@ -120,6 +126,12 @@ export function useChatApp(): ChatAppState {
   const [practiceLoading, setPracticeLoading] = useState(false);
   const [practiceError, setPracticeError] = useState<string | null>(null);
   const [quiz, setQuiz] = useState<PracticeSession | null>(null);
+  const [personality, setPersonality] =
+    useState<PersonalityConfig>(loadPersonality);
+  const [voice, setVoice] = useState<VoiceCapabilities>({
+    tts: false,
+    clone: false,
+  });
   const [storageError, setStorageError] = useState<string | null>(null);
   const [contextNotice, setContextNotice] = useState<string | null>(null);
 
@@ -242,10 +254,18 @@ export function useChatApp(): ChatAppState {
         return;
       }
 
+      const partial = fullTextRef.current.trim();
       let failed = Boolean(outcome.error);
+      let incomplete = false;
       let content: string;
       if (outcome.error) {
-        content = outcome.errorMessage ?? 'No se pudo completar la respuesta.';
+        if (partial) {
+          content = partial;
+          incomplete = true;
+          failed = false;
+        } else {
+          content = outcome.errorMessage ?? 'No se pudo completar la respuesta.';
+        }
       } else if (outcome.stopped) {
         content =
           fullTextRef.current.trim() ||
@@ -266,6 +286,8 @@ export function useChatApp(): ChatAppState {
           if (outcome.demo !== undefined) next.demo = outcome.demo;
           if (outcome.stopped) next.stopped = true;
           if (failed) next.error = true;
+          if (incomplete) next.incomplete = true;
+          next.pending = false;
           return next;
         }),
         updatedAt: Date.now(),
@@ -298,6 +320,7 @@ export function useChatApp(): ChatAppState {
         role: 'assistant',
         content: '',
         createdAt: Date.now(),
+        pending: true,
       };
       const conversation: Conversation = {
         ...base,
@@ -317,6 +340,8 @@ export function useChatApp(): ChatAppState {
         setStreaming(true);
         setStreamingId(assistantId);
       }
+
+      void persistConversation(conversation);
 
       const controller = new AbortController();
       abortRef.current = controller;
@@ -351,7 +376,7 @@ export function useChatApp(): ChatAppState {
         }
       })();
     },
-    [finalizeStream, scheduleFlush],
+    [finalizeStream, persistConversation, scheduleFlush],
   );
 
   const resetTransient = useCallback(() => {
@@ -439,6 +464,7 @@ export function useChatApp(): ChatAppState {
           next.mode,
           next.mode === 'tutor' ? next.tutor : undefined,
           next.messages,
+          personality,
         );
         nextNotice = contextNoticeMessage(built.notices);
         const parsed = chatRequestSchema.safeParse(built.request);
@@ -470,6 +496,7 @@ export function useChatApp(): ChatAppState {
       applyActive,
       pendingAttachments,
       persistConversation,
+      personality,
       processing,
       startStreaming,
       streaming,
@@ -507,6 +534,7 @@ export function useChatApp(): ChatAppState {
         base.mode,
         base.mode === 'tutor' ? base.tutor : undefined,
         base.messages,
+        personality,
       );
       nextNotice = contextNoticeMessage(built.notices);
       const parsed = chatRequestSchema.safeParse(built.request);
@@ -530,6 +558,7 @@ export function useChatApp(): ChatAppState {
   }, [
     applyActive,
     persistConversation,
+    personality,
     startStreaming,
     streaming,
   ]);
@@ -633,6 +662,10 @@ export function useChatApp(): ChatAppState {
     },
     [applyActive, persistConversation, streaming],
   );
+
+  const updatePersonality = useCallback((next: PersonalityConfig) => {
+    setPersonality(savePersonality(next));
+  }, []);
 
   const updateTutor = useCallback(
     (partial: Partial<TutorConfig>) => {
@@ -777,11 +810,13 @@ export function useChatApp(): ChatAppState {
   );
 
   const recordPracticeResult = useCallback(
-    async (result: PracticeResult) => {
+    async (result: PracticeResult): Promise<boolean> => {
       try {
         await savePracticeResult(result);
+        return true;
       } catch {
         setStorageError('No se pudo guardar la práctica en este dispositivo.');
+        return false;
       }
     },
     [],
@@ -817,7 +852,10 @@ export function useChatApp(): ChatAppState {
 
     void fetchHealth()
       .then((health) => {
-        if (!cancelled && mountedRef.current) setDemo(health.demo);
+        if (!cancelled && mountedRef.current) {
+          setDemo(health.demo);
+          setVoice(health.voice);
+        }
       })
       .catch(() => {
         if (!cancelled && mountedRef.current) setDemo(null);
@@ -846,6 +884,8 @@ export function useChatApp(): ChatAppState {
     practiceLoading,
     practiceError,
     quiz,
+    personality,
+    voice,
     storageError,
     contextNotice,
     actions: {
@@ -859,6 +899,7 @@ export function useChatApp(): ChatAppState {
       clearAll,
       setMode,
       updateTutor,
+      updatePersonality,
       addFiles,
       removeAttachment,
       dismissAttachmentError: () => setAttachmentError(null),
