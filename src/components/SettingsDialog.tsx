@@ -136,6 +136,13 @@ export function SettingsDialog({
           guarda en el navegador ni se incluye en la app. La nube gratuita
           envía los mensajes a un servicio público de terceros.
         </p>
+        {provider === 'ollama' ? (
+          <p className="settingsHint">
+            El modelo local corre en tu equipo: el primer request puede tardar
+            y la calidad suele ser menor que la nube. Verificá el contenido de
+            práctica y exámenes antes de estudiarlo.
+          </p>
+        ) : null}
       </div>
 
       <div className="settingsSection">
