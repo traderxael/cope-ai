@@ -22,6 +22,14 @@ export interface ServerConfig {
   elevenLabsModelId: string;
   voiceCloneEnabled: boolean;
   voiceCloneCode: string | null;
+  googleApiKey: string | null;
+  googleModel: string | null;
+  googleMaxTokens: number;
+  googleJsonMode: boolean;
+  openRouterApiKey: string | null;
+  openRouterModel: string | null;
+  openRouterMaxTokens: number;
+  openRouterJsonMode: boolean;
   demoDelayMs: number;
   upstreamTimeoutMs: number;
   chatTimeoutMs: number;
@@ -163,6 +171,14 @@ export function readServerConfig(
       env.ELEVENLABS_MODEL_ID?.trim() || 'eleven_multilingual_v2',
     voiceCloneEnabled: env.COPE_VOICE_CLONE === '1',
     voiceCloneCode: env.COPE_VOICE_CLONE_CODE?.trim() || null,
+    googleApiKey: env.GOOGLE_API_KEY?.trim() || null,
+    googleModel: env.GOOGLE_MODEL?.trim() || null,
+    googleMaxTokens: readInteger(env.GOOGLE_MAX_TOKENS, LIMITS.maxOutputTokens, 1, 8192),
+    googleJsonMode: env.GOOGLE_JSON_MODE === '1',
+    openRouterApiKey: env.OPENROUTER_API_KEY?.trim() || null,
+    openRouterModel: env.OPENROUTER_MODEL?.trim() || null,
+    openRouterMaxTokens: readInteger(env.OPENROUTER_MAX_TOKENS, LIMITS.maxOutputTokens, 1, 8192),
+    openRouterJsonMode: env.OPENROUTER_JSON_MODE === '1',
     demoDelayMs: readInteger(
       env.COPE_DEMO_DELAY_MS,
       LIMITS.demoDelayMs,

@@ -7,6 +7,8 @@ export interface VoiceSettings {
   mode: VoiceMode;
   clonedVoiceId?: string;
   clonedLabel?: string;
+  rate?: number;   // percent, e.g. -50 for -50%
+  pitch?: number;  // semitone offset
 }
 
 const SETTINGS_KEY = 'cope-voice-v1';
@@ -15,6 +17,8 @@ const OWNER_KEY = 'cope-owner-code';
 export const DEFAULT_VOICE_SETTINGS: VoiceSettings = {
   profile: 'cercana',
   mode: 'browser',
+  rate: 0,
+  pitch: 0,
 };
 
 function isProfile(value: unknown): value is VoiceProfile {
@@ -35,7 +39,9 @@ export function loadVoiceSettings(): VoiceSettings {
       profile: isProfile(parsed.profile)
         ? parsed.profile
         : DEFAULT_VOICE_SETTINGS.profile,
-      mode: isMode(parsed.mode) ? parsed.mode : DEFAULT_VOICE_SETTINGS.mode,
+      mode: isMode(parsed.mode)
+        ? parsed.mode
+        : DEFAULT_VOICE_SETTINGS.mode,
       clonedVoiceId:
         typeof parsed.clonedVoiceId === 'string' && parsed.clonedVoiceId.trim()
           ? parsed.clonedVoiceId.trim()
@@ -44,6 +50,8 @@ export function loadVoiceSettings(): VoiceSettings {
         typeof parsed.clonedLabel === 'string' && parsed.clonedLabel.trim()
           ? parsed.clonedLabel.trim()
           : undefined,
+      rate: typeof parsed.rate === 'number' ? parsed.rate : 0,
+      pitch: typeof parsed.pitch === 'number' ? parsed.pitch : 0,
     };
   } catch {
     return { ...DEFAULT_VOICE_SETTINGS };
@@ -55,13 +63,19 @@ export function saveVoiceSettings(settings: VoiceSettings): VoiceSettings {
     profile: isProfile(settings.profile)
       ? settings.profile
       : DEFAULT_VOICE_SETTINGS.profile,
-    mode: isMode(settings.mode) ? settings.mode : DEFAULT_VOICE_SETTINGS.mode,
-    ...(settings.clonedVoiceId
-      ? { clonedVoiceId: settings.clonedVoiceId.trim() }
-      : {}),
-    ...(settings.clonedLabel
-      ? { clonedLabel: settings.clonedLabel.trim() }
-      : {}),
+    mode: isMode(settings.mode)
+      ? settings.mode
+      : DEFAULT_VOICE_SETTINGS.mode,
+    clonedVoiceId:
+      typeof settings.clonedVoiceId === 'string' && settings.clonedVoiceId.trim()
+        ? settings.clonedVoiceId.trim()
+        : undefined,
+    clonedLabel:
+      typeof settings.clonedLabel === 'string' && settings.clonedLabel.trim()
+        ? settings.clonedLabel.trim()
+        : undefined,
+    rate: settings.rate ?? 0,
+    pitch: settings.pitch ?? 0,
   };
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));

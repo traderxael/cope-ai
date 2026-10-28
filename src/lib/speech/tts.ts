@@ -61,7 +61,7 @@ export async function speakExternal(
     cache: 'no-store',
   });
   if (!response.ok) {
-    let message = 'No se pudo generar la voz externa.';
+    let message = 'No se pudo generar la voz externa.' ;
     try {
       const payload = (await response.json()) as {
         error?: { message?: unknown };
@@ -76,9 +76,8 @@ export async function speakExternal(
   }
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);
+  externalAudio = new Audio(url);
   externalUrl = url;
-  const audio = new Audio(url);
-  externalAudio = audio;
   return new Promise<void>((resolve, reject) => {
     audio.onended = () => {
       stopExternal();
@@ -108,6 +107,8 @@ function pickVoice(profile: VoiceProfile): SpeechSynthesisVoice | null {
   return spanish[0] ?? null;
 }
 
+import { loadVoiceSettings } from '../lib/voice';
+
 export function speakText(
   text: string,
   profile: VoiceProfile = 'neutra',
@@ -115,15 +116,22 @@ export function speakText(
   if (!speechSynthesisSupported()) {
     return Promise.reject(new Error('La voz del navegador no está disponible.'));
   }
-  const clean = text.replace(/\s+/g, ' ').trim();
+  const clean = text.replace(/\\s+/g, ' ').trim();
   if (!clean) return Promise.resolve();
 
   window.speechSynthesis.cancel();
-  const settings = PROFILE_SETTINGS[profile];
+  const voiceSettings = loadVoiceSettings();
+  const base = PROFILE_SETTINGS[profile];
+  const userPitch = voiceSettings.pitch ?? 0;
+  const userRatePercent = voiceSettings.rate ?? 0;
+  const finalPitch = base.pitch + userPitch;
+  // rate is a multiplier where 1.0 is default speed
+  const finalRate = base.rate * (1 + userRatePercent / 100);
+
   const utterance = new SpeechSynthesisUtterance(clean);
   utterance.lang = 'es-ES';
-  utterance.pitch = settings.pitch;
-  utterance.rate = settings.rate;
+  utterance.pitch = finalPitch;
+  utterance.rate = finalRate;
   const voice = pickVoice(profile);
   if (voice) utterance.voice = voice;
 

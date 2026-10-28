@@ -317,6 +317,50 @@ export function VoiceSettings({
           la voz del navegador.
         </p>
       )}
+      <div className="fieldGroup">
+        <label className="fieldLabel" htmlFor="voice-rate">
+          Rate (%)
+        </label>
+        <div className="inputWrap">
+          <input
+            id="voice-rate"
+            type="range"
+            min="-50"
+            max="50"
+            value={settings.rate ?? 0}
+            onChange={(e) => {
+              const val = Number(e.target.value);
+              update({ ...settings, rate: val });
+            }}
+          />
+          <span className="sliderValue">{settings.rate ?? 0}%</span>
+        </div>
+        <span className="fieldHint">
+          Velocidad relativa al habla normal.
+        </span>
+      </div>
+      <div className="fieldGroup">
+        <label className="fieldLabel" htmlFor="voice-pitch">
+          Pitch (semitonos)
+        </label>
+        <div className="inputWrap">
+          <input
+            id="voice-pitch"
+            type="range"
+            min="-20"
+            max="20"
+            value={settings.pitch ?? 0}
+            onChange={(e) => {
+              const val = Number(e.target.value);
+              update({ ...settings, pitch: val });
+            }}
+          />
+          <span className="sliderValue">{settings.pitch ?? 0}</span>
+        </div>
+        <span className="fieldHint">
+          Ajuste de tono relativo al voz base.
+        </span>
+      </div>
 
       {error ? (
         <p className="inlineError" role="alert">

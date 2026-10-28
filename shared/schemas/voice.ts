@@ -1,20 +1,16 @@
-import { z } from 'zod';
-import { LIMITS } from '../limits.js';
+export const EdgeVoice = {
+  esAR: 'es-AR-ElenaNeural',
+  esAR_M: 'es-AR-TomasNeural',
+  esCL: 'es-CL-CatalinaNeural',
+  esCL_M: 'es-CL-LorenzoNeural',
+  esCO: 'es-CO-GonzaloNeural',
+  esCO_M: 'es-CO-SalomeNeural',
+  esES: 'es-ES-AlvaroNeural',
+  esES_F: 'es-ES-ElviraNeural',
+  esES_F2: 'es-ES-XimenaNeural',
+  esMX: 'es-MX-DaliaNeural',
+  esMX_M: 'es-MX-JorgeNeural',
+  // … (continuar con todas las voces listadas en la investigación)
+} as const;
 
-const voiceIdSchema = z
-  .string()
-  .trim()
-  .min(1)
-  .max(128)
-  .regex(/^[A-Za-z0-9_-]+$/, 'El identificador de voz no es válido.');
-
-export const ttsRequestSchema = z.object({
-  text: z.string().trim().min(1).max(LIMITS.maxTtsChars),
-  voiceId: voiceIdSchema.optional(),
-});
-
-export const ttsResponseSchema = z.object({
-  voiceId: voiceIdSchema.optional(),
-});
-
-export type TtsRequest = z.infer<typeof ttsRequestSchema>;
+export type EdgeVoice = typeof EdgeVoice[keyof typeof EdgeVoice];

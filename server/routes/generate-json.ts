@@ -1,6 +1,6 @@
 import { LIMITS } from '../../shared/limits.js';
 import type { ServerConfig } from '../config.js';
-import { completeJson, type JsonCompletionOptions } from '../providers/openai.js';
+import { completeJsonGoogle as completeJson, type JsonCompletionOptions } from '../providers/google.js';
 
 const REPAIR_PROMPT =
   'Tu respuesta anterior no fue JSON válido o no cumplió el formato. Devolvé únicamente el objeto JSON solicitado, sin fences ni texto adicional.';
