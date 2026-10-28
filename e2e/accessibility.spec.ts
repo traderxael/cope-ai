@@ -51,6 +51,34 @@ test.describe('accesibilidad', () => {
     await checkDialog();
   });
 
+  test('el onboarding no tiene violaciones graves', async ({ page }) => {
+    await page.route('**/api/health', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: true,
+          demo: false,
+          configured: true,
+          provider: 'pollinations',
+          model: 'openai',
+          voice: { tts: false, clone: false },
+        }),
+      }),
+    );
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await expect(
+      page.getByRole('heading', { name: 'Aprender puede ser más simple.' }),
+    ).toBeVisible();
+    const results = await new AxeBuilder({ page }).analyze();
+    const serious = results.violations.filter(
+      (violation) =>
+        violation.impact === 'serious' || violation.impact === 'critical',
+    );
+    expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
+  });
+
   test('personalidad, voz y examen oral no tienen violaciones graves', async ({
     page,
   }) => {

@@ -2,11 +2,40 @@ import { describe, expect, it } from 'vitest';
 import { readServerConfig } from './config';
 
 describe('readServerConfig', () => {
-  it('activa demo sin clave o modelo', () => {
+  it('usa la IA gratuita sin clave por defecto', () => {
     const config = readServerConfig({});
-    expect(config.demo).toBe(true);
+    expect(config.provider).toBe('pollinations');
+    expect(config.demo).toBe(false);
     expect(config.apiKey).toBeNull();
-    expect(config.baseUrl).toBe('https://api.openai.com/v1');
+    expect(config.model).toBe('openai');
+    expect(config.baseUrl).toContain('text.pollinations.ai');
+  });
+
+  it('mantiene fixtures solo para pruebas explícitas', () => {
+    const config = readServerConfig({ COPE_DEMO: '1' });
+    expect(config.provider).toBe('fixtures');
+    expect(config.demo).toBe(true);
+  });
+
+  it('elige Ollama local con COPE_AI_PROVIDER=ollama', () => {
+    const config = readServerConfig({
+      COPE_AI_PROVIDER: 'ollama',
+      OLLAMA_MODEL: 'qwen2.5:3b-cpu',
+    });
+    expect(config.provider).toBe('ollama');
+    expect(config.demo).toBe(false);
+    expect(config.baseUrl).toContain('127.0.0.1:11434');
+    expect(config.model).toBe('qwen2.5:3b-cpu');
+  });
+
+  it('permite forzar Pollinations aunque exista clave OpenAI', () => {
+    const config = readServerConfig({
+      COPE_AI_PROVIDER: 'pollinations',
+      OPENAI_API_KEY: 'test-key',
+      OPENAI_MODEL: 'test-model',
+    });
+    expect(config.provider).toBe('pollinations');
+    expect(config.apiKey).toBeNull();
   });
 
   it('configura el proveedor cuando hay clave y modelo', () => {
@@ -16,6 +45,7 @@ describe('readServerConfig', () => {
       OPENAI_BASE_URL: 'http://localhost:1234/v1/',
     });
     expect(config.demo).toBe(false);
+    expect(config.provider).toBe('openai');
     expect(config.apiKey).toBe('test-key');
     expect(config.model).toBe('test-model');
     expect(config.baseUrl).toBe('http://localhost:1234/v1');

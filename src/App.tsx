@@ -12,6 +12,7 @@ import { EmptyState } from './components/EmptyState';
 import { Icon } from './components/Icon';
 import { Logo } from './components/Logo';
 import { MessageList } from './components/MessageList';
+import { Onboarding } from './components/Onboarding';
 import { MobileSidebar } from './components/MobileSidebar';
 import { RenameDialog } from './components/RenameDialog';
 import { SegmentedMode } from './components/SegmentedMode';
@@ -31,6 +32,11 @@ import { FlashcardsDialog } from './features/study/FlashcardsDialog';
 import { StudyPlanDialog } from './features/study/StudyPlanDialog';
 import { OralExamDialog } from './features/oral-exam/OralExamDialog';
 import { applyPwaUpdate, setupPwa } from './lib/pwa';
+import {
+  loadProfile,
+  saveProfile,
+  type UserProfile,
+} from './lib/profile';
 import type { Conversation, PracticeResult } from './lib/storage';
 import {
   applyTheme,
@@ -45,6 +51,7 @@ export default function App() {
   const chat = useChatApp();
   const online = useOnlineStatus();
 
+  const [profile, setProfile] = useState<UserProfile | null>(loadProfile);
   const [theme, setTheme] = useState<Theme>(getStoredTheme);
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() =>
     resolveTheme(getStoredTheme()),
@@ -142,6 +149,27 @@ export default function App() {
       }
     },
     [notify],
+  );
+
+  const appliedProfileRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!profile || !chat.active || chat.active.messages.length) return;
+    const key = `${profile.createdAt}:${chat.active.id}`;
+    if (appliedProfileRef.current === key) return;
+    appliedProfileRef.current = key;
+    chat.actions.updateTutor({
+      level: profile.level,
+      subject: profile.subjects[0] ?? 'general',
+    });
+    chat.actions.setMode('tutor');
+  }, [profile, chat.active, chat.actions]);
+
+  const completeOnboarding = useCallback(
+    (next: UserProfile) => {
+      setProfile(saveProfile(next));
+    },
+    [],
   );
 
   const handleNewChat = useCallback(() => {
@@ -291,6 +319,10 @@ export default function App() {
     );
   }
 
+  if (!profile && chat.demo === false) {
+    return <Onboarding onComplete={completeOnboarding} />;
+  }
+
   const active = chat.active;
   const mode = active.mode;
   const tutor = active.tutor;
@@ -325,6 +357,7 @@ export default function App() {
             conversations={chat.conversations}
             activeId={active.id}
             demo={chat.demo}
+            provider={chat.provider}
             resolvedTheme={resolvedTheme}
             onSelect={handleSelectConversation}
             onNew={handleNewChat}
@@ -358,8 +391,8 @@ export default function App() {
               <div className="banner demoBanner" role="status">
                 <span className="demoPulse" aria-hidden="true" />
                 <span>
-                  <strong>Modo demo.</strong> Respuestas de ejemplo; conectá tu
-                  proveedor para usar IA real.
+                  <strong>Entorno de prueba.</strong> Respuestas deterministas
+                  para pruebas automatizadas.
                 </span>
               </div>
             ) : null}
@@ -469,6 +502,11 @@ export default function App() {
                     onPractice={() =>
                       handlePractice(DEFAULT_PRACTICE_SETTINGS)
                     }
+                    onStyleChange={(style) =>
+                      chat.actions.updateTutor({ style })
+                    }
+                    onOpenPlan={openStudyPlan}
+                    onOpenOralExam={openOralExam}
                     practiceLoading={chat.practiceLoading}
                     disabled={
                       !online ||
@@ -556,6 +594,7 @@ export default function App() {
           conversations={chat.conversations}
           activeId={active.id}
           demo={chat.demo}
+          provider={chat.provider}
           resolvedTheme={resolvedTheme}
           onSelect={handleSelectConversation}
           onNew={handleNewChat}
@@ -626,6 +665,7 @@ export default function App() {
           personality={chat.personality}
           onPersonalityChange={chat.actions.updatePersonality}
           voice={chat.voice}
+          provider={chat.provider}
           demo={chat.demo}
           onClearAll={clearEverything}
         />

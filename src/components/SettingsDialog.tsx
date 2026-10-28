@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { PersonalityConfig } from '../../shared/types';
-import type { VoiceCapabilities } from '../lib/api';
+import type { AiProvider, VoiceCapabilities } from '../lib/api';
 import { formatBytes } from '../lib/attachments';
 import { storageEstimate } from '../lib/storage';
 import { type Theme } from '../lib/theme';
@@ -17,6 +17,7 @@ interface SettingsDialogProps {
   personality: PersonalityConfig;
   onPersonalityChange: (personality: PersonalityConfig) => void;
   voice: VoiceCapabilities;
+  provider?: AiProvider | null;
   demo: boolean | null;
   onClearAll: () => Promise<void>;
 }
@@ -39,6 +40,7 @@ export function SettingsDialog({
   personality,
   onPersonalityChange,
   voice,
+  provider,
   demo,
   onClearAll,
 }: SettingsDialogProps) {
@@ -107,7 +109,7 @@ export function SettingsDialog({
       <div className="settingsSection">
         <h3>Inteligencia artificial</h3>
         <div className="settingsRow">
-          <span>Configuración del proveedor</span>
+          <span>Motor de IA</span>
           <span
             className={
               demo === true
@@ -119,22 +121,21 @@ export function SettingsDialog({
           >
             <span className="statusDot" aria-hidden="true" />
             {demo === true
-              ? 'Demo'
-              : demo === false
-                ? 'Configurado'
-                : 'Sin verificar'}
+              ? 'Entorno de prueba'
+              : provider === 'ollama'
+                ? 'Ollama local'
+                : provider === 'pollinations'
+                  ? 'Nube gratuita'
+                  : provider === 'openai'
+                    ? 'Proveedor configurado'
+                    : 'Sin verificar'}
           </span>
         </div>
         <p className="settingsHint">
           Cope usa un proxy del servidor. La clave de tu proveedor nunca se
-          guarda en el navegador ni se incluye en la app.
+          guarda en el navegador ni se incluye en la app. La nube gratuita
+          envía los mensajes a un servicio público de terceros.
         </p>
-        {demo === true ? (
-          <p className="settingsHint codeHint">
-            Para usar respuestas reales, configurá OPENAI_API_KEY y
-            OPENAI_MODEL en .env.local.
-          </p>
-        ) : null}
       </div>
 
       <div className="settingsSection">

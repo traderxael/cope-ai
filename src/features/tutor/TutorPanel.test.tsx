@@ -47,11 +47,11 @@ describe('TutorPanel', () => {
   it('cambia el estilo del tutor', async () => {
     const user = userEvent.setup();
     const { onChange } = renderPanel();
-    expect(screen.getByRole('button', { name: 'Guiado' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: 'Socrático' })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
-    await user.click(screen.getByRole('button', { name: 'Solución' }));
+    await user.click(screen.getByRole('button', { name: 'Solver' }));
     expect(onChange).toHaveBeenCalledWith({ style: 'solver' });
   });
 

@@ -4,6 +4,8 @@ export interface HealthPayload {
   ok: true;
   demo: boolean;
   configured: boolean;
+  provider: ServerConfig['provider'];
+  model: string | null;
   voice: {
     tts: boolean;
     clone: boolean;
@@ -15,7 +17,9 @@ export function healthPayload(config: ServerConfig): HealthPayload {
   return {
     ok: true,
     demo: config.demo,
-    configured: !config.demo,
+    configured: config.provider !== 'fixtures' && Boolean(config.model),
+    provider: config.provider,
+    model: config.model,
     voice: {
       tts,
       clone: Boolean(

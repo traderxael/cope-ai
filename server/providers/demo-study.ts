@@ -194,6 +194,17 @@ const FLASHCARD_BANKS: Record<Subject, FlashcardContentCard[]> = {
   math: MATH_CARDS,
   physics: PHYSICS_CARDS,
   chemistry: CHEMISTRY_CARDS,
+  biology: GENERAL_CARDS,
+  spanish: GENERAL_CARDS,
+  english: GENERAL_CARDS,
+  german: GENERAL_CARDS,
+  french: GENERAL_CARDS,
+  history: GENERAL_CARDS,
+  geography: GENERAL_CARDS,
+  economics: GENERAL_CARDS,
+  computerScience: GENERAL_CARDS,
+  philosophy: GENERAL_CARDS,
+  psychology: GENERAL_CARDS,
   general: GENERAL_CARDS,
 };
 

@@ -1,6 +1,9 @@
 import { LIMITS } from '../shared/limits.js';
 
+export type AiProvider = 'openai' | 'ollama' | 'pollinations' | 'fixtures';
+
 export interface ServerConfig {
+  provider: AiProvider;
   apiKey: string | null;
   baseUrl: string;
   model: string | null;
@@ -50,22 +53,69 @@ function readInteger(
 export function readServerConfig(
   env: NodeJS.ProcessEnv = process.env,
 ): ServerConfig {
-  const apiKey = env.OPENAI_API_KEY?.trim() || null;
-  const model = env.OPENAI_MODEL?.trim() || null;
+  const openAiKey = env.OPENAI_API_KEY?.trim() || null;
+  const openAiModel = env.OPENAI_MODEL?.trim() || null;
   const forcedDemo = env.COPE_DEMO === '1';
-  const configured = Boolean(apiKey && model) && !forcedDemo;
+  const requested = (env.COPE_AI_PROVIDER?.trim().toLowerCase() || 'auto') as
+    | 'auto'
+    | AiProvider;
+  const provider: AiProvider = forcedDemo
+    ? 'fixtures'
+    : requested === 'ollama' || (requested === 'auto' && env.COPE_LOCAL_AI === '1')
+      ? 'ollama'
+      : requested === 'pollinations'
+        ? 'pollinations'
+        : requested === 'openai'
+          ? openAiKey && openAiModel
+            ? 'openai'
+            : 'pollinations'
+          : openAiKey && openAiModel
+            ? 'openai'
+            : 'pollinations';
+
+  const baseUrl =
+    provider === 'pollinations'
+      ? 'https://text.pollinations.ai/openai'
+      : provider === 'ollama'
+        ? normalizeBaseUrl(
+            env.OLLAMA_BASE_URL?.trim() || 'http://127.0.0.1:11434/v1',
+          )
+        : normalizeBaseUrl(env.OPENAI_BASE_URL);
+  const model =
+    provider === 'fixtures'
+      ? null
+      : provider === 'pollinations'
+        ? env.POLLINATIONS_MODEL?.trim() || 'openai'
+        : provider === 'ollama'
+          ? env.OLLAMA_MODEL?.trim() || 'qwen2.5:3b-cpu'
+          : openAiModel;
+  const apiKey =
+    provider === 'fixtures'
+      ? null
+      : provider === 'pollinations'
+        ? env.POLLINATIONS_API_KEY?.trim() || null
+        : provider === 'ollama'
+          ? env.OLLAMA_API_KEY?.trim() || 'ollama'
+          : openAiKey;
   const tokenParam =
-    env.OPENAI_TOKEN_PARAM === 'max_completion_tokens'
+    env.OPENAI_TOKEN_PARAM === 'max_completion_tokens' &&
+    provider !== 'pollinations'
       ? 'max_completion_tokens'
       : 'max_tokens';
 
   return {
-    apiKey: configured ? apiKey : null,
-    baseUrl: normalizeBaseUrl(env.OPENAI_BASE_URL),
+    provider,
+    apiKey,
+    baseUrl,
     model,
-    demo: !configured,
-    jsonMode: env.OPENAI_JSON_MODE === '1',
-    visionEnabled: env.OPENAI_VISION !== '0',
+    demo: provider === 'fixtures',
+    jsonMode: provider !== 'pollinations' && env.OPENAI_JSON_MODE === '1',
+    visionEnabled:
+      provider === 'pollinations'
+        ? false
+        : provider === 'ollama'
+          ? env.OLLAMA_VISION === '1'
+          : env.OPENAI_VISION !== '0',
     tokenParam,
     rateLimitPerMinute: readInteger(
       env.COPE_RATE_LIMIT_PER_MINUTE,

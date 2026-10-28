@@ -64,7 +64,7 @@ export function buildDemoAnswer(input: DemoChatInput): string {
 
 **Consulta:** “${summary}”
 **Materia:** ${SUBJECT_LABELS[input.tutor.subject]} · **Nivel:** ${LEVEL_LABELS[input.tutor.level]}
-**Estilo:** ${solver ? 'Solución completa' : 'Guiado'}
+**Estilo:** ${solver ? 'Solver' : 'Socrático'}
 ${personaLine}
 ${attachmentNotes ? `\n${attachmentNotes}\n` : ''}`;
 
@@ -519,6 +519,17 @@ const QUIZ_BANKS: Record<Subject, QuizQuestion[]> = {
   math: MATH_QUIZ,
   physics: PHYSICS_QUIZ,
   chemistry: CHEMISTRY_QUIZ,
+  biology: GENERAL_QUIZ,
+  spanish: GENERAL_QUIZ,
+  english: GENERAL_QUIZ,
+  german: GENERAL_QUIZ,
+  french: GENERAL_QUIZ,
+  history: GENERAL_QUIZ,
+  geography: GENERAL_QUIZ,
+  economics: GENERAL_QUIZ,
+  computerScience: GENERAL_QUIZ,
+  philosophy: GENERAL_QUIZ,
+  psychology: GENERAL_QUIZ,
   general: GENERAL_QUIZ,
 };
 

@@ -2,12 +2,13 @@
 
 [![CI](https://github.com/traderxael/cope-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/traderxael/cope-ai/actions/workflows/ci.yml)
 
-Tutor de estudio y asistente AI original, empaquetado como PWA instalable. Incluye
-modo demo sin clave, streaming, personalidad configurable, estilos de tutor,
-práctica de 5 o 10 preguntas con dificultad y temporizador, progreso local,
-flashcards con repaso espaciado, plan de examen, examen oral simulado con voz y
-clonación opcional, escaneo de tareas con cámara, contexto de imágenes y PDF,
-historial local y una identidad visual propia.
+Tutor de estudio y asistente AI original, empaquetado como PWA instalable. Arranca
+con **IA gratuita de nube sin clave** (Pollinations), permite usar **Ollama local**
+o una clave gratuita propia, y no muestra respuestas demo. Incluye onboarding
+local, 14 materias, personalidad configurable, estilos **Socrático** y **Solver**,
+práctica de 5 o 10 preguntas, progreso, flashcards, plan de examen, examen oral
+con voz y clonación opcional, cámara, contexto de imágenes/PDF, historial local e
+identidad visual propia.
 
 > Cope AI es un proyecto independiente. No tiene afiliación con Astra AI ni usa
 > su código, recursos, textos o marca. La app no se construyó descompilando ni
@@ -15,9 +16,13 @@ historial local y una identidad visual propia.
 
 ## Capturas
 
-| Escritorio | Móvil |
+| Bienvenida | Escritorio |
 | --- | --- |
-| <img src="docs/desktop-light.png" alt="Cope AI en escritorio" width="720" /> | <img src="docs/mobile-light.png" alt="Cope AI en móvil" width="220" /> |
+| <img src="docs/onboarding.png" alt="Bienvenida de Cope AI con perfil local" width="640" /> | <img src="docs/desktop-light.png" alt="Cope AI en escritorio" width="420" /> |
+
+| Móvil |
+| --- |
+| <img src="docs/mobile-light.png" alt="Cope AI en móvil" width="220" /> |
 
 | Tutor y configuración | Plan de examen |
 | --- | --- |
@@ -28,10 +33,10 @@ historial local y una identidad visual propia.
 | <img src="docs/personality-settings.png" alt="Ajustes de personalidad y voz de Cope AI" width="420" /> | <img src="docs/oral-exam.png" alt="Examen oral simulado con pregunta y respuesta por voz" width="640" /> |
 
 <p align="center">
-  <img src="docs/conversation-demo.png" alt="Conversación de ejemplo en modo demo" width="760" />
+  <img src="docs/conversation-demo.png" alt="Conversación de ejemplo con IA gratuita" width="760" />
 </p>
 
-Capturas reales del build de producción en modo demo, sin clave configurada.
+Capturas reales del build de producción con el motor gratuito.
 
 ## Empezar
 
@@ -42,9 +47,23 @@ npm install
 npm run dev
 ```
 
-Abrí `http://localhost:5173`. Sin variables de entorno, Cope AI arranca en
-**modo demo**: podés probar chat, streaming, tutor, quiz, adjuntos e historial
-sin ninguna clave.
+Abrí `http://localhost:5173`. Sin variables de entorno, Cope AI arranca con
+**IA gratuita de nube**: Pollinations no requiere clave, pero limita a
+aproximadamente una respuesta cada 30 segundos por IP. Si preferís privacidad y
+no te importa la velocidad, usá Ollama local. La app no muestra respuestas demo:
+si el motor falla, informa el error y permite reintentar.
+
+### Motores gratuitos
+
+| Motor | Cómo activarlo | Ventajas | Límites |
+| --- | --- | --- | --- |
+| Nube gratuita (default) | nada | arranca al abrir y funciona en Vercel | tercera parte, ~1 respuesta/30 s, sin visión |
+| Ollama local | `COPE_AI_PROVIDER=ollama` y Ollama abierto | privado y sin cuota | solo en tu equipo; CPU lenta |
+| Clave gratuita propia | `OPENAI_API_KEY`, `OPENAI_MODEL` y `OPENAI_BASE_URL` | mejor calidad/cuota | requiere crear la clave en el proveedor |
+
+La nube gratuita envía los mensajes a un servicio público de terceros. No la uses
+con información sensible. El modo de fixtures (`COPE_DEMO=1`) queda reservado
+para tests internos y no se muestra al usuario.
 
 ### Conectar un proveedor real
 
@@ -62,8 +81,8 @@ sin ninguna clave.
    OPENAI_MODEL=tu_modelo
    ```
 
-3. Reiniciá `npm run dev`. El banner de demo desaparece cuando el servidor
-   detecta clave y modelo.
+3. Reiniciá `npm run dev`. Si no configurás nada, la app usa Pollinations
+   gratuito; si configurás clave y modelo, usa tu proveedor.
 
 La clave se lee **solo del lado servidor**. Nunca uses variables `VITE_*` para
 secretos: todo lo que empieza con `VITE_` se incluye en el bundle público.
@@ -87,8 +106,15 @@ Variables opcionales:
 | `OPENAI_TOKEN_PARAM` | `max_tokens` (default) o `max_completion_tokens` según el proveedor |
 | `OPENAI_JSON_MODE=1` | Envía `response_format: json_object` al generar práctica |
 | `OPENAI_VISION=0` | Rechaza imágenes en el servidor |
-| `COPE_DEMO=1` | Fuerza modo demo aunque haya clave (útil para E2E) |
-| `COPE_DEMO_DELAY_MS` | Ritmo del streaming demo (default 15) |
+| `COPE_AI_PROVIDER` | `auto` (default), `openai`, `ollama` o `pollinations` |
+| `COPE_LOCAL_AI=1` | Atajo para elegir Ollama local |
+| `OLLAMA_BASE_URL` | URL local (default `http://127.0.0.1:11434/v1`) |
+| `OLLAMA_MODEL` | Modelo local (default `qwen2.5:3b-cpu`) |
+| `OLLAMA_VISION=1` | Permite imágenes si el modelo local tiene visión |
+| `POLLINATIONS_MODEL` | Modelo de la nube gratuita (default `openai`) |
+| `POLLINATIONS_API_KEY` | Clave opcional de Pollinations para más cuota |
+| `COPE_DEMO=1` | Fixtures deterministas solo para tests internos |
+| `COPE_DEMO_DELAY_MS` | Ritmo del streaming de fixtures (default 15) |
 | `COPE_RATE_LIMIT_PER_MINUTE` | Límite por IP para chat (default 10) |
 | `COPE_QUIZ_RATE_LIMIT_PER_MINUTE` | Límite por IP para práctica (default 5) |
 | `COPE_STUDY_RATE_LIMIT_PER_MINUTE` | Límite por IP para flashcards y planes (default 5) |
@@ -103,11 +129,17 @@ Variables opcionales:
 
 ## Funciones
 
+- **Bienvenida local:** onboarding join-ready con nombre, nivel, 14 materias y
+  fecha de examen. No hay cuenta ni botones de OAuth falsos; el perfil se guarda
+  en el dispositivo.
+- **14 materias:** matemáticas, física, química, biología, español, inglés,
+  alemán, francés, historia, geografía, economía, informática, filosofía y
+  psicología, además de General.
 - **Personalidad:** nombre, preset (Cope, examinador estricto, tutor cercano,
   reto exigente) e instrucciones libres. Se aplica al chat, al tutor y al
   examinador; se guarda solo en este dispositivo.
-- **Tutor:** materia, nivel y dos estilos. **Guiado** da pistas y preguntas para
-  que resuelvas vos; **Solución** muestra el procedimiento completo y la
+- **Tutor:** materia, nivel y dos estilos. **Socrático** da pistas y preguntas
+  para que resuelvas vos; **Solver** muestra el procedimiento completo y la
   comprobación.
 - **Práctica:** 5 o 10 preguntas, dificultad, tema opcional y modo con tiempo.
   Corrige al instante, explica cada respuesta y guarda el resultado.
@@ -132,7 +164,6 @@ Variables opcionales:
   en IndexedDB; el servidor no los guarda.
 - **Streaming real:** SSE desde el proxy, con botón de detener, respuesta parcial
   conservada y reintento.
-- **Modo demo:** respuestas y exámenes deterministas en español, sin claves.
 - **PWA:** instalable, shell offline, fuentes empaquetadas y aviso de actualización.
 - **Temas:** claro, oscuro y sistema.
 
@@ -171,8 +202,9 @@ historial.
 
 - `shared/`: contratos zod (chat, quiz, estudio, personalidad, oral y voz),
   parser SSE, extracción/reparación de JSON y cálculo de zonas.
-- `server/`: configuración, prompts, proveedores, rutas y seguridad. Las rutas
-  JSON reintentan una vez dentro de un presupuesto de tiempo acotado.
+- `server/`: selección de motor (Pollinations/Ollama/OpenAI-compatible),
+  configuración, prompts, proveedores, rutas y seguridad. Las rutas JSON
+  reintentan una vez dentro de un presupuesto de tiempo acotado.
 - `api/`: adaptadores finos para Vercel, incluido TTS/clonación opcional.
 - `src/`: interfaz, almacenamiento local, SRS, progreso, voz del navegador,
   adjuntos y cliente SSE.
@@ -199,7 +231,7 @@ scripts/                generación de iconos
 | `npm run typecheck` | TypeScript de cliente y servidor |
 | `npm run lint` | ESLint |
 | `npm run test` | Vitest (unidad, integración y componentes) |
-| `npm run test:e2e` | Build + Playwright en modo demo |
+| `npm run test:e2e` | Build + Playwright con fixtures de prueba (timeout 90 s) |
 | `npm run verify` | Typecheck + lint + tests + build |
 | `npm run icons` | Regenera los iconos PWA desde `public/logo.svg` |
 
@@ -243,9 +275,10 @@ cualquiera puede consumir tu cuota. Antes de hacerlo:
 ## Despliegue en Vercel
 
 1. Importá el repo en Vercel. El framework se detecta como Vite; el build es
-   `npm run build` y la salida `dist`.
-2. Cargá `OPENAI_API_KEY`, `OPENAI_BASE_URL` y `OPENAI_MODEL` como variables de
-   entorno (Production y Preview). No las pongas en el repo.
+   `npm run build` y la salida `dist`. Sin variables usa Pollinations gratuito.
+2. Opcional: cargá `OPENAI_API_KEY`, `OPENAI_BASE_URL` y `OPENAI_MODEL` para un
+   proveedor gratuito propio (Gemini/Groq/OpenRouter compatibles) o
+   `COPE_AI_PROVIDER=ollama` para desarrollo local. No pongas claves en el repo.
 3. Desplegá. Se incluyen `api/chat.ts`, `api/quiz.ts`,
    `api/flashcards.ts`, `api/study-plan.ts`, `api/oral-exam.ts`, `api/tts.ts`
    y `api/voice-clone.ts`; `vercel.json` fija `maxDuration` y las cabeceras/CSP.
@@ -267,14 +300,14 @@ original: requiere Android SDK, Gradle, un keystore propio y Play Console.
 
 ## Pruebas
 
-- **Unitarias/integración:** parser SSE, esquemas de chat/quiz/estudio,
-  personalidad, oral, voz, prompts, rate limit, proveedor con upstream falso,
-  reparación de JSON con presupuesto, SRS, progreso, IndexedDB con migración
-  v1→v3, payload y adjuntos.
-- **Componentes:** tutor, personalidad, voz, cámara, markdown seguro, quiz,
-  composer y lista de mensajes.
-- **E2E:** Chrome/Chromium real contra el build de producción en modo demo:
-  asistente, respuesta parcial tras corte, estilo y personalidad del tutor,
+- **Unitarias/integración:** parser SSE, selección de motor gratuito/local,
+  esquemas de chat/quiz/estudio, personalidad, oral, voz, prompts, rate limit,
+  proveedor con upstream falso, reparación de JSON con presupuesto, SRS,
+  progreso, IndexedDB con migración v1→v3, perfil/onboarding, payload y adjuntos.
+- **Componentes:** onboarding, tutor, personalidad, voz, cámara, markdown
+  seguro, quiz, composer y lista de mensajes.
+- **E2E:** Chrome/Chromium real contra el build con fixtures de prueba:
+  onboarding, asistente, respuesta parcial tras corte, personalidad del tutor,
   práctica de 10 con tiempo y progreso, flashcards con repaso, plan de examen,
   examen oral completo con historial, cámara, PDF, borrado durante streaming,
   PWA/offline, accesibilidad de los diálogos y capturas.
@@ -297,6 +330,8 @@ suite automática porque dependen de tu clave y tu cuenta.
 - El PDF original no se sube desde el dispositivo: solo viaja el texto extraído.
 - Las imágenes (incluidas las fotos de tarea) y los mensajes sí se envían al
   proveedor configurado cuando usás IA real.
+- La nube gratuita (Pollinations) es un servicio de terceros; envía los mensajes
+  fuera del dispositivo. Ollama local mantiene la inferencia en tu equipo.
 - En el examen oral, el micrófono usa el reconocimiento del navegador: el audio
   no se envía a Cope AI, solo el texto transcripto.
 - Si habilitás voz externa, el texto de la pregunta se envía a ElevenLabs para

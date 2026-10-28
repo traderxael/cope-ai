@@ -29,10 +29,14 @@ export interface VoiceCapabilities {
   clone: boolean;
 }
 
+export type AiProvider = 'openai' | 'ollama' | 'pollinations' | 'fixtures';
+
 export interface HealthResponse {
   ok: boolean;
   demo: boolean;
   configured: boolean;
+  provider: AiProvider;
+  model: string | null;
   voice: VoiceCapabilities;
 }
 
@@ -96,10 +100,18 @@ export async function fetchHealth(
   if (!response.ok) throw await readError(response);
   const payload = (await response.json()) as Partial<HealthResponse>;
   const voice = payload.voice ?? { tts: false, clone: false };
+  const provider: AiProvider =
+    payload.provider === 'openai' ||
+    payload.provider === 'ollama' ||
+    payload.provider === 'fixtures'
+      ? payload.provider
+      : 'pollinations';
   return {
     ok: payload.ok === true,
     demo: payload.demo === true,
     configured: payload.configured === true,
+    provider,
+    model: typeof payload.model === 'string' ? payload.model : null,
     voice: {
       tts: voice.tts === true,
       clone: voice.clone === true,

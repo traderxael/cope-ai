@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import { LIMITS } from '../../../shared/limits';
+import { SUBJECTS } from '../../../shared/schemas/common';
 import {
   DIFFICULTY_LABELS,
   LEVEL_LABELS,
@@ -18,10 +19,19 @@ const SUBJECT_ICONS: Record<Subject, IconName> = {
   math: 'calculator',
   physics: 'atom',
   chemistry: 'flask',
+  biology: 'atom',
+  spanish: 'book',
+  english: 'book',
+  german: 'book',
+  french: 'book',
+  history: 'book',
+  geography: 'target',
+  economics: 'chart',
+  computerScience: 'calculator',
+  philosophy: 'sparkles',
+  psychology: 'chat',
   general: 'book',
 };
-
-const SUBJECTS: Subject[] = ['math', 'physics', 'chemistry', 'general'];
 const LEVELS: Level[] = ['primaria', 'secundaria', 'bachillerato', 'universidad'];
 const DIFFICULTIES: Difficulty[] = ['easy', 'medium', 'hard'];
 const STYLES: StudyStyle[] = ['guided', 'solver'];

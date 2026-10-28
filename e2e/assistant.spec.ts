@@ -5,7 +5,9 @@ test.describe('asistente', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
 
-    await expect(page.locator('.demoBanner')).toContainText('Modo demo');
+    await expect(page.locator('.demoBanner')).toContainText(
+      'Entorno de prueba',
+    );
     await expect(
       page.getByRole('heading', { name: 'Pensemos esto con calma.' }),
     ).toBeVisible();

@@ -12,6 +12,7 @@ import {
   fetchHealth,
   requestQuiz,
   streamChat,
+  type AiProvider,
   type VoiceCapabilities,
 } from '../../lib/api';
 import {
@@ -77,6 +78,7 @@ export interface ChatAppState {
   streaming: boolean;
   streamingId: string | null;
   demo: boolean | null;
+  provider: AiProvider | null;
   pendingAttachments: StoredAttachment[];
   processing: boolean;
   attachmentError: string | null;
@@ -117,6 +119,7 @@ export function useChatApp(): ChatAppState {
   const [streaming, setStreaming] = useState(false);
   const [streamingId, setStreamingId] = useState<string | null>(null);
   const [demo, setDemo] = useState<boolean | null>(null);
+  const [provider, setProvider] = useState<AiProvider | null>(null);
   const [pendingAttachments, setPendingAttachments] = useState<
     StoredAttachment[]
   >([]);
@@ -854,6 +857,7 @@ export function useChatApp(): ChatAppState {
       .then((health) => {
         if (!cancelled && mountedRef.current) {
           setDemo(health.demo);
+          setProvider(health.provider);
           setVoice(health.voice);
         }
       })
@@ -877,6 +881,7 @@ export function useChatApp(): ChatAppState {
     streaming,
     streamingId,
     demo,
+    provider,
     pendingAttachments,
     processing,
     attachmentError,

@@ -85,6 +85,17 @@ export const SUBJECT_LABELS: Record<Subject, string> = {
   math: 'Matemáticas',
   physics: 'Física',
   chemistry: 'Química',
+  biology: 'Biología',
+  spanish: 'Español',
+  english: 'Inglés',
+  german: 'Alemán',
+  french: 'Francés',
+  history: 'Historia',
+  geography: 'Geografía',
+  economics: 'Economía',
+  computerScience: 'Informática',
+  philosophy: 'Filosofía',
+  psychology: 'Psicología',
   general: 'General',
 };
 
@@ -102,8 +113,8 @@ export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
 };
 
 export const STUDY_STYLE_LABELS: Record<StudyStyle, string> = {
-  guided: 'Guiado',
-  solver: 'Solución',
+  guided: 'Socrático',
+  solver: 'Solver',
 };
 
 export const PLAN_TASK_TYPE_LABELS: Record<

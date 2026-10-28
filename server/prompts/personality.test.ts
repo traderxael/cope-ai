@@ -44,7 +44,7 @@ describe('prompts con personalidad', () => {
       { preset: 'exigente', name: 'Mentor' },
     );
     expect(prompt).toContain('Mentor');
-    expect(prompt).toContain('Estilo Guiado');
+    expect(prompt).toContain('Estilo Socrático');
     expect(prompt).toContain('exigente');
   });
 });

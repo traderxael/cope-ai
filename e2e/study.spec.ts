@@ -76,9 +76,9 @@ test.describe('suite de estudio', () => {
 
   test('envía el estilo del tutor elegido', async ({ page }) => {
     const panel = await openTutor(page);
-    await panel.getByRole('button', { name: 'Solución' }).click();
+    await panel.getByRole('button', { name: 'Solver' }).click();
     await expect(
-      panel.getByRole('button', { name: 'Solución' }),
+      panel.getByRole('button', { name: 'Solver' }),
     ).toHaveAttribute('aria-pressed', 'true');
 
     const chatRequest = page.waitForRequest(

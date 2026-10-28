@@ -17,6 +17,10 @@ describe('providerStatusError', () => {
     expect(providerStatusError(422, false).status).toBe(422);
     expect(providerStatusError(429, false).status).toBe(429);
     expect(providerStatusError(500, false).code).toBe('provider_error');
+    expect(providerStatusError(402, false)).toMatchObject({
+      status: 429,
+      code: 'free_ai_limit',
+    });
   });
 
   it('no incluye cuerpos ni claves en los mensajes', () => {

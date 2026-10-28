@@ -4,10 +4,11 @@ import { healthPayload } from './health';
 
 describe('healthPayload', () => {
   it('informa demo y voz deshabilitada', () => {
-    expect(healthPayload(readServerConfig({}))).toEqual({
+    expect(healthPayload(readServerConfig({}))).toMatchObject({
       ok: true,
-      demo: true,
-      configured: false,
+      demo: false,
+      configured: true,
+      provider: 'pollinations',
       voice: { tts: false, clone: false },
     });
   });

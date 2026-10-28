@@ -27,6 +27,7 @@ afterEach(async () => {
 
 function config(baseUrl: string, overrides: Partial<ServerConfig> = {}): ServerConfig {
   return {
+    provider: 'openai',
     apiKey: 'test-key',
     baseUrl,
     model: 'fake-model',

@@ -4481,3 +4481,227 @@ img {
   font-size: 0.78rem;
   line-height: 1.5;
 }
+
+.onboardingScreen {
+  position: relative;
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  overflow: hidden;
+  padding: 28px 16px;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(201, 72, 34, 0.16), transparent 34%),
+    radial-gradient(circle at 82% 82%, rgba(245, 196, 81, 0.1), transparent 32%),
+    #12110d;
+  color: #f6f1e7;
+}
+
+.onboardingStars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.55;
+  background-image:
+    radial-gradient(circle, rgba(255, 248, 224, 0.9) 0 1px, transparent 1.4px),
+    radial-gradient(circle, rgba(255, 248, 224, 0.45) 0 1px, transparent 1.4px);
+  background-position:
+    0 0,
+    48px 64px;
+  background-size:
+    140px 140px,
+    190px 190px;
+}
+
+.onboardingCard {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: min(100%, 520px);
+  max-height: calc(100dvh - 40px);
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding: 26px;
+  border: 1px solid rgba(255, 248, 224, 0.16);
+  border-radius: 22px;
+  background: rgba(27, 25, 20, 0.9);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(16px);
+}
+
+.onboardingBrand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.onboardingBrand .brandName {
+  color: #f6f1e7;
+}
+
+.onboardingBadge {
+  padding: 4px 8px;
+  border: 1px solid rgba(245, 196, 81, 0.4);
+  border-radius: 999px;
+  color: #f5c451;
+  font-size: 0.65rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.onboardingCard .eyebrow {
+  color: #f5c451;
+}
+
+.onboardingCard h1 {
+  margin: 0;
+  color: #f6f1e7;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 3rem);
+  font-weight: 520;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
+}
+
+.onboardingLead {
+  margin: 0 0 10px;
+  color: rgba(246, 241, 231, 0.7);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.onboardingCard .fieldLabel {
+  margin-top: 4px;
+  color: rgba(246, 241, 231, 0.68);
+}
+
+.onboardingCard .textInput,
+.onboardingCard .selectInput {
+  border-color: rgba(255, 248, 224, 0.18);
+  background: rgba(255, 248, 224, 0.07);
+  color: #f6f1e7;
+}
+
+.onboardingCard .textInput::placeholder {
+  color: rgba(246, 241, 231, 0.4);
+}
+
+.onboardingCard .selectChevron {
+  color: rgba(246, 241, 231, 0.55);
+}
+
+.onboardingCard .subjectChip {
+  border-color: rgba(255, 248, 224, 0.18);
+  background: rgba(255, 248, 224, 0.06);
+  color: rgba(246, 241, 231, 0.72);
+}
+
+.onboardingCard .subjectChip.isActive {
+  border-color: #f5c451;
+  background: rgba(245, 196, 81, 0.16);
+  color: #fff7da;
+}
+
+.onboardingSubjects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.onboardingInput {
+  min-height: 46px;
+}
+
+.onboardingPrimary {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.onboardingArrow {
+  transform: rotate(90deg);
+}
+
+.onboardingActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.onboardingPrivacy {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 0;
+  color: rgba(246, 241, 231, 0.45);
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.onboardingCard .inlineError {
+  margin: 0;
+}
+
+@media (max-width: 520px) {
+  .onboardingCard {
+    padding: 20px;
+  }
+}
+
+.modeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.modeCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.modeCard:hover {
+  border-color: var(--line-strong);
+  background: var(--surface-soft);
+}
+
+.modeCard svg {
+  flex: 0 0 auto;
+  color: var(--accent-text);
+}
+
+.modeCard span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.modeCard strong {
+  font-size: 0.82rem;
+}
+
+.modeCard small {
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 620px) {
+  .modeGrid {
+    grid-template-columns: 1fr;
+  }
+}

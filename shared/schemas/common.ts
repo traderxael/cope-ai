@@ -1,7 +1,23 @@
 import { z } from 'zod';
 
 export const MODES = ['assistant', 'tutor'] as const;
-export const SUBJECTS = ['math', 'physics', 'chemistry', 'general'] as const;
+export const SUBJECTS = [
+  'math',
+  'physics',
+  'chemistry',
+  'biology',
+  'spanish',
+  'english',
+  'german',
+  'french',
+  'history',
+  'geography',
+  'economics',
+  'computerScience',
+  'philosophy',
+  'psychology',
+  'general',
+] as const;
 export const LEVELS = ['primaria', 'secundaria', 'bachillerato', 'universidad'] as const;
 export const DIFFICULTIES = ['easy', 'medium', 'hard'] as const;
 export const STUDY_STYLES = ['guided', 'solver'] as const;

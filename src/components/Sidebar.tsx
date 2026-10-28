@@ -10,6 +10,7 @@ interface SidebarProps {
   conversations: Conversation[];
   activeId?: string;
   demo: boolean | null;
+  provider?: 'openai' | 'ollama' | 'pollinations' | 'fixtures' | null;
   resolvedTheme: 'light' | 'dark';
   onSelect: (id: string) => void;
   onNew: () => void;
@@ -47,6 +48,7 @@ export function Sidebar({
   conversations,
   activeId,
   demo,
+  provider,
   resolvedTheme,
   onSelect,
   onNew,
@@ -164,12 +166,16 @@ export function Sidebar({
         {demo === true ? (
           <div className="connectionBadge isDemo" role="status">
             <span className="statusDot" aria-hidden="true" />
-            Modo demo
+            Entorno de prueba
           </div>
         ) : demo === false ? (
           <div className="connectionBadge isLive" role="status">
             <span className="statusDot" aria-hidden="true" />
-            IA configurada
+            {provider === 'ollama'
+              ? 'IA local'
+              : provider === 'pollinations'
+                ? 'IA gratis'
+                : 'IA configurada'}
           </div>
         ) : null}
 

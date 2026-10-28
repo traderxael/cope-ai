@@ -20,19 +20,19 @@ describe('prompts', () => {
     });
     expect(prompt).toContain('Física');
     expect(prompt).toContain('Bachillerato');
-    expect(prompt).toContain('Guiado');
+    expect(prompt).toContain('Socrático');
     expect(prompt).toContain('LaTeX');
     expect(prompt).toContain('<documento>');
     expect(prompt).toContain('No digas que sos humano');
   });
 
-  it('el estilo Solución pide una resolución completa', () => {
+  it('el estilo Solver pide una resolución completa', () => {
     const prompt = buildTutorSystemPrompt({
       subject: 'math',
       level: 'secundaria',
       style: 'solver',
     });
-    expect(prompt).toContain('Solución');
+    expect(prompt).toContain('Solver');
     expect(prompt).toContain('resolución completa');
   });
 

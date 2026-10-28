@@ -97,7 +97,10 @@ export async function prepareChat(
       ok: false,
       status: 422,
       code: 'vision_disabled',
-      message: 'El envío de imágenes está deshabilitado en este servidor.',
+      message:
+        config.provider === 'pollinations'
+          ? 'La IA gratuita de la nube no procesa imágenes. Usá Ollama local con visión o configurá un proveedor con visión.'
+          : 'El envío de imágenes está deshabilitado en este servidor.',
     };
   }
 

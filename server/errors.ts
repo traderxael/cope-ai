@@ -52,6 +52,13 @@ export function providerStatusError(
       'El proveedor rechazó la solicitud. Revisá el modelo y la configuración.',
     );
   }
+  if (status === 402) {
+    return new AppError(
+      429,
+      'free_ai_limit',
+      'La IA gratuita permite una solicitud cada ~30 segundos. Esperá un momento o configurá una clave gratuita.',
+    );
+  }
   if (status === 429) {
     return new AppError(
       429,

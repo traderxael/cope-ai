@@ -2,6 +2,7 @@ import {
   LEVEL_LABELS,
   SUBJECT_LABELS,
   type Mode,
+  type StudyStyle,
   type Subject,
   type TutorConfig,
 } from '../../shared/types';
@@ -45,7 +46,7 @@ const ASSISTANT_SUGGESTIONS: Suggestion[] = [
   },
 ];
 
-const TUTOR_SUGGESTIONS: Record<Subject, Suggestion[]> = {
+const TUTOR_SUGGESTIONS: Partial<Record<Subject, Suggestion[]>> = {
   math: [
     {
       title: 'Derivadas sin miedo',
@@ -145,6 +146,9 @@ interface EmptyStateProps {
   tutor: TutorConfig;
   onSuggestion: (prompt: string) => void;
   onPractice: () => void;
+  onStyleChange: (style: StudyStyle) => void;
+  onOpenPlan: () => void;
+  onOpenOralExam: () => void;
   practiceLoading: boolean;
   disabled: boolean;
 }
@@ -154,11 +158,16 @@ export function EmptyState({
   tutor,
   onSuggestion,
   onPractice,
+  onStyleChange,
+  onOpenPlan,
+  onOpenOralExam,
   practiceLoading,
   disabled,
 }: EmptyStateProps) {
   const suggestions =
-    mode === 'tutor' ? TUTOR_SUGGESTIONS[tutor.subject] : ASSISTANT_SUGGESTIONS;
+    mode === 'tutor'
+      ? (TUTOR_SUGGESTIONS[tutor.subject] ?? TUTOR_SUGGESTIONS.general ?? [])
+      : ASSISTANT_SUGGESTIONS;
   const kicker =
     mode === 'tutor'
       ? `${SUBJECT_LABELS[tutor.subject]} · ${LEVEL_LABELS[tutor.level]}`
@@ -206,7 +215,59 @@ export function EmptyState({
       </div>
 
       {mode === 'tutor' ? (
-        <div className="practiceCallout">
+        <>
+          <div className="modeGrid" aria-label="Modos de estudio">
+            <button
+              type="button"
+              className="modeCard"
+              onClick={() => onStyleChange('guided')}
+              disabled={disabled}
+            >
+              <Icon name="graduation" size={19} />
+              <span>
+                <strong>Socrático</strong>
+                <small>Pistas y preguntas para resolver vos.</small>
+              </span>
+            </button>
+            <button
+              type="button"
+              className="modeCard"
+              onClick={() => onStyleChange('solver')}
+              disabled={disabled}
+            >
+              <Icon name="target" size={19} />
+              <span>
+                <strong>Solver</strong>
+                <small>Resolución completa, paso a paso.</small>
+              </span>
+            </button>
+            <button
+              type="button"
+              className="modeCard"
+              onClick={onOpenPlan}
+              disabled={disabled}
+            >
+              <Icon name="calendar" size={19} />
+              <span>
+                <strong>Exam Prep</strong>
+                <small>Plan por días hasta el examen.</small>
+              </span>
+            </button>
+            <button
+              type="button"
+              className="modeCard"
+              onClick={onOpenOralExam}
+              disabled={disabled}
+            >
+              <Icon name="mic" size={19} />
+              <span>
+                <strong>Examen oral</strong>
+                <small>Preguntas y corrección con voz.</small>
+              </span>
+            </button>
+          </div>
+
+          <div className="practiceCallout">
           <div className="practiceCalloutCopy">
             <span className="practiceKicker">Práctica · 5 preguntas</span>
             <strong>Comprobá lo que sabés</strong>
@@ -235,6 +296,7 @@ export function EmptyState({
             )}
           </button>
         </div>
+        </>
       ) : (
         <p className="emptyNote">
           <Icon name="paperclip" size={15} />

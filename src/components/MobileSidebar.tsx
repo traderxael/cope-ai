@@ -8,6 +8,7 @@ interface MobileSidebarProps {
   conversations: Conversation[];
   activeId?: string;
   demo: boolean | null;
+  provider?: 'openai' | 'ollama' | 'pollinations' | 'fixtures' | null;
   resolvedTheme: 'light' | 'dark';
   onSelect: (id: string) => void;
   onNew: () => void;
@@ -24,6 +25,7 @@ export function MobileSidebar({
   conversations,
   activeId,
   demo,
+  provider,
   resolvedTheme,
   onSelect,
   onNew,
@@ -45,6 +47,7 @@ export function MobileSidebar({
         conversations={conversations}
         activeId={activeId}
         demo={demo}
+        provider={provider}
         resolvedTheme={resolvedTheme}
         onSelect={(id) => {
           onSelect(id);

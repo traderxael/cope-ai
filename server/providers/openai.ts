@@ -91,30 +91,37 @@ export function hasImagesInMessages(messages: ChatMessage[]): boolean {
 }
 
 function endpointFor(baseUrl: string): string {
-  return baseUrl.endsWith('/chat/completions')
-    ? baseUrl
-    : `${baseUrl}/chat/completions`;
+  if (
+    baseUrl.endsWith('/chat/completions') ||
+    baseUrl.includes('text.pollinations.ai/openai')
+  ) {
+    return baseUrl;
+  }
+  return `${baseUrl}/chat/completions`;
 }
 
 function requestHeaders(config: ServerConfig): Record<string, string> {
-  return {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${config.apiKey ?? ''}`,
   };
+  if (config.apiKey) {
+    headers.Authorization = `Bearer ${config.apiKey}`;
+  }
+  return headers;
 }
 
-function requireConfigured(config: ServerConfig): {
-  apiKey: string;
-  model: string;
-} {
-  if (!config.apiKey || !config.model) {
+function requireConfigured(config: ServerConfig): { model: string } {
+  if (
+    !config.model ||
+    (config.provider === 'openai' && !config.apiKey)
+  ) {
     throw new AppError(
       500,
       'not_configured',
       'Falta configurar el proveedor de IA.',
     );
   }
-  return { apiKey: config.apiKey, model: config.model };
+  return { model: config.model };
 }
 
 function createTimeout(external: AbortSignal | undefined, timeoutMs: number) {
