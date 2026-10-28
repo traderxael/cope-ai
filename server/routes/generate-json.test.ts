@@ -12,6 +12,7 @@ interface CompleteOptions {
 function run(options: {
   elapsedMs: number;
   budgetMs: number;
+  attemptTimeoutMs?: number;
   first: string;
   second?: string;
 }) {
@@ -30,6 +31,7 @@ function run(options: {
       userPrompt: 'usuario',
       maxTokens: 100,
       budgetMs: options.budgetMs,
+      attemptTimeoutMs: options.attemptTimeoutMs,
       parse: (raw) =>
         raw.startsWith('{"ok"') ? { ok: true } : null,
     },
@@ -49,6 +51,18 @@ describe('generateValidatedJson budget', () => {
     });
     await expect(result).resolves.toEqual({ ok: true });
     expect(timeouts).toEqual([45_000, 45_000]);
+  });
+
+  it('usa el timeout de intento configurado para modelos lentos', async () => {
+    const { result, timeouts } = run({
+      elapsedMs: 5_000,
+      budgetMs: 240_000,
+      attemptTimeoutMs: 180_000,
+      first: 'no es json',
+      second: '{"ok":true}',
+    });
+    await expect(result).resolves.toEqual({ ok: true });
+    expect(timeouts).toEqual([180_000, 180_000]);
   });
 
   it('acorta la reparación al tiempo restante', async () => {

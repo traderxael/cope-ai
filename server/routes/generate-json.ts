@@ -20,6 +20,7 @@ export async function generateValidatedJson<T>(
     signal?: AbortSignal;
     maxTokens: number;
     budgetMs?: number;
+    attemptTimeoutMs?: number;
     parse: (raw: string) => T | null;
   },
   deps: GenerateJsonDeps = {},
@@ -33,7 +34,10 @@ export async function generateValidatedJson<T>(
   const attemptTimeout = () =>
     Math.max(
       1_000,
-      Math.min(LIMITS.jsonAttemptTimeoutMs, remainingBudget()),
+      Math.min(
+        options.attemptTimeoutMs ?? LIMITS.jsonAttemptTimeoutMs,
+        remainingBudget(),
+      ),
     );
 
   let raw = await complete({

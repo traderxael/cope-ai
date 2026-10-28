@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { LIMITS } from '../shared/limits';
 import { readServerConfig } from './config';
 
 describe('readServerConfig', () => {
@@ -9,6 +10,7 @@ describe('readServerConfig', () => {
     expect(config.apiKey).toBeNull();
     expect(config.model).toBe('openai');
     expect(config.baseUrl).toContain('text.pollinations.ai');
+    expect(config.chatTimeoutMs).toBe(LIMITS.chatTimeoutMs);
   });
 
   it('mantiene fixtures solo para pruebas explícitas', () => {
@@ -26,6 +28,11 @@ describe('readServerConfig', () => {
     expect(config.demo).toBe(false);
     expect(config.baseUrl).toContain('127.0.0.1:11434');
     expect(config.model).toBe('qwen2.5:3b-cpu');
+    expect(config.chatTimeoutMs).toBeGreaterThan(LIMITS.chatTimeoutMs);
+    expect(config.jsonAttemptTimeoutMs).toBeGreaterThan(
+      LIMITS.jsonAttemptTimeoutMs,
+    );
+    expect(config.jsonRouteBudgetMs).toBeGreaterThan(LIMITS.jsonRouteBudgetMs);
   });
 
   it('permite forzar Pollinations aunque exista clave OpenAI', () => {

@@ -136,6 +136,7 @@ export async function prepareChat(
       systemPrompt,
       signal: context.signal,
       hasImages: images,
+      timeoutMs: config.chatTimeoutMs,
     });
     return { ok: true, demo: false, stream };
   } catch (error) {

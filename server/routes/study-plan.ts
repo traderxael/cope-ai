@@ -103,6 +103,8 @@ export async function prepareStudyPlan(
       userPrompt: buildStudyPlanUserPrompt(request),
       signal: context.signal,
       maxTokens: LIMITS.maxPlanOutputTokens,
+      budgetMs: config.jsonRouteBudgetMs,
+      attemptTimeoutMs: config.jsonAttemptTimeoutMs,
       parse: (raw) => {
         const parsedPlan = parseStudyPlanJson(raw);
         return parsedPlan?.days.length === request.days ? parsedPlan : null;

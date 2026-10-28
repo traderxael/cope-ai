@@ -2,6 +2,7 @@
 
 import { afterEach, describe, expect, it } from 'vitest';
 import type { ChatMessage } from '../../shared/schemas/chat';
+import { LIMITS } from '../../shared/limits';
 import type { ServerConfig } from '../config';
 import {
   startFakeUpstream,
@@ -48,6 +49,9 @@ function config(baseUrl: string, overrides: Partial<ServerConfig> = {}): ServerC
     voiceCloneCode: null,
     demoDelayMs: 0,
     upstreamTimeoutMs: 1_000,
+    chatTimeoutMs: LIMITS.chatTimeoutMs,
+    jsonAttemptTimeoutMs: LIMITS.jsonAttemptTimeoutMs,
+    jsonRouteBudgetMs: LIMITS.jsonRouteBudgetMs,
     ...overrides,
   };
 }

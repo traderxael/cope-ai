@@ -24,6 +24,9 @@ export interface ServerConfig {
   voiceCloneCode: string | null;
   demoDelayMs: number;
   upstreamTimeoutMs: number;
+  chatTimeoutMs: number;
+  jsonAttemptTimeoutMs: number;
+  jsonRouteBudgetMs: number;
 }
 
 function normalizeBaseUrl(value: string | undefined): string {
@@ -102,6 +105,7 @@ export function readServerConfig(
     provider !== 'pollinations'
       ? 'max_completion_tokens'
       : 'max_tokens';
+  const slowLocalModel = provider === 'ollama';
 
   return {
     provider,
@@ -166,5 +170,10 @@ export function readServerConfig(
       2_000,
     ),
     upstreamTimeoutMs: LIMITS.upstreamTimeoutMs,
+    chatTimeoutMs: slowLocalModel ? 180_000 : LIMITS.chatTimeoutMs,
+    jsonAttemptTimeoutMs: slowLocalModel
+      ? 180_000
+      : LIMITS.jsonAttemptTimeoutMs,
+    jsonRouteBudgetMs: slowLocalModel ? 240_000 : LIMITS.jsonRouteBudgetMs,
   };
 }

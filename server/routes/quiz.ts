@@ -84,6 +84,8 @@ export async function prepareQuiz(
       userPrompt,
       signal: context.signal,
       maxTokens: LIMITS.maxQuizOutputTokens,
+      budgetMs: config.jsonRouteBudgetMs,
+      attemptTimeoutMs: config.jsonAttemptTimeoutMs,
       parse: (raw) => {
         const parsedQuestions = parseQuizJson(raw);
         return parsedQuestions?.length === request.count

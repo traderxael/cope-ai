@@ -117,6 +117,8 @@ export async function prepareOralExam(
         userPrompt: buildOralExamUserPrompt(request.config),
         signal: context.signal,
         maxTokens: LIMITS.maxOralOutputTokens,
+        budgetMs: config.jsonRouteBudgetMs,
+        attemptTimeoutMs: config.jsonAttemptTimeoutMs,
         parse: (raw) => {
           const exam = parseOralExamJson(raw);
           return exam?.questions.length === request.config.count ? exam : null;

@@ -96,6 +96,11 @@ La base URL puede incluir o no `/chat/completions` al final.
 - **OpenRouter:** `OPENAI_BASE_URL=https://openrouter.ai/api/v1`
 - **Ollama local:** `OPENAI_BASE_URL=http://localhost:11434/v1`; usá cualquier
   valor no vacío como clave y el modelo instalado.
+
+> En Ollama local Cope espera hasta 3 minutos por respuesta y 4 por JSON. El
+> primer request puede tardar ~90 s mientras el modelo se carga en CPU; los
+> siguientes suelen responder en segundos.
+
 - **Otros:** revisá que soporten streaming y, si querés quiz/imágenes, JSON mode
   y visión.
 

@@ -87,6 +87,8 @@ export async function prepareFlashcards(
       userPrompt: buildFlashcardsUserPrompt(request),
       signal: context.signal,
       maxTokens: LIMITS.maxFlashcardOutputTokens,
+      budgetMs: config.jsonRouteBudgetMs,
+      attemptTimeoutMs: config.jsonAttemptTimeoutMs,
       parse: (raw) => {
         const parsedCards = parseFlashcardsJson(raw);
         return parsedCards?.length === request.count ? parsedCards : null;
