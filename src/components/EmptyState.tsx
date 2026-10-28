@@ -151,6 +151,7 @@ interface EmptyStateProps {
   onOpenOralExam: () => void;
   practiceLoading: boolean;
   disabled: boolean;
+  vision?: boolean | null;
 }
 
 export function EmptyState({
@@ -163,6 +164,7 @@ export function EmptyState({
   onOpenOralExam,
   practiceLoading,
   disabled,
+  vision = true,
 }: EmptyStateProps) {
   const suggestions =
     mode === 'tutor'
@@ -190,7 +192,9 @@ export function EmptyState({
       <p className="emptyLead">
         {mode === 'tutor'
           ? 'Resolvamos juntos: Cope te guía con preguntas, ejemplos y práctica. Elegí una materia en el panel y empezá cuando quieras.'
-          : 'Preguntá, redactá o convertí una idea en un plan. También podés adjuntar una imagen o un PDF para trabajar sobre tu material.'}
+          : vision === false
+            ? 'Preguntá, redactá o convertí una idea en un plan. También podés adjuntar un PDF para trabajar sobre tu material; la IA actual no analiza imágenes.'
+            : 'Preguntá, redactá o convertí una idea en un plan. También podés adjuntar una imagen o un PDF para trabajar sobre tu material.'}
       </p>
 
       <div className="suggestionGrid">

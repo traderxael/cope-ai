@@ -77,6 +77,7 @@ test.describe('capturas de referencia', () => {
           configured: true,
           provider: 'pollinations',
           model: 'openai',
+          vision: false,
           voice: { tts: false, clone: false },
         }),
       }),

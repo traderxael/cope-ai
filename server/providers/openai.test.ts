@@ -178,7 +178,7 @@ describe('openChatStream', () => {
       messages: userMessage,
       systemPrompt: 'Sistema',
       hasImages: false,
-      timeoutMs: 60,
+      timeoutMs: 500,
     });
 
     const consume = async () => {

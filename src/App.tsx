@@ -508,6 +508,7 @@ export default function App() {
                     onOpenPlan={openStudyPlan}
                     onOpenOralExam={openOralExam}
                     practiceLoading={chat.practiceLoading}
+                    vision={chat.vision}
                     disabled={
                       !online ||
                       chat.streaming ||

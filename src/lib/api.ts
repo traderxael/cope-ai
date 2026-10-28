@@ -37,6 +37,7 @@ export interface HealthResponse {
   configured: boolean;
   provider: AiProvider;
   model: string | null;
+  vision: boolean;
   voice: VoiceCapabilities;
 }
 
@@ -112,6 +113,7 @@ export async function fetchHealth(
     configured: payload.configured === true,
     provider,
     model: typeof payload.model === 'string' ? payload.model : null,
+    vision: payload.vision !== false,
     voice: {
       tts: voice.tts === true,
       clone: voice.clone === true,

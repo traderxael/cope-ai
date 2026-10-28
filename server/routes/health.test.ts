@@ -9,6 +9,7 @@ describe('healthPayload', () => {
       demo: false,
       configured: true,
       provider: 'pollinations',
+      vision: false,
       voice: { tts: false, clone: false },
     });
   });
@@ -25,5 +26,16 @@ describe('healthPayload', () => {
     expect(payload.voice).toEqual({ tts: true, clone: true });
     expect(JSON.stringify(payload)).not.toContain('key-secreta');
     expect(JSON.stringify(payload)).not.toContain('codigo');
+  });
+
+  it('informa visión solo cuando el proveedor la admite', () => {
+    expect(
+      healthPayload(
+        readServerConfig({ COPE_AI_PROVIDER: 'ollama', OLLAMA_VISION: '1' }),
+      ).vision,
+    ).toBe(true);
+    expect(healthPayload(readServerConfig({ COPE_LOCAL_AI: '1' })).vision).toBe(
+      false,
+    );
   });
 });

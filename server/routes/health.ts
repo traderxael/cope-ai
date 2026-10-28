@@ -6,6 +6,7 @@ export interface HealthPayload {
   configured: boolean;
   provider: ServerConfig['provider'];
   model: string | null;
+  vision: boolean;
   voice: {
     tts: boolean;
     clone: boolean;
@@ -20,6 +21,7 @@ export function healthPayload(config: ServerConfig): HealthPayload {
     configured: config.provider !== 'fixtures' && Boolean(config.model),
     provider: config.provider,
     model: config.model,
+    vision: config.visionEnabled,
     voice: {
       tts,
       clone: Boolean(

@@ -79,6 +79,7 @@ export interface ChatAppState {
   streamingId: string | null;
   demo: boolean | null;
   provider: AiProvider | null;
+  vision: boolean | null;
   pendingAttachments: StoredAttachment[];
   processing: boolean;
   attachmentError: string | null;
@@ -120,6 +121,7 @@ export function useChatApp(): ChatAppState {
   const [streamingId, setStreamingId] = useState<string | null>(null);
   const [demo, setDemo] = useState<boolean | null>(null);
   const [provider, setProvider] = useState<AiProvider | null>(null);
+  const [vision, setVision] = useState<boolean | null>(null);
   const [pendingAttachments, setPendingAttachments] = useState<
     StoredAttachment[]
   >([]);
@@ -440,6 +442,16 @@ export function useChatApp(): ChatAppState {
         : 'Analizá el material adjunto.';
       const displayContent = trimmed || fallback;
 
+      if (
+        vision === false &&
+        attachments.some((attachment) => attachment.kind === 'image')
+      ) {
+        setComposerError(
+          'La IA actual no analiza imágenes. Quitá la imagen y enviá texto o PDF, o configurá un proveedor con visión.',
+        );
+        return false;
+      }
+
       const userMessage: StoredMessage = {
         id: newId(),
         role: 'user',
@@ -503,6 +515,7 @@ export function useChatApp(): ChatAppState {
       processing,
       startStreaming,
       streaming,
+      vision,
     ],
   );
 
@@ -524,6 +537,17 @@ export function useChatApp(): ChatAppState {
     if (lastUserIndex < 0) return;
 
     const messages = current.messages.slice(0, lastUserIndex + 1);
+    if (
+      vision === false &&
+      messages[lastUserIndex]?.attachments?.some(
+        (attachment) => attachment.kind === 'image',
+      )
+    ) {
+      setComposerError(
+        'La IA actual no analiza imágenes. Quitá la imagen y enviá texto o PDF, o configurá un proveedor con visión.',
+      );
+      return;
+    }
     const base: Conversation = {
       ...current,
       messages,
@@ -564,6 +588,7 @@ export function useChatApp(): ChatAppState {
     personality,
     startStreaming,
     streaming,
+    vision,
   ]);
 
   const renameConversation = useCallback(
@@ -858,6 +883,7 @@ export function useChatApp(): ChatAppState {
         if (!cancelled && mountedRef.current) {
           setDemo(health.demo);
           setProvider(health.provider);
+          setVision(health.vision);
           setVoice(health.voice);
         }
       })
@@ -882,6 +908,7 @@ export function useChatApp(): ChatAppState {
     streamingId,
     demo,
     provider,
+    vision,
     pendingAttachments,
     processing,
     attachmentError,
