@@ -105,6 +105,42 @@ export function weekActivity(
   });
 }
 
+export interface Achievement {
+  id: string;
+  label: string;
+  description: string;
+  unlocked: boolean;
+}
+
+export function achievements(summary: ProgressSummary): Achievement[] {
+  return [
+    {
+      id: 'first',
+      label: 'Primer paso',
+      description: 'Completá tu primera práctica.',
+      unlocked: summary.attempts >= 1,
+    },
+    {
+      id: 'streak3',
+      label: 'Racha de 3',
+      description: 'Practicá tres días seguidos.',
+      unlocked: summary.streakDays >= 3,
+    },
+    {
+      id: 'ten',
+      label: 'Constancia',
+      description: 'Completá diez prácticas.',
+      unlocked: summary.attempts >= 10,
+    },
+    {
+      id: 'sharp',
+      label: 'Puntería',
+      description: 'Alcanzá 80% con veinte preguntas o más.',
+      unlocked: summary.questions >= 20 && summary.accuracy >= 0.8,
+    },
+  ];
+}
+
 export function findWeakAreas(
   summary: ProgressSummary,
   threshold = 0.7,

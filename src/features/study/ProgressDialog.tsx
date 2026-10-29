@@ -7,7 +7,12 @@ import {
 import { Dialog } from '../../components/Dialog';
 import { Icon } from '../../components/Icon';
 import { listPracticeResults, type PracticeResult } from '../../lib/storage';
-import { findWeakAreas, summarizePractice, weekActivity } from '../../lib/progress';
+import {
+  achievements,
+  findWeakAreas,
+  summarizePractice,
+  weekActivity,
+} from '../../lib/progress';
 
 interface ProgressDialogProps {
   open: boolean;
@@ -42,6 +47,7 @@ export function ProgressDialog({ open, onClose }: ProgressDialogProps) {
   const summary = summarizePractice(results);
   const weakAreas = findWeakAreas(summary);
   const week = weekActivity(results);
+  const badges = achievements(summary);
 
   return (
     <Dialog
@@ -117,6 +123,36 @@ export function ProgressDialog({ open, onClose }: ProgressDialogProps) {
                 </li>
               ))}
             </ol>
+          </section>
+
+          <section
+            className="progressSection"
+            aria-labelledby="progress-achievements"
+          >
+            <h3 id="progress-achievements">Logros</h3>
+            <ul className="achievements">
+              {badges.map((badge) => (
+                <li
+                  key={badge.id}
+                  className={
+                    badge.unlocked
+                      ? 'achievement isUnlocked'
+                      : 'achievement isLocked'
+                  }
+                >
+                  <span className="achievementIcon" aria-hidden="true">
+                    <Icon name="sparkles" size={16} />
+                  </span>
+                  <span className="achievementText">
+                    <strong>{badge.label}</strong>
+                    <span>{badge.description}</span>
+                  </span>
+                  <span className="srOnly">
+                    {badge.unlocked ? 'Desbloqueado' : 'Bloqueado'}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </section>
 
           <section

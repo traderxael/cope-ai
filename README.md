@@ -150,8 +150,8 @@ Variables opcionales:
   Corrige al instante, explica cada respuesta y guarda el resultado.
 - **Simulacro:** acceso directo a 10 preguntas con tiempo desde el tutor.
 - **Progreso:** precisión global y por materia, racha de días, actividad de la
-  semana, puntos a reforzar (materias practicadas bajo 70%) y últimas prácticas,
-  calculado sobre el historial local.
+  semana, logros por constancia, puntos a reforzar (materias practicadas bajo
+  70%) y últimas prácticas, calculado sobre el historial local.
 - **Flashcards:** generación por materia o tema (también desde el último PDF o
   TXT),
   repaso con repetición espaciada y decks persistentes. “Todo al día” no

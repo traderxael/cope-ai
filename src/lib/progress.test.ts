@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { addDaysDateOnly, todayDateOnlyLocal } from '../../shared/date';
-import { summarizePractice, findWeakAreas, weekActivity } from './progress';
+import {
+  achievements,
+  findWeakAreas,
+  summarizePractice,
+  weekActivity,
+} from './progress';
 import type { PracticeResult } from './storage';
 
 let counter = 0;
@@ -125,6 +130,20 @@ describe('summarizePractice', () => {
     });
     expect(week[4]).toMatchObject({ active: true, questions: 5 });
     expect(week[0]?.active).toBe(false);
+  });
+
+  it('desbloquea logros con constancia y precisión', () => {
+    const summary = summarizePractice([
+      result({ questionCount: 10, score: 9 }),
+      result({ questionCount: 10, score: 8 }),
+    ]);
+    const badges = achievements(summary);
+    expect(badges.find((badge) => badge.id === 'first')?.unlocked).toBe(true);
+    expect(badges.find((badge) => badge.id === 'sharp')?.unlocked).toBe(true);
+    expect(badges.find((badge) => badge.id === 'ten')?.unlocked).toBe(false);
+    expect(badges.find((badge) => badge.id === 'streak3')?.unlocked).toBe(
+      false,
+    );
   });
 
   it('ordena y limita las prácticas recientes', () => {
