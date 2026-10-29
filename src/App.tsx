@@ -350,7 +350,7 @@ export default function App() {
     );
   }
 
-  if (!profile && chat.demo === false) {
+  if (!profile && chat.demo !== true) {
     return <Onboarding onComplete={completeOnboarding} />;
   }
 

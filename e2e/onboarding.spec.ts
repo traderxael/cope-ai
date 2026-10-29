@@ -150,4 +150,17 @@ test.describe('onboarding', () => {
       page.locator('.tutorAside').getByLabel('Nivel'),
     ).toHaveValue('primaria');
   });
+
+  test('muestra el onboarding aunque falle el estado del servidor', async ({
+    page,
+  }) => {
+    await page.route('**/api/health', (route) => route.abort());
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+
+    await expect(
+      page.getByRole('heading', { name: 'Aprender puede ser más simple.' }),
+    ).toBeVisible();
+  });
 });
