@@ -72,6 +72,55 @@ test.describe('accesibilidad', () => {
     await expect(
       page.getByRole('heading', { name: 'Aprender puede ser más simple.' }),
     ).toBeVisible();
+    const check = async () => {
+      const results = await new AxeBuilder({ page }).analyze();
+      const serious = results.violations.filter(
+        (violation) =>
+          violation.impact === 'serious' || violation.impact === 'critical',
+      );
+      expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
+    };
+    await check();
+
+    await page.getByRole('button', { name: 'Empezar gratis' }).click();
+    await page.getByLabel('¿Cómo te llamás?').fill('Ana');
+    await page.getByRole('button', { name: 'Continuar' }).click();
+    await expect(page.getByLabel('Nivel')).toBeVisible();
+    await check();
+
+    await page.getByRole('button', { name: 'Continuar' }).click();
+    await expect(
+      page.getByRole('group', { name: 'Objetivo' }),
+    ).toBeVisible();
+    await check();
+
+    await page.getByRole('button', { name: 'Continuar' }).click();
+    await expect(
+      page.getByRole('button', { name: 'Probar voz' }),
+    ).toBeVisible();
+    await check();
+  });
+
+  test('el panel del tutor no tiene violaciones graves', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        'cope-profile-v1',
+        JSON.stringify({
+          name: 'Ana',
+          level: 'secundaria',
+          subjects: ['math'],
+          goal: 'practice',
+          createdAt: Date.now(),
+        }),
+      );
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await expect(
+      page.getByRole('heading', { name: 'Aprender paso a paso, sin atajos.' }),
+    ).toBeVisible();
+    await expect(page.locator('.goalBanner')).toBeVisible();
+
     const results = await new AxeBuilder({ page }).analyze();
     const serious = results.violations.filter(
       (violation) =>
