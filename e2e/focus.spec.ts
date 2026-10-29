@@ -27,3 +27,28 @@ test('abre el modo enfoque, inicia, pausa y reinicia', async ({ page }) => {
   await dialog.getByRole('button', { name: 'Reiniciar' }).click();
   await expect(dialog.getByRole('timer')).toHaveText('05:00');
 });
+
+test('al terminar el enfoque pasa al descanso y cuenta la sesión', async ({
+  page,
+}) => {
+  await page.clock.install();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+
+  await page
+    .locator('.desktopSidebar')
+    .getByRole('button', { name: 'Enfoque' })
+    .click();
+  const dialog = page.locator('dialog[open]');
+  await dialog.getByRole('button', { name: 'Iniciar', exact: true }).click();
+
+  await page.clock.fastForward(25 * 60 * 1000);
+
+  await expect(dialog.getByRole('timer')).toHaveText('05:00');
+  await expect(
+    dialog.getByText('1 sesión de enfoque completada.'),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('status').getByText('Enfoque completado. Tomate un descanso.'),
+  ).toBeVisible();
+});

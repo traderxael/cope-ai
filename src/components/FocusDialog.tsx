@@ -127,8 +127,9 @@ export function FocusDialog({ open, onClose, onNotify }: FocusDialogProps) {
         <span style={{ width: `${progress}%` }} />
       </div>
       <p className="focusSessions">
-        {sessions} {sessions === 1 ? 'sesión' : 'sesiones'} de enfoque
-        completadas.
+        {sessions === 1
+          ? '1 sesión de enfoque completada.'
+          : `${sessions} sesiones de enfoque completadas.`}
       </p>
 
       <div className="focusActions">
