@@ -834,6 +834,7 @@ export function useChatApp(): ChatAppState {
             count: cleaned.count,
             difficulty: cleaned.difficulty,
             country: curriculumCountryForRequest(),
+            language: personality.language,
             examFormat: cleaned.examFormat,
           },
           controller.signal,
@@ -877,7 +878,7 @@ export function useChatApp(): ChatAppState {
         if (quizAbortRef.current === controller) quizAbortRef.current = null;
       }
     },
-    [practiceLoading, streaming],
+    [practiceLoading, streaming, personality.language],
   );
 
   const recordPracticeResult = useCallback(

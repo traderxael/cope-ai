@@ -9,6 +9,7 @@ import { Dialog } from '../../components/Dialog';
 import { Icon } from '../../components/Icon';
 import { requestFlashcards } from '../../lib/api';
 import { curriculumCountryForRequest } from '../../lib/curriculum';
+import { loadPersonality } from '../../lib/personality';
 import {
   newId,
   listFlashcardDecks,
@@ -115,6 +116,7 @@ export function FlashcardsDialog({
         topic: topic.trim() || undefined,
         count,
         country: curriculumCountryForRequest(),
+        language: loadPersonality().language,
         sourceText:
           usePdf && latestPdfText
             ? latestPdfText.slice(0, LIMITS.maxSourceTextChars)

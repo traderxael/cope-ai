@@ -5,6 +5,7 @@ import {
   type StudyPlanRequest,
 } from '../../shared/types.js';
 import { buildCurriculumFragment } from './curriculum.js';
+import { buildLanguageFragment } from './personality.js';
 
 export function buildStudyPlanSystemPrompt(
   request: StudyPlanRequest,
@@ -13,7 +14,7 @@ export function buildStudyPlanSystemPrompt(
     request.topics.length > 0
       ? request.topics.join(', ')
       : 'repaso general de la materia';
-  return `Sos Cope, un planificador de estudio en español.
+  return `Sos Cope, un planificador de estudio.
 
 Materia: ${SUBJECT_LABELS[request.subject]}
 Nivel: ${LEVEL_LABELS[request.level]}
@@ -34,7 +35,8 @@ Formato exacto:
 {"title":"...","days":[{"day":1,"focus":"...","tasks":[{"title":"...","description":"...","minutes":30,"type":"study"}]}]}
 
 type debe ser study, practice, review o rest. El array debe tener exactamente ${request.days} días.
-${buildCurriculumFragment(request.country)}`;
+${buildCurriculumFragment(request.country)}
+${buildLanguageFragment(request.language)}`;
 }
 
 export function buildStudyPlanUserPrompt(

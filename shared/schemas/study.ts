@@ -7,6 +7,7 @@ import {
   levelSchema,
   subjectSchema,
 } from './common.js';
+import { responseLanguageSchema } from './personality.js';
 
 const flashcardContentCardSchema = z.object({
   front: z.string().trim().min(3).max(300),
@@ -27,6 +28,7 @@ export const flashcardRequestSchema = z.object({
     .union([z.literal(6), z.literal(8), z.literal(10)])
     .default(LIMITS.defaultFlashcards),
   country: z.enum(CURRICULUM_COUNTRIES).optional(),
+  language: responseLanguageSchema.optional(),
   sourceText: z
     .string()
     .trim()
@@ -114,6 +116,7 @@ export const studyPlanRequestSchema = z.object({
   level: levelSchema,
   difficulty: difficultySchema.default('medium'),
   country: z.enum(CURRICULUM_COUNTRIES).optional(),
+  language: responseLanguageSchema.optional(),
   examDate: z
     .string()
     .trim()

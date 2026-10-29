@@ -2,7 +2,10 @@ import {
   DEFAULT_PERSONALITY,
   type PersonalityConfig,
 } from '../../shared/types.js';
-import { RESPONSE_LANGUAGE_LABELS } from '../../shared/schemas/personality.js';
+import {
+  RESPONSE_LANGUAGE_LABELS,
+  type ResponseLanguage,
+} from '../../shared/schemas/personality.js';
 
 const PRESET_TONE: Record<PersonalityConfig['preset'], string> = {
   cope: 'Tono equilibrado: claro, directo y adaptable. Explicá sin adornos y verificá lo importante.',
@@ -20,6 +23,13 @@ function cleanInstructions(value: string): string {
     .replace(/\p{Cc}/gu, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+export function buildLanguageFragment(
+  language: ResponseLanguage = 'es',
+): string {
+  if (language === 'es') return 'Idioma de respuesta: español.';
+  return `Idioma de respuesta: respondé siempre en ${RESPONSE_LANGUAGE_LABELS[language]}, aunque la interfaz o el material estén en español.`;
 }
 
 export function buildPersonalityFragment(
@@ -40,9 +50,7 @@ export function buildPersonalityFragment(
   }
 
   if (personality.language && personality.language !== 'es') {
-    parts.push(
-      `Idioma de respuesta: respondé siempre en ${RESPONSE_LANGUAGE_LABELS[personality.language]}, aunque el material o la interfaz estén en español.`,
-    );
+    parts.push(buildLanguageFragment(personality.language));
   }
 
   parts.push(

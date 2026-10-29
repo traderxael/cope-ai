@@ -16,6 +16,7 @@ import { Dialog } from '../../components/Dialog';
 import { Icon } from '../../components/Icon';
 import { requestStudyPlan } from '../../lib/api';
 import { curriculumCountryForRequest } from '../../lib/curriculum';
+import { loadPersonality } from '../../lib/personality';
 import {
   newId,
   listStudyPlans,
@@ -136,6 +137,7 @@ export function StudyPlanDialog({
         level: tutor.level,
         difficulty: 'medium',
         country: curriculumCountryForRequest(),
+        language: loadPersonality().language,
         examDate,
         topics: topicList,
         days: dayCount,

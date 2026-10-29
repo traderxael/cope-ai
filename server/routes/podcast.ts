@@ -77,7 +77,7 @@ export async function preparePodcast(
   try {
     const content = await generateValidatedJson({
       config,
-      systemPrompt: buildPodcastSystemPrompt(request.country),
+      systemPrompt: buildPodcastSystemPrompt(request),
       userPrompt: buildPodcastUserPrompt(request),
       signal: context.signal,
       maxTokens: LIMITS.maxPodcastOutputTokens,

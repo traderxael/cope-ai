@@ -142,7 +142,7 @@ export function PersonalitySettings({
           <Icon name="chevronDown" size={16} className="selectChevron" />
         </div>
         <span className="fieldHint">
-          Aplica al chat, tutor y examen oral; la interfaz sigue en español.
+          Aplica a toda la suite de estudio; la interfaz sigue en español.
         </span>
       </div>
 

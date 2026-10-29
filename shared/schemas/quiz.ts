@@ -3,6 +3,7 @@ import { CURRICULUM_COUNTRIES } from '../curriculum.js';
 import { EXAM_FORMATS } from '../exams.js';
 import { LIMITS } from '../limits.js';
 import { difficultySchema, levelSchema, subjectSchema } from './common.js';
+import { responseLanguageSchema } from './personality.js';
 
 const correctIndexSchema = z.union([
   z.literal(0),
@@ -51,6 +52,7 @@ export const quizRequestSchema = z.object({
     .default(LIMITS.defaultQuizQuestions),
   difficulty: difficultySchema.default('medium'),
   country: z.enum(CURRICULUM_COUNTRIES).optional(),
+  language: responseLanguageSchema.optional(),
   examFormat: z.enum(EXAM_FORMATS).default('general'),
 });
 

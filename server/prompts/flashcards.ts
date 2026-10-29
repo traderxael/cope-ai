@@ -4,11 +4,12 @@ import {
   type FlashcardRequest,
 } from '../../shared/types.js';
 import { buildCurriculumFragment } from './curriculum.js';
+import { buildLanguageFragment } from './personality.js';
 
 export function buildFlashcardsSystemPrompt(
   request: FlashcardRequest,
 ): string {
-  return `Sos Cope, un generador de flashcards de estudio en español.
+  return `Sos Cope, un generador de flashcards de estudio.
 
 Materia: ${SUBJECT_LABELS[request.subject]}
 Nivel: ${LEVEL_LABELS[request.level]}
@@ -26,7 +27,8 @@ Formato exacto:
 {"cards":[{"front":"...","back":"...","explanation":"..."}]}
 
 El array debe tener exactamente ${request.count} tarjetas.
-${buildCurriculumFragment(request.country)}`;
+${buildCurriculumFragment(request.country)}
+${buildLanguageFragment(request.language)}`;
 }
 
 export function buildFlashcardsUserPrompt(

@@ -2,12 +2,14 @@ import { z } from 'zod';
 import { CURRICULUM_COUNTRIES } from '../curriculum.js';
 import { LIMITS } from '../limits.js';
 import { levelSchema, subjectSchema } from './common.js';
+import { responseLanguageSchema } from './personality.js';
 
 export const podcastRequestSchema = z.object({
   subject: subjectSchema,
   level: levelSchema,
   topic: z.string().trim().max(LIMITS.maxTopicChars).optional(),
   country: z.enum(CURRICULUM_COUNTRIES).optional(),
+  language: responseLanguageSchema.optional(),
 });
 
 export const podcastContentSchema = z.object({

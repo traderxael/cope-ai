@@ -6,6 +6,7 @@ import {
 } from '../../shared/types.js';
 import { EXAM_FORMAT_LABELS } from '../../shared/exams.js';
 import { buildCurriculumFragment } from './curriculum.js';
+import { buildLanguageFragment } from './personality.js';
 
 export function buildQuizSystemPrompt(request: QuizRequest): string {
   const count = request.count;
@@ -15,7 +16,7 @@ export function buildQuizSystemPrompt(request: QuizRequest): string {
     examFormat === 'general'
       ? ''
       : `Formato de examen: estilo ${EXAM_FORMAT_LABELS[examFormat]}, con enunciados y opciones propias de ese formato. Son preguntas generadas de práctica, no preguntas oficiales ni copiadas.`;
-  return `Sos Cope, un generador de práctica académica en español.
+  return `Sos Cope, un generador de práctica académica.
 
 Materia: ${SUBJECT_LABELS[request.subject]}
 Nivel: ${LEVEL_LABELS[request.level]}
@@ -36,7 +37,8 @@ Formato exacto:
 
 correctIndex es un número entre 0 y 3. El array debe tener exactamente ${count} preguntas.
 ${examFormatBlock}
-${buildCurriculumFragment(request.country)}`;
+${buildCurriculumFragment(request.country)}
+${buildLanguageFragment(request.language)}`;
 }
 
 export function buildQuizUserPrompt(request: QuizRequest): string {

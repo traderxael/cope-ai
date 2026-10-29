@@ -266,4 +266,24 @@ test.describe('suite de estudio', () => {
       panel.getByText('Sugerido para tu país: PAES (Chile).'),
     ).toBeVisible();
   });
+
+  test('envía el idioma de respuestas a la práctica', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        'cope-personality-v1',
+        JSON.stringify({ preset: 'cope', name: 'Cope', language: 'en' }),
+      );
+    });
+    const panel = await openTutor(page);
+
+    const quizRequest = page.waitForRequest(
+      (request) =>
+        request.url().includes('/api/quiz') && request.method() === 'POST',
+    );
+    await panel.getByRole('button', { name: 'Practicar' }).click();
+
+    expect((await quizRequest).postDataJSON()).toMatchObject({
+      language: 'en',
+    });
+  });
 });

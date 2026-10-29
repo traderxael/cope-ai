@@ -52,6 +52,8 @@ export const RESPONSE_LANGUAGE_CODES = [
 
 export type ResponseLanguage = (typeof RESPONSE_LANGUAGE_CODES)[number];
 
+export const responseLanguageSchema = z.enum(RESPONSE_LANGUAGE_CODES);
+
 export const RESPONSE_LANGUAGE_LABELS: Record<ResponseLanguage, string> = {
   es: 'Español',
   en: 'Inglés',

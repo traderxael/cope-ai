@@ -10,6 +10,7 @@ import {
   buildStudyPlanUserPrompt,
 } from './study-plan';
 import { buildTutorSystemPrompt } from './tutor';
+import { buildPodcastSystemPrompt } from './podcast';
 
 describe('prompts', () => {
   it('el tutor incluye materia, nivel y reglas de seguridad', () => {
@@ -165,5 +166,47 @@ describe('prompts', () => {
     expect(system).toContain('No incluyas fechas ni ids');
 
     expect(buildStudyPlanUserPrompt(request)).toContain('5 días');
+  });
+
+  it('aplica el idioma elegido a práctica, tarjetas, plan y podcast', () => {
+    expect(
+      buildQuizSystemPrompt({
+        subject: 'math',
+        level: 'secundaria',
+        count: 5,
+        difficulty: 'medium',
+        examFormat: 'general',
+        language: 'en',
+      }),
+    ).toContain('respondé siempre en Inglés');
+
+    expect(
+      buildFlashcardsSystemPrompt({
+        subject: 'math',
+        level: 'secundaria',
+        count: 6,
+        language: 'pt',
+      }),
+    ).toContain('respondé siempre en Portugués');
+
+    expect(
+      buildStudyPlanSystemPrompt({
+        subject: 'math',
+        level: 'secundaria',
+        difficulty: 'medium',
+        examDate: '2026-12-15',
+        topics: [],
+        days: 5,
+        language: 'fr',
+      }),
+    ).toContain('respondé siempre en Francés');
+
+    expect(
+      buildPodcastSystemPrompt({
+        subject: 'math',
+        level: 'secundaria',
+        language: 'de',
+      }),
+    ).toContain('respondé siempre en Alemán');
   });
 });

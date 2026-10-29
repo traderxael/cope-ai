@@ -10,6 +10,7 @@ import { Dialog } from '../../components/Dialog';
 import { Icon } from '../../components/Icon';
 import { ApiError, requestPodcast } from '../../lib/api';
 import { curriculumCountryForRequest } from '../../lib/curriculum';
+import { loadPersonality } from '../../lib/personality';
 import { loadVoiceSettings } from '../../lib/voice';
 import {
   speakText,
@@ -66,6 +67,7 @@ export function PodcastDialog({
           subject: tutor.subject,
           level: tutor.level,
           country: curriculumCountryForRequest(),
+          language: loadPersonality().language,
           ...(topic.trim() ? { topic: topic.trim() } : {}),
         },
         controller.signal,
@@ -104,6 +106,7 @@ export function PodcastDialog({
       await speakText(
         `${podcast.title}. ${podcast.script}`,
         loadVoiceSettings().profile,
+        loadPersonality().language,
       );
     } catch {
       setError('No se pudo reproducir el podcast.');
