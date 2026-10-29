@@ -5,9 +5,11 @@ const STORAGE_KEY = 'cope-theme';
 export function getStoredTheme(): Theme {
   try {
     const value = window.localStorage.getItem(STORAGE_KEY);
-    return value === 'light' || value === 'dark' ? value : 'system';
+    // El tema por defecto es el oscuro de marca; "system" sigue disponible
+    // como opción explícita en Ajustes para seguir al sistema operativo.
+    return value === 'light' || value === 'dark' ? value : 'dark';
   } catch {
-    return 'system';
+    return 'dark';
   }
 }
 
