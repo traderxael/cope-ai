@@ -26,6 +26,10 @@ import {
 } from '../../lib/chatPayload';
 import { isAbortError } from '../../lib/errors';
 import { loadCurriculumCountry, curriculumCountryForRequest } from '../../lib/curriculum';
+import {
+  recordEstimateSample,
+  type GenerationStatus,
+} from '../../lib/generationProgress';
 import { loadPersonality, savePersonality } from '../../lib/personality';
 import {
   clearAllData,
@@ -78,6 +82,7 @@ export interface ChatAppState {
   active: Conversation | null;
   streaming: boolean;
   streamingId: string | null;
+  generationStatus: GenerationStatus | null;
   demo: boolean | null;
   provider: AiProvider | null;
   vision: boolean | null;
@@ -142,6 +147,8 @@ export function useChatApp(): ChatAppState {
   const [loading, setLoading] = useState(true);
   const [streaming, setStreaming] = useState(false);
   const [streamingId, setStreamingId] = useState<string | null>(null);
+  const [generationStatus, setGenerationStatus] =
+    useState<GenerationStatus | null>(null);
   const [demo, setDemo] = useState<boolean | null>(loadDemoMode);
   const [provider, setProvider] = useState<AiProvider | null>(null);
   const [vision, setVision] = useState<boolean | null>(null);
@@ -167,6 +174,11 @@ export function useChatApp(): ChatAppState {
   const abortRef = useRef<AbortController | null>(null);
   const quizAbortRef = useRef<AbortController | null>(null);
   const streamingIdRef = useRef<string | null>(null);
+  const streamTimingRef = useRef<{ startedAt: number; firstTokenAt: number | null } | null>(
+    null,
+  );
+  const generationCharsRef = useRef(0);
+  const generationUpdateRef = useRef(0);
   const streamConversationRef = useRef<Conversation | null>(null);
   const fullTextRef = useRef('');
   const flushTimerRef = useRef<number | null>(null);
@@ -270,11 +282,14 @@ export function useChatApp(): ChatAppState {
     ) => {
       clearFlushTimer();
       const snapshot = streamConversationRef.current;
+      const timing = streamTimingRef.current;
+      streamTimingRef.current = null;
 
       if (!snapshot || snapshot.id !== conversationId) {
         if (mountedRef.current) {
           setStreaming(false);
           setStreamingId(null);
+          setGenerationStatus(null);
         }
         abortRef.current = null;
         streamingIdRef.current = null;
@@ -323,6 +338,19 @@ export function useChatApp(): ChatAppState {
 
       await persistConversation(updated);
 
+      if (
+        !outcome.error &&
+        !outcome.stopped &&
+        timing &&
+        timing.firstTokenAt !== null
+      ) {
+        recordEstimateSample({
+          waitMs: timing.firstTokenAt - timing.startedAt,
+          writeMs: Date.now() - timing.firstTokenAt,
+          chars: fullTextRef.current.length,
+        });
+      }
+
       streamConversationRef.current = updated;
       if (activeRef.current?.id === updated.id) {
         activeRef.current = updated;
@@ -331,6 +359,7 @@ export function useChatApp(): ChatAppState {
       if (mountedRef.current) {
         setStreaming(false);
         setStreamingId(null);
+        setGenerationStatus(null);
       }
       abortRef.current = null;
       streamingIdRef.current = null;
@@ -364,9 +393,14 @@ export function useChatApp(): ChatAppState {
 
       fullTextRef.current = '';
       streamingIdRef.current = assistantId;
+      const startedAt = Date.now();
+      streamTimingRef.current = { startedAt, firstTokenAt: null };
+      generationCharsRef.current = 0;
+      generationUpdateRef.current = 0;
       if (mountedRef.current) {
         setStreaming(true);
         setStreamingId(assistantId);
+        setGenerationStatus({ startedAt, firstTokenAt: null, chars: 0 });
       }
 
       void persistConversation(conversation);
@@ -381,6 +415,24 @@ export function useChatApp(): ChatAppState {
             onDelta: (text) => {
               fullTextRef.current += text;
               scheduleFlush();
+              const timing = streamTimingRef.current;
+              if (timing && timing.firstTokenAt === null) {
+                timing.firstTokenAt = Date.now();
+              }
+              generationCharsRef.current += text.length;
+              const now = Date.now();
+              // El estado de la barra se refresca como mucho cada 200 ms para
+              // no repintar por cada fragmento de texto que llega.
+              if (now - generationUpdateRef.current >= 200) {
+                generationUpdateRef.current = now;
+                if (mountedRef.current) {
+                  setGenerationStatus({
+                    startedAt: timing?.startedAt ?? now,
+                    firstTokenAt: timing?.firstTokenAt ?? null,
+                    chars: generationCharsRef.current,
+                  });
+                }
+              }
             },
           });
           if (mountedRef.current) {
@@ -950,6 +1002,7 @@ export function useChatApp(): ChatAppState {
     active,
     streaming,
     streamingId,
+    generationStatus,
     demo,
     provider,
     vision,
