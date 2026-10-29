@@ -8,7 +8,8 @@ o una clave gratuita propia, y no muestra respuestas demo. Incluye onboarding
 local, 14 materias, personalidad configurable, estilos **Socrático** y **Solver**,
 práctica de 5 o 10 preguntas, progreso, flashcards, plan de examen, examen oral
 con voz y clonación opcional, cámara, contexto de imágenes/PDF/TXT/subtítulos/PPTX, historial local e
-identidad visual propia.
+identidad visual propia con tema oscuro por defecto, barra de progreso con
+tiempo estimado y una grilla de insignias por rachas.
 
 > Cope AI es un proyecto independiente. No tiene afiliación con Astra AI ni usa
 > su código, recursos, textos o marca. La app no se construyó descompilando ni
@@ -189,8 +190,16 @@ Variables opcionales:
   en IndexedDB; el servidor no los guarda.
 - **Streaming real:** SSE desde el proxy, con botón de detener, respuesta parcial
   conservada y reintento.
+- **Barra de carga con tiempo estimado:** mientras la IA responde, una barra
+  muestra la fase ("preparando" o "escribiendo") y cuánto falta aproximadamente
+  ("quedan ~12 s"). La estimación se afina con las últimas respuestas reales
+  del dispositivo y nunca marca 100 % antes de que la respuesta termine.
+- **Insignias por órbita:** 12 insignias (Primer cohete, Órbita terrestre,
+  Órbita lunar…) que se desbloquean con días seguidos de estudio, con la
+  racha semanal, la próxima insignia a alcanzar y el anillo de la meta diaria
+  (15 a 90 minutos, configurable).
 - **PWA:** instalable, shell offline, fuentes empaquetadas y aviso de actualización.
-- **Temas:** claro, oscuro y sistema.
+- **Temas:** claro, oscuro y sistema. El **oscuro es el tema por defecto**.
 
 ### Datos de estudio
 
@@ -243,8 +252,17 @@ shared/                 esquemas y utilidades compartidas
 src/                    PWA React
 e2e/                    pruebas Playwright
 twa/                    configuración y pasos para Android
-scripts/                generación de iconos
+scripts/                generación de iconos y captura visual de control
 ```
+
+La identidad visual vive en `src/styles/tokens.css` (paleta y tema por
+defecto) más la capa `src/styles/astra.css`, que se importa después de
+`app.css`. Los módulos de la barra de progreso y la gamificación son
+`src/lib/generationProgress.ts`, `src/lib/studyLog.ts`,
+`src/lib/achievements.ts` y `src/features/achievements/`.
+
+El detalle de la última tanda de cambios, con lo que quedó pendiente, está en
+[`docs/HANDOFF-ASTRA.md`](docs/HANDOFF-ASTRA.md).
 
 ## Comandos
 
