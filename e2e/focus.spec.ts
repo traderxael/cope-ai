@@ -28,6 +28,20 @@ test('abre el modo enfoque, inicia, pausa y reinicia', async ({ page }) => {
   await expect(dialog.getByRole('timer')).toHaveText('05:00');
 });
 
+test('abre el modo enfoque desde el menú móvil', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+
+  await page.getByRole('button', { name: 'Abrir conversaciones' }).click();
+  await page.getByRole('button', { name: 'Enfoque' }).click();
+
+  await expect(
+    page
+      .locator('dialog[open]')
+      .getByRole('heading', { name: 'Modo enfoque' }),
+  ).toBeVisible();
+});
+
 test('al terminar el enfoque pasa al descanso y cuenta la sesión', async ({
   page,
 }) => {
