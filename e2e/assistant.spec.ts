@@ -35,6 +35,13 @@ test.describe('asistente', () => {
       'modo demo',
     );
 
+    // El tema por defecto es el oscuro: se comprueba el ciclo completo.
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await page
+      .locator('.desktopSidebar')
+      .getByRole('button', { name: 'Cambiar a tema claro' })
+      .click();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
     await page
       .locator('.desktopSidebar')
       .getByRole('button', { name: 'Cambiar a tema oscuro' })
