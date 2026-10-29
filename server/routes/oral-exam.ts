@@ -18,18 +18,16 @@ import {
 import type { ServerConfig } from '../config.js';
 import { readServerConfig } from '../config.js';
 import { AppError, describeError, logError } from '../errors.js';
-import { GoogleChatStream } from '../providers/google.js';
-import * as fs from 'fs';
-import * as path from 'path';
+import {
+  buildOralExamSystemPrompt,
+  buildOralExamUserPrompt,
+  buildOralGradeSystemPrompt,
+  buildOralGradeUserPrompt,
+} from '../prompts/oral-exam.js';
 import { demoOralExam, demoOralGrade } from '../providers/demo-oral.js';
 import { checkOrigin, defaultLimiter, type RateLimiter } from '../security.js';
 import { generateValidatedJson } from './generate-json.js';
 import type { RequestContext, RouteFailure } from './types.js';
-
-const ORAL_EXAM_SYSTEM_PROMPT = fs.readFileSync(
-  path.join(process.cwd(), 'shared', 'prompts', 'oral-exam-system.txt'),
-  'utf8'
-);
 
 export interface OralExamSuccess {
   ok: true;
@@ -115,7 +113,7 @@ export async function prepareOralExam(
     if (request.action === 'generate') {
       const content = await generateValidatedJson({
         config,
-        systemPrompt: ORAL_EXAM_SYSTEM_PROMPT,
+        systemPrompt: buildOralExamSystemPrompt(request.config, personality),
         userPrompt: buildOralExamUserPrompt(request.config),
         signal: context.signal,
         maxTokens: LIMITS.maxOralOutputTokens,
@@ -153,7 +151,7 @@ export async function prepareOralExam(
 
     const content = await generateValidatedJson({
       config,
-      systemPrompt: ORAL_EXAM_SYSTEM_PROMPT,
+      systemPrompt: buildOralGradeSystemPrompt(request.config, personality),
       userPrompt: buildOralGradeUserPrompt(request.questions, request.answers),
       signal: context.signal,
       maxTokens: LIMITS.maxOralOutputTokens,

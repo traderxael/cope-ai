@@ -18,6 +18,8 @@ describe('voice preferences', () => {
     expect(loadVoiceSettings()).toEqual({
       profile: 'cercana',
       mode: 'browser',
+      rate: 0,
+      pitch: 0,
     });
   });
 
@@ -33,7 +35,19 @@ describe('voice preferences', () => {
       mode: 'cloned',
       clonedVoiceId: 'voz-1',
       clonedLabel: 'Mi voz',
+      rate: 0,
+      pitch: 0,
     });
+  });
+
+  it('guarda velocidad y tono', () => {
+    saveVoiceSettings({
+      profile: 'neutra',
+      mode: 'browser',
+      rate: 20,
+      pitch: -2,
+    });
+    expect(loadVoiceSettings()).toMatchObject({ rate: 20, pitch: -2 });
   });
 
   it('cae al default si la preferencia está corrupta', () => {
@@ -41,6 +55,8 @@ describe('voice preferences', () => {
     expect(loadVoiceSettings()).toEqual({
       profile: 'cercana',
       mode: 'browser',
+      rate: 0,
+      pitch: 0,
     });
   });
 

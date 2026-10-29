@@ -1,3 +1,5 @@
+import { loadVoiceSettings } from '../voice';
+
 export type VoiceProfile = 'grave' | 'cercana' | 'neutra';
 
 export const VOICE_PROFILE_LABELS: Record<VoiceProfile, string> = {
@@ -76,7 +78,8 @@ export async function speakExternal(
   }
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);
-  externalAudio = new Audio(url);
+  const audio = new Audio(url);
+  externalAudio = audio;
   externalUrl = url;
   return new Promise<void>((resolve, reject) => {
     audio.onended = () => {
@@ -107,8 +110,6 @@ function pickVoice(profile: VoiceProfile): SpeechSynthesisVoice | null {
   return spanish[0] ?? null;
 }
 
-import { loadVoiceSettings } from '../lib/voice';
-
 export function speakText(
   text: string,
   profile: VoiceProfile = 'neutra',
@@ -116,7 +117,7 @@ export function speakText(
   if (!speechSynthesisSupported()) {
     return Promise.reject(new Error('La voz del navegador no está disponible.'));
   }
-  const clean = text.replace(/\\s+/g, ' ').trim();
+  const clean = text.replace(/\s+/g, ' ').trim();
   if (!clean) return Promise.resolve();
 
   window.speechSynthesis.cancel();
