@@ -42,6 +42,7 @@ export function PodcastDialog({
       abortRef.current = null;
       stopSpeaking();
       setPlaying(false);
+      setLoading(false);
     }
     return () => {
       stopSpeaking();
