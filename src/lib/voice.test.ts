@@ -8,6 +8,10 @@ import {
   saveVoiceSettings,
 } from './voice';
 import { VOICE_LANGUAGE_LOCALES } from './speech/tts';
+import {
+  RESPONSE_LANGUAGE_CODES,
+  RESPONSE_LANGUAGE_LABELS,
+} from '../../shared/schemas/personality';
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -20,6 +24,15 @@ describe('voice preferences', () => {
     expect(VOICE_LANGUAGE_LOCALES.en).toBe('en-US');
     expect(VOICE_LANGUAGE_LOCALES.pt).toBe('pt-BR');
     expect(VOICE_LANGUAGE_LOCALES.ja).toBe('ja-JP');
+  });
+
+  it('cubre los 38 idiomas de respuesta con etiqueta y voz', () => {
+    expect(RESPONSE_LANGUAGE_CODES).toHaveLength(38);
+    expect(new Set(RESPONSE_LANGUAGE_CODES).size).toBe(38);
+    for (const code of RESPONSE_LANGUAGE_CODES) {
+      expect(RESPONSE_LANGUAGE_LABELS[code]).toBeTruthy();
+      expect(VOICE_LANGUAGE_LOCALES[code]).toMatch(/^[a-z]{2,3}-[A-Z]{2}$/);
+    }
   });
 
   it('usa navegador y voz cercana por defecto', () => {
