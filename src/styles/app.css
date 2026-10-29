@@ -3648,6 +3648,37 @@ img {
   transition: width var(--transition);
 }
 
+.prepHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.prepHeader h3 {
+  margin: 0;
+}
+
+.prepHeader strong {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 550;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.prepBar {
+  height: 9px;
+}
+
+.progressPrepHint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
 .achievements {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

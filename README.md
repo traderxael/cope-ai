@@ -149,9 +149,9 @@ Variables opcionales:
 - **Práctica:** 5 o 10 preguntas, dificultad, tema opcional y modo con tiempo.
   Corrige al instante, explica cada respuesta y guarda el resultado.
 - **Simulacro:** acceso directo a 10 preguntas con tiempo desde el tutor.
-- **Progreso:** precisión global y por materia, racha de días, actividad de la
-  semana, logros por constancia, puntos a reforzar (materias practicadas bajo
-  70%) y últimas prácticas, calculado sobre el historial local.
+- **Progreso:** nivel de preparación con objetivo 85%, precisión global y por
+  materia, racha de días, actividad de la semana, logros por constancia, puntos
+  a reforzar (materias practicadas bajo 70%) y últimas prácticas.
 - **Flashcards:** generación por materia o tema (también desde el último PDF o
   TXT),
   repaso con repetición espaciada y decks persistentes. “Todo al día” no

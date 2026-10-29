@@ -10,6 +10,8 @@ import { listPracticeResults, type PracticeResult } from '../../lib/storage';
 import {
   achievements,
   findWeakAreas,
+  PREPARATION_TARGET,
+  preparationLevel,
   summarizePractice,
   weekActivity,
 } from '../../lib/progress';
@@ -48,6 +50,7 @@ export function ProgressDialog({ open, onClose }: ProgressDialogProps) {
   const weakAreas = findWeakAreas(summary);
   const week = weekActivity(results);
   const badges = achievements(summary);
+  const preparation = preparationLevel(summary);
 
   return (
     <Dialog
@@ -101,6 +104,30 @@ export function ProgressDialog({ open, onClose }: ProgressDialogProps) {
               </strong>
             </div>
           </div>
+
+          <section
+            className="progressSection"
+            aria-labelledby="progress-prep"
+          >
+            <div className="prepHeader">
+              <h3 id="progress-prep">Preparación</h3>
+              <strong>{preparation}%</strong>
+            </div>
+            <div
+              className="progressBar prepBar"
+              role="progressbar"
+              aria-label="Nivel de preparación"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={preparation}
+            >
+              <span style={{ width: `${preparation}%` }} />
+            </div>
+            <p className="progressPrepHint">
+              Objetivo {PREPARATION_TARGET}%. Combina precisión y cantidad de
+              práctica.
+            </p>
+          </section>
 
           <section
             className="progressSection"

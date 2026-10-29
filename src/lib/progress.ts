@@ -105,6 +105,14 @@ export function weekActivity(
   });
 }
 
+export const PREPARATION_TARGET = 85;
+
+export function preparationLevel(summary: ProgressSummary): number {
+  if (summary.questions === 0) return 0;
+  const confidence = 0.5 + 0.5 * Math.min(1, summary.questions / 40);
+  return Math.min(100, Math.round(summary.accuracy * 100 * confidence));
+}
+
 export interface Achievement {
   id: string;
   label: string;

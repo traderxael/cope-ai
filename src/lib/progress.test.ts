@@ -3,6 +3,7 @@ import { addDaysDateOnly, todayDateOnlyLocal } from '../../shared/date';
 import {
   achievements,
   findWeakAreas,
+  preparationLevel,
   summarizePractice,
   weekActivity,
 } from './progress';
@@ -130,6 +131,23 @@ describe('summarizePractice', () => {
     });
     expect(week[4]).toMatchObject({ active: true, questions: 5 });
     expect(week[0]?.active).toBe(false);
+  });
+
+  it('calcula preparación con precisión y volumen de práctica', () => {
+    expect(preparationLevel(summarizePractice([]))).toBe(0);
+    expect(
+      preparationLevel(
+        summarizePractice([result({ questionCount: 10, score: 8 })]),
+      ),
+    ).toBe(50);
+    expect(
+      preparationLevel(
+        summarizePractice([
+          result({ questionCount: 20, score: 20 }),
+          result({ questionCount: 20, score: 20 }),
+        ]),
+      ),
+    ).toBe(100);
   });
 
   it('desbloquea logros con constancia y precisión', () => {
