@@ -1,11 +1,16 @@
 import { LEVELS, SUBJECTS } from '../../shared/schemas/common';
 import type { Level, Subject } from '../../shared/types';
 
+export type LearningGoal = 'exam' | 'grades' | 'practice';
+
+const LEARNING_GOALS: LearningGoal[] = ['exam', 'grades', 'practice'];
+
 export interface UserProfile {
   name: string;
   level: Level;
   subjects: Subject[];
   examDate?: string;
+  goal?: LearningGoal;
   createdAt: number;
 }
 
@@ -17,6 +22,13 @@ function isLevel(value: unknown): value is Level {
 
 function isSubject(value: unknown): value is Subject {
   return typeof value === 'string' && SUBJECTS.includes(value as Subject);
+}
+
+function isGoal(value: unknown): value is LearningGoal {
+  return (
+    typeof value === 'string' &&
+    LEARNING_GOALS.includes(value as LearningGoal)
+  );
 }
 
 export function loadProfile(): UserProfile | null {
@@ -37,6 +49,7 @@ export function loadProfile(): UserProfile | null {
       ...(typeof parsed.examDate === 'string' && parsed.examDate
         ? { examDate: parsed.examDate }
         : {}),
+      ...(isGoal(parsed.goal) ? { goal: parsed.goal } : {}),
       createdAt:
         typeof parsed.createdAt === 'number' ? parsed.createdAt : Date.now(),
     };

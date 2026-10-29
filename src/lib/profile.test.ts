@@ -47,6 +47,17 @@ describe('profile storage', () => {
     expect(loadProfile()).toBeNull();
   });
 
+  it('guarda el objetivo y descarta uno inválido', () => {
+    expect(saveProfile({ ...profile, goal: 'grades' }).goal).toBe('grades');
+    expect(loadProfile()?.goal).toBe('grades');
+
+    window.localStorage.setItem(
+      'cope-profile-v1',
+      JSON.stringify({ ...profile, goal: 'otro' }),
+    );
+    expect(loadProfile()?.goal).toBeUndefined();
+  });
+
   it('borra el perfil', () => {
     saveProfile(profile);
     clearProfile();

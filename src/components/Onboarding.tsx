@@ -14,7 +14,7 @@ import {
 } from '../../shared/types';
 import { Logo } from './Logo';
 import { Icon } from './Icon';
-import type { UserProfile } from '../lib/profile';
+import type { LearningGoal, UserProfile } from '../lib/profile';
 import {
   loadCurriculumCountry,
   saveCurriculumCountry,
@@ -28,14 +28,42 @@ import {
 
 const LEVELS: Level[] = ['primaria', 'secundaria', 'bachillerato', 'universidad'];
 const VOICE_PROFILES: VoiceProfile[] = ['grave', 'cercana', 'neutra'];
+const GOALS: Array<{
+  id: LearningGoal;
+  label: string;
+  description: string;
+}> = [
+  {
+    id: 'exam',
+    label: 'Preparar un examen',
+    description: 'Plan por días hasta la fecha.',
+  },
+  {
+    id: 'grades',
+    label: 'Mejorar mis notas',
+    description: 'Práctica corta con explicaciones.',
+  },
+  {
+    id: 'practice',
+    label: 'Practicar bajo presión',
+    description: 'Simulacro de 10 con tiempo.',
+  },
+];
 
-type Stage = 'welcome' | 'profile' | 'setup' | 'voice' | 'ready';
+const GOAL_LABELS: Record<LearningGoal, string> = {
+  exam: 'Preparar un examen',
+  grades: 'Mejorar mis notas',
+  practice: 'Practicar bajo presión',
+};
+
+type Stage = 'welcome' | 'profile' | 'setup' | 'goal' | 'voice' | 'ready';
 
 const PROGRESS: Record<Stage, number> = {
   welcome: 10,
   profile: 30,
   setup: 50,
-  voice: 70,
+  goal: 70,
+  voice: 85,
   ready: 100,
 };
 
@@ -50,6 +78,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   const [subjects, setSubjects] = useState<Subject[]>(['math']);
   const [country, setCountry] =
     useState<CurriculumCountry>(loadCurriculumCountry);
+  const [goal, setGoal] = useState<LearningGoal>('exam');
   const [examDate, setExamDate] = useState('');
   const [voiceProfile, setVoiceProfile] = useState<VoiceProfile>(
     () => loadVoiceSettings().profile,
@@ -69,7 +98,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     goTo('setup');
   };
 
-  const toVoice = () => {
+  const toGoal = () => {
     if (subjects.length === 0) {
       setError('Elegí al menos una materia.');
       return;
@@ -78,7 +107,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       setError('La fecha de examen debe ser de hoy en adelante.');
       return;
     }
-    goTo('voice');
+    goTo('goal');
   };
 
   const finish = () => {
@@ -91,6 +120,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       name: name.trim(),
       level,
       subjects,
+      goal,
       ...(examDate ? { examDate } : {}),
       createdAt: Date.now(),
     });
@@ -109,11 +139,13 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       ? 'Paso 1 de 4'
       : stage === 'setup'
         ? 'Paso 2 de 4'
-        : stage === 'voice'
+        : stage === 'goal'
           ? 'Paso 3 de 4'
-          : stage === 'ready'
+          : stage === 'voice'
             ? 'Paso 4 de 4'
-            : 'Tu espacio de estudio';
+            : stage === 'ready'
+              ? 'Paso final'
+              : 'Tu espacio de estudio';
 
   const errorBlock = error ? (
     <p className="inlineError" role="alert">
@@ -314,7 +346,51 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               >
                 Atrás
               </button>
-              <button type="button" className="button primary" onClick={toVoice}>
+              <button type="button" className="button primary" onClick={toGoal}>
+                Continuar
+              </button>
+            </div>
+          </>
+        ) : null}
+
+        {stage === 'goal' ? (
+          <>
+            <p className="eyebrow">{stepLabel}</p>
+            <h1 id="onboarding-title">¿Qué necesitás ahora?</h1>
+            <p className="onboardingLead">
+              Usamos esto para recomendarte el primer paso en el tutor.
+            </p>
+            <div className="goalOptions" role="group" aria-label="Objetivo">
+              {GOALS.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={
+                    goal === option.id
+                      ? 'goalOption isActive'
+                      : 'goalOption'
+                  }
+                  aria-pressed={goal === option.id}
+                  onClick={() => setGoal(option.id)}
+                >
+                  <strong>{option.label}</strong>
+                  <span>{option.description}</span>
+                </button>
+              ))}
+            </div>
+            <div className="onboardingActions">
+              <button
+                type="button"
+                className="button ghost"
+                onClick={() => goTo('setup')}
+              >
+                Atrás
+              </button>
+              <button
+                type="button"
+                className="button primary"
+                onClick={() => goTo('voice')}
+              >
                 Continuar
               </button>
             </div>
@@ -369,7 +445,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               <button
                 type="button"
                 className="button ghost"
-                onClick={() => goTo('setup')}
+                onClick={() => goTo('goal')}
               >
                 Atrás
               </button>
@@ -410,6 +486,10 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               <div>
                 <dt>País</dt>
                 <dd>{CURRICULUM_COUNTRY_LABELS[country]}</dd>
+              </div>
+              <div>
+                <dt>Objetivo</dt>
+                <dd>{GOAL_LABELS[goal]}</dd>
               </div>
               <div>
                 <dt>Voz</dt>

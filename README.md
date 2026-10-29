@@ -135,8 +135,8 @@ Variables opcionales:
 ## Funciones
 
 - **Bienvenida local:** onboarding join-ready con nombre, nivel, 14 materias,
-  fecha de examen, país de referencia y voz. No hay cuenta ni botones de OAuth
-  falsos; el perfil se guarda en el dispositivo.
+  fecha de examen, país de referencia, objetivo y voz. No hay cuenta ni botones
+  de OAuth falsos; el perfil se guarda en el dispositivo.
 - **14 materias:** matemáticas, física, química, biología, español, inglés,
   alemán, francés, historia, geografía, economía, informática, filosofía y
   psicología, además de General.
@@ -146,7 +146,8 @@ Variables opcionales:
   oral; el país, a toda la suite de estudio. Se guarda solo en este dispositivo.
 - **Tutor:** materia, nivel y dos estilos. **Socrático** da pistas y preguntas
   para que resuelvas vos; **Solver** muestra el procedimiento completo y la
-  comprobación.
+  comprobación. El objetivo elegido en el onboarding se muestra como primer paso
+  recomendado.
 - **Práctica:** 5 o 10 preguntas, dificultad, tema opcional y modo con tiempo.
   Corrige al instante, explica cada respuesta y guarda el resultado.
 - **Simulacro:** acceso directo a 10 preguntas con tiempo desde el tutor.

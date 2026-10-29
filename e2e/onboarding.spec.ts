@@ -36,6 +36,8 @@ test.describe('onboarding', () => {
       .slice(0, 10);
     await page.getByLabel('Fecha de examen').fill(examDate);
     await page.getByRole('button', { name: 'Continuar' }).click();
+    await page.getByRole('button', { name: 'Mejorar mis notas' }).click();
+    await page.getByRole('button', { name: 'Continuar' }).click();
     await page.getByRole('button', { name: 'Grave' }).click();
     await page.getByRole('button', { name: 'Continuar' }).click();
 
@@ -48,6 +50,7 @@ test.describe('onboarding', () => {
       page.getByRole('heading', { name: 'Aprender paso a paso, sin atajos.' }),
     ).toBeVisible();
     await expect(page.getByText('Hola, Ana. Resolvamos juntos')).toBeVisible();
+    await expect(page.getByText('Tu objetivo')).toBeVisible();
     expect(
       await page.evaluate(() =>
         localStorage.getItem('cope-curriculum-v1'),
@@ -132,6 +135,7 @@ test.describe('onboarding', () => {
     await page.getByLabel('¿Cómo te llamás?').fill('Luis');
     await page.getByRole('button', { name: 'Continuar' }).click();
     await page.getByLabel('Nivel').selectOption('primaria');
+    await page.getByRole('button', { name: 'Continuar' }).click();
     await page.getByRole('button', { name: 'Continuar' }).click();
     await page.getByRole('button', { name: 'Continuar' }).click();
     await page.getByRole('button', { name: 'Entrar a Cope' }).click();

@@ -6,6 +6,7 @@ import {
   type Subject,
   type TutorConfig,
 } from '../../shared/types';
+import type { LearningGoal } from '../lib/profile';
 import { Icon, type IconName } from './Icon';
 
 interface Suggestion {
@@ -155,7 +156,17 @@ interface EmptyStateProps {
   disabled: boolean;
   vision?: boolean | null;
   userName?: string;
+  goal?: LearningGoal;
 }
+
+const GOAL_COPY: Record<
+  LearningGoal,
+  { label: string; action: string }
+> = {
+  exam: { label: 'Preparar un examen', action: 'Abrir plan' },
+  grades: { label: 'Mejorar mis notas', action: 'Generar práctica' },
+  practice: { label: 'Practicar bajo presión', action: 'Abrir simulacro' },
+};
 
 export function EmptyState({
   mode,
@@ -171,6 +182,7 @@ export function EmptyState({
   disabled,
   vision = true,
   userName,
+  goal,
 }: EmptyStateProps) {
   const suggestions =
     mode === 'tutor'
@@ -203,6 +215,29 @@ export function EmptyState({
             ? `${greeting}Preguntá, redactá o convertí una idea en un plan. También podés adjuntar un PDF o TXT para trabajar sobre tu material; la IA actual no analiza imágenes.`
             : `${greeting}Preguntá, redactá o convertí una idea en un plan. También podés adjuntar una imagen, un PDF o TXT para trabajar sobre tu material.`}
       </p>
+
+      {mode === 'tutor' && goal ? (
+        <div className="goalBanner">
+          <span>
+            <span className="goalBannerLabel">Tu objetivo</span>
+            <strong>{GOAL_COPY[goal].label}</strong>
+          </span>
+          <button
+            type="button"
+            className="button ghost small"
+            onClick={
+              goal === 'exam'
+                ? onOpenPlan
+                : goal === 'grades'
+                  ? onPractice
+                  : onSimulacro
+            }
+            disabled={disabled}
+          >
+            {GOAL_COPY[goal].action}
+          </button>
+        </div>
+      ) : null}
 
       <div className="suggestionGrid">
         {suggestions.map((suggestion) => (

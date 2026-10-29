@@ -537,6 +537,7 @@ export default function App() {
                     practiceLoading={chat.practiceLoading}
                     vision={chat.vision}
                     userName={profile?.name}
+                    goal={profile?.goal}
                     disabled={
                       !online ||
                       chat.streaming ||
