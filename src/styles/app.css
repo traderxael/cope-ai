@@ -3648,6 +3648,44 @@ img {
   transition: width var(--transition);
 }
 
+.weekActivity {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.weekActivity li {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 600;
+}
+
+.weekActivityDot {
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface-soft);
+}
+
+.weekActivity li.isActive {
+  color: var(--ink);
+  font-weight: 750;
+}
+
+.weekActivity li.isActive .weekActivityDot {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
 .progressWeak {
   display: flex;
   flex-direction: column;

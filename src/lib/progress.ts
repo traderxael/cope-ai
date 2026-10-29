@@ -71,6 +71,40 @@ export interface WeakArea {
   questions: number;
 }
 
+export interface WeekActivityDay {
+  date: string;
+  label: string;
+  active: boolean;
+  questions: number;
+}
+
+const WEEKDAY_LABELS = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'];
+
+function weekdayLabel(dateOnly: string): string {
+  const [year, month, day] = dateOnly.split('-').map(Number);
+  const weekday = new Date(year!, month! - 1, day!).getDay();
+  return WEEKDAY_LABELS[weekday] ?? '';
+}
+
+export function weekActivity(
+  results: PracticeResult[],
+  now = Date.now(),
+): WeekActivityDay[] {
+  const today = dateOnlyFromEpochLocal(now);
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = addDaysDateOnly(today, index - 6);
+    const questions = results
+      .filter((result) => dateOnlyFromEpochLocal(result.completedAt) === date)
+      .reduce((total, result) => total + result.questionCount, 0);
+    return {
+      date,
+      label: weekdayLabel(date),
+      active: questions > 0,
+      questions,
+    };
+  });
+}
+
 export function findWeakAreas(
   summary: ProgressSummary,
   threshold = 0.7,

@@ -7,7 +7,7 @@ import {
 import { Dialog } from '../../components/Dialog';
 import { Icon } from '../../components/Icon';
 import { listPracticeResults, type PracticeResult } from '../../lib/storage';
-import { findWeakAreas, summarizePractice } from '../../lib/progress';
+import { findWeakAreas, summarizePractice, weekActivity } from '../../lib/progress';
 
 interface ProgressDialogProps {
   open: boolean;
@@ -41,6 +41,7 @@ export function ProgressDialog({ open, onClose }: ProgressDialogProps) {
 
   const summary = summarizePractice(results);
   const weakAreas = findWeakAreas(summary);
+  const week = weekActivity(results);
 
   return (
     <Dialog
@@ -94,6 +95,29 @@ export function ProgressDialog({ open, onClose }: ProgressDialogProps) {
               </strong>
             </div>
           </div>
+
+          <section
+            className="progressSection"
+            aria-labelledby="progress-week"
+          >
+            <h3 id="progress-week">Esta semana</h3>
+            <ol className="weekActivity">
+              {week.map((day) => (
+                <li
+                  key={day.date}
+                  className={day.active ? 'isActive' : undefined}
+                >
+                  <span className="weekActivityDot" aria-hidden="true" />
+                  <span className="weekActivityLabel">{day.label}</span>
+                  <span className="srOnly">
+                    {day.active
+                      ? `${day.questions} preguntas`
+                      : 'Sin actividad'}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </section>
 
           <section
             className="progressSection"

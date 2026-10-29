@@ -148,9 +148,9 @@ Variables opcionales:
   comprobación.
 - **Práctica:** 5 o 10 preguntas, dificultad, tema opcional y modo con tiempo.
   Corrige al instante, explica cada respuesta y guarda el resultado.
-- **Progreso:** precisión global y por materia, racha de días, puntos a
-  reforzar (materias practicadas bajo 70%) y últimas prácticas, calculado sobre
-  el historial local.
+- **Progreso:** precisión global y por materia, racha de días, actividad de la
+  semana, puntos a reforzar (materias practicadas bajo 70%) y últimas prácticas,
+  calculado sobre el historial local.
 - **Flashcards:** generación por materia o tema (también desde el último PDF o
   TXT),
   repaso con repetición espaciada y decks persistentes. “Todo al día” no

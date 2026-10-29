@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { addDaysDateOnly, todayDateOnlyLocal } from '../../shared/date';
-import { summarizePractice, findWeakAreas } from './progress';
+import { summarizePractice, findWeakAreas, weekActivity } from './progress';
 import type { PracticeResult } from './storage';
 
 let counter = 0;
@@ -95,6 +95,36 @@ describe('summarizePractice', () => {
     const summary = summarizePractice([result({ subject: 'math', score: 5 })]);
     expect(findWeakAreas(summary)).toEqual([]);
     expect(findWeakAreas(summary, 0.9)).toEqual([]);
+  });
+
+  it('arma la actividad de los últimos siete días', () => {
+    const now = localNoon('2026-10-27');
+    const today = todayDateOnlyLocal(now);
+    const week = weekActivity(
+      [
+        result({
+          completedAt: localNoon(today),
+          questionCount: 10,
+        }),
+        result({
+          completedAt: localNoon(addDaysDateOnly(today, -2)),
+          questionCount: 5,
+        }),
+        result({
+          completedAt: localNoon(addDaysDateOnly(today, -8)),
+          questionCount: 5,
+        }),
+      ],
+      now,
+    );
+    expect(week).toHaveLength(7);
+    expect(week[6]).toMatchObject({
+      date: today,
+      active: true,
+      questions: 10,
+    });
+    expect(week[4]).toMatchObject({ active: true, questions: 5 });
+    expect(week[0]?.active).toBe(false);
   });
 
   it('ordena y limita las prácticas recientes', () => {

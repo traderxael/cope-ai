@@ -69,6 +69,9 @@ test.describe('suite de estudio', () => {
       dialog.getByRole('heading', { name: 'Puntos a reforzar' }),
     ).toBeVisible();
     await expect(
+      dialog.getByRole('heading', { name: 'Esta semana' }),
+    ).toBeVisible();
+    await expect(
       dialog.locator('.progressMetric').filter({ hasText: 'Preguntas' }),
     ).toContainText('10');
     await expect(dialog.locator('.progressRecent li')).toHaveCount(1);
