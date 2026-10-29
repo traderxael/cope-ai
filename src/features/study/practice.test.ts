@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { suggestedExamFormat } from '../../../shared/exams';
 import {
   DEFAULT_PRACTICE_SETTINGS,
   practiceTimeLimitSeconds,
@@ -12,6 +13,15 @@ describe('practice settings', () => {
       timed: false,
       examFormat: 'general',
     });
+  });
+
+  it('sugiere el formato de examen según el país', () => {
+    expect(suggestedExamFormat('cl')).toBe('paes');
+    expect(suggestedExamFormat('es')).toBe('selectividad');
+    expect(suggestedExamFormat('co')).toBe('icfes');
+    expect(suggestedExamFormat('mx')).toBe('admision');
+    expect(suggestedExamFormat('ar')).toBe('general');
+    expect(suggestedExamFormat(undefined)).toBe('general');
   });
 
   it('calcula un minuto por pregunta solo en modo con tiempo', () => {

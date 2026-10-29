@@ -18,8 +18,10 @@ import {
   EXAM_FORMATS,
   EXAM_FORMAT_LABELS,
   EXAM_FORMAT_NOTES,
+  suggestedExamFormat,
   type ExamFormat,
 } from '../../../shared/exams';
+import { loadCurriculumCountry } from '../../lib/curriculum';
 
 const SUBJECT_ICONS: Record<Subject, IconName> = {
   math: 'calculator',
@@ -75,7 +77,8 @@ export function TutorPanel({
   const [count, setCount] = useState<5 | 10>(5);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [timed, setTimed] = useState(false);
-  const [examFormat, setExamFormat] = useState<ExamFormat>('general');
+  const countryFormat = suggestedExamFormat(loadCurriculumCountry());
+  const [examFormat, setExamFormat] = useState<ExamFormat>(countryFormat);
   const examFormatId = useId();
 
   const practiceDisabled = disabled || practiceLoading || !online;
@@ -241,6 +244,11 @@ export function TutorPanel({
           </select>
           <Icon name="chevronDown" size={16} className="selectChevron" />
         </div>
+        {countryFormat !== 'general' ? (
+          <span className="fieldHint">
+            Sugerido para tu país: {EXAM_FORMAT_LABELS[countryFormat]}.
+          </span>
+        ) : null}
         {examFormat !== 'general' ? (
           <span className="fieldHint">{EXAM_FORMAT_NOTES[examFormat]}</span>
         ) : null}

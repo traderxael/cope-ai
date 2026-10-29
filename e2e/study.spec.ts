@@ -254,4 +254,16 @@ test.describe('suite de estudio', () => {
       dialog.locator('.planTask input[type=checkbox]').first(),
     ).toBeChecked();
   });
+
+  test('sugiere el formato de examen según el país', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('cope-curriculum-v1', 'cl');
+    });
+    const panel = await openTutor(page);
+
+    await expect(panel.getByLabel('Formato de examen')).toHaveValue('paes');
+    await expect(
+      panel.getByText('Sugerido para tu país: PAES (Chile).'),
+    ).toBeVisible();
+  });
 });

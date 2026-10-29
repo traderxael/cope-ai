@@ -1,3 +1,5 @@
+import type { CurriculumCountry } from './curriculum.js';
+
 export const EXAM_FORMATS = [
   'general',
   'paes',
@@ -7,6 +9,20 @@ export const EXAM_FORMATS = [
 ] as const;
 
 export type ExamFormat = (typeof EXAM_FORMATS)[number];
+
+const COUNTRY_EXAM_FORMAT: Partial<Record<CurriculumCountry, ExamFormat>> = {
+  cl: 'paes',
+  es: 'selectividad',
+  co: 'icfes',
+  mx: 'admision',
+};
+
+export function suggestedExamFormat(
+  country: CurriculumCountry | undefined,
+): ExamFormat {
+  if (!country) return 'general';
+  return COUNTRY_EXAM_FORMAT[country] ?? 'general';
+}
 
 export const EXAM_FORMAT_LABELS: Record<ExamFormat, string> = {
   general: 'General',
