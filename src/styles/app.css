@@ -3754,6 +3754,43 @@ img {
   gap: 16px;
 }
 
+.podcastScript {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.podcastScript h3 {
+  margin: 2px 0 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 550;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.podcastText {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.podcastText p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.86rem;
+  line-height: 1.65;
+}
+
+.podcastActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .studyFormIntro {
   display: flex;
   align-items: center;

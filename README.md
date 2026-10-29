@@ -159,6 +159,8 @@ Variables opcionales:
 - **Examen oral:** preguntas abiertas con rúbrica, respuesta por texto o
   micrófono, corrección con puntajes y zonas de desempeño, respuesta modelo e
   historial local. La voz del navegador está siempre disponible.
+- **Podcast:** guion breve por materia o tema, con reproducción por la voz del
+  navegador y texto para seguir la explicación.
 - **Velocidad y tono:** en Ajustes → Voz podés ajustar la velocidad (±50%) y el
   tono (±6 semitonos) de la voz del navegador.
 - **Voz externa opcional:** ElevenLabs puede leer las preguntas como MP3. La
@@ -192,7 +194,7 @@ historial.
 │  IndexedDB local         │
 └────────────┬─────────────┘
              │ /api/chat (SSE) · /api/quiz · /api/flashcards ·
-             │ /api/study-plan · /api/oral-exam (JSON) ·
+             │ /api/study-plan · /api/oral-exam · /api/podcast (JSON) ·
              │ /api/tts · /api/voice-clone
              ▼
 ┌──────────────────────────┐

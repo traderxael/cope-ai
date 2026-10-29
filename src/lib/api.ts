@@ -1,6 +1,11 @@
 import { parseSseStream } from '../../shared/sse';
 import { quizResponseSchema } from '../../shared/schemas/quiz';
 import {
+  podcastResponseSchema,
+  type PodcastRequest,
+  type PodcastResponse,
+} from '../../shared/schemas/podcast';
+import {
   flashcardResponseSchema,
   studyPlanResponseSchema,
 } from '../../shared/schemas/study';
@@ -267,6 +272,45 @@ export async function requestFlashcards(
       502,
       'invalid_flashcards',
       'Las flashcards llegaron en un formato inválido.',
+    );
+  }
+  return parsed.data;
+}
+
+export async function requestPodcast(
+  request: PodcastRequest,
+  signal?: AbortSignal,
+): Promise<PodcastResponse> {
+  const response = await fetch('/api/podcast', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify(request),
+    cache: 'no-store',
+    signal,
+  });
+
+  if (!response.ok) throw await readError(response);
+
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new ApiError(
+      502,
+      'invalid_podcast',
+      'El podcast llegó en un formato inválido.',
+    );
+  }
+
+  const parsed = podcastResponseSchema.safeParse(payload);
+  if (!parsed.success) {
+    throw new ApiError(
+      502,
+      'invalid_podcast',
+      'El podcast llegó en un formato inválido.',
     );
   }
   return parsed.data;

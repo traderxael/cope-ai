@@ -41,6 +41,8 @@ export const LIMITS = {
   maxVoiceSampleBytes: 5_000_000,
   maxTtsChars: 600,
   maxTopicChars: 120,
+  maxPodcastChars: 6_000,
+  maxPodcastOutputTokens: 2_000,
   maxPdfPages: 20,
   maxPdfChars: 20_000,
   maxPdfBytes: 15_000_000,

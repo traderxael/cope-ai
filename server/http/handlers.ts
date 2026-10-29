@@ -5,6 +5,7 @@ import { describeError, logError } from '../errors.js';
 import { prepareChat } from '../routes/chat.js';
 import { prepareFlashcards } from '../routes/flashcards.js';
 import { healthPayload } from '../routes/health.js';
+import { preparePodcast } from '../routes/podcast.js';
 import { prepareOralExam } from '../routes/oral-exam.js';
 import { prepareQuiz } from '../routes/quiz.js';
 import { prepareStudyPlan } from '../routes/study-plan.js';
@@ -157,6 +158,47 @@ export async function handleNodeFlashcards(
     }
 
     sendJson(response, 200, result.flashcards);
+  } catch (error) {
+    logError(error);
+    const failure = describeError(error);
+    sendJson(response, failure.status, {
+      error: { code: failure.code, message: failure.message },
+    });
+  } finally {
+    response.off('close', onClose);
+  }
+}
+
+export async function handleNodePodcast(
+  request: IncomingMessage,
+  response: ServerResponse,
+): Promise<void> {
+  if (request.method !== 'POST') {
+    methodNotAllowed(response, 'POST');
+    return;
+  }
+
+  const controller = new AbortController();
+  const onClose = () => {
+    if (!response.writableEnded) controller.abort();
+  };
+  response.on('close', onClose);
+
+  try {
+    const body = await readJsonBody(request);
+    const result = await preparePodcast(body, {
+      ...requestMeta(request),
+      signal: controller.signal,
+    });
+
+    if (!result.ok) {
+      sendJson(response, result.status, {
+        error: { code: result.code, message: result.message },
+      });
+      return;
+    }
+
+    sendJson(response, 200, result.podcast);
   } catch (error) {
     logError(error);
     const failure = describeError(error);

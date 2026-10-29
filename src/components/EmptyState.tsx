@@ -149,6 +149,7 @@ interface EmptyStateProps {
   onStyleChange: (style: StudyStyle) => void;
   onOpenPlan: () => void;
   onOpenOralExam: () => void;
+  onOpenPodcast: () => void;
   practiceLoading: boolean;
   disabled: boolean;
   vision?: boolean | null;
@@ -163,6 +164,7 @@ export function EmptyState({
   onStyleChange,
   onOpenPlan,
   onOpenOralExam,
+  onOpenPodcast,
   practiceLoading,
   disabled,
   vision = true,
@@ -270,6 +272,18 @@ export function EmptyState({
               <span>
                 <strong>Examen oral</strong>
                 <small>Preguntas y corrección con voz.</small>
+              </span>
+            </button>
+            <button
+              type="button"
+              className="modeCard"
+              onClick={onOpenPodcast}
+              disabled={disabled}
+            >
+              <Icon name="volume" size={19} />
+              <span>
+                <strong>Podcast</strong>
+                <small>Un repaso para escuchar.</small>
               </span>
             </button>
           </div>
