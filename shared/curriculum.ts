@@ -4,6 +4,7 @@ export const CURRICULUM_COUNTRIES = [
   'bo',
   'cl',
   'co',
+  'do',
   'ec',
   'es',
   'mx',
@@ -46,6 +47,11 @@ export const CURRICULUM_COUNTRY_PROFILES: Record<
     exam:
       'Saber 11 (ICFES) con Lectura Crítica, Matemáticas, Sociales y Ciudadanas, Ciencias Naturales e Inglés',
     framework: 'lineamientos del Ministerio de Educación Nacional',
+  },
+  do: {
+    stages: 'primaria, secundaria y educación media',
+    exam: 'cada universidad define su examen o proceso de admisión',
+    framework: 'currículo del Ministerio de Educación (MINERD)',
   },
   ec: {
     stages: 'Educación General Básica y Bachillerato General Unificado',
@@ -91,6 +97,7 @@ export const CURRICULUM_COUNTRY_LABELS: Record<CurriculumCountry, string> = {
   bo: 'Bolivia',
   cl: 'Chile',
   co: 'Colombia',
+  do: 'República Dominicana',
   ec: 'Ecuador',
   es: 'España',
   mx: 'México',
