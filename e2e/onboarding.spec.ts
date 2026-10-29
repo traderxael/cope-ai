@@ -53,6 +53,13 @@ test.describe('onboarding', () => {
         localStorage.getItem('cope-curriculum-v1'),
       ),
     ).toBe('mx');
+
+    await page
+      .locator('.desktopSidebar')
+      .getByRole('button', { name: 'Ajustes' })
+      .click();
+    await expect(page.getByLabel('País de referencia')).toHaveValue('mx');
+    await page.getByRole('button', { name: 'Cerrar', exact: true }).click();
     expect(
       await page.evaluate(() => {
         try {

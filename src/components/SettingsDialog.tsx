@@ -73,6 +73,10 @@ export function SettingsDialog({
     useState<CurriculumCountry>(loadCurriculumCountry);
 
   useEffect(() => {
+    if (open) setCountry(loadCurriculumCountry());
+  }, [open]);
+
+  useEffect(() => {
     if (!open) {
       setConfirmClear(false);
       return;

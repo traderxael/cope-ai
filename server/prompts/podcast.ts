@@ -1,7 +1,11 @@
 import { LEVEL_LABELS, SUBJECT_LABELS } from '../../shared/types.js';
 import type { PodcastRequest } from '../../shared/schemas/podcast.js';
+import type { CurriculumCountry } from '../../shared/curriculum.js';
+import { buildCurriculumFragment } from './curriculum.js';
 
-export function buildPodcastSystemPrompt(): string {
+export function buildPodcastSystemPrompt(
+  country?: CurriculumCountry,
+): string {
   return [
     'Sos un docente que prepara un podcast breve de estudio en español neutro.',
     'El audio debe sonar natural, cálido y conversado, como una clase explicada en voz alta.',
@@ -9,6 +13,7 @@ export function buildPodcastSystemPrompt(): string {
     '{"title":"título del episodio","script":"guion completo en un solo texto"}',
     'El guion debe tener entre 250 y 450 palabras, sin markdown, sin listas, sin encabezados y sin acotaciones técnicas.',
     'Incluí una introducción, dos o tres ideas centrales con un ejemplo concreto y un cierre con una pregunta para repasar.',
+    buildCurriculumFragment(country),
   ].join('\n');
 }
 
