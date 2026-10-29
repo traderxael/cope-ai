@@ -105,6 +105,28 @@ function upsert(
   ]);
 }
 
+const DEMO_MODE_KEY = 'cope-demo-mode-v1';
+
+function loadDemoMode(): boolean | null {
+  if (typeof localStorage === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(DEMO_MODE_KEY);
+    if (raw === '1') return true;
+    if (raw === '0') return false;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function saveDemoMode(value: boolean): void {
+  try {
+    localStorage.setItem(DEMO_MODE_KEY, value ? '1' : '0');
+  } catch {
+    // La app sigue funcionando aunque el almacenamiento esté bloqueado.
+  }
+}
+
 function errorMessage(error: unknown): string {
   if (error instanceof ApiError || error instanceof AttachmentError) {
     return error.message;
@@ -120,7 +142,7 @@ export function useChatApp(): ChatAppState {
   const [loading, setLoading] = useState(true);
   const [streaming, setStreaming] = useState(false);
   const [streamingId, setStreamingId] = useState<string | null>(null);
-  const [demo, setDemo] = useState<boolean | null>(null);
+  const [demo, setDemo] = useState<boolean | null>(loadDemoMode);
   const [provider, setProvider] = useState<AiProvider | null>(null);
   const [vision, setVision] = useState<boolean | null>(null);
   const [pendingAttachments, setPendingAttachments] = useState<
@@ -361,7 +383,10 @@ export function useChatApp(): ChatAppState {
               scheduleFlush();
             },
           });
-          if (mountedRef.current) setDemo(result.demo);
+          if (mountedRef.current) {
+            setDemo(result.demo);
+            saveDemoMode(result.demo);
+          }
           await finalizeStream(conversation.id, assistantId, {
             demo: result.demo,
           });
@@ -823,7 +848,10 @@ export function useChatApp(): ChatAppState {
             level: current.tutor.level,
             startedAt: Date.now(),
           });
-          if (result.demo) setDemo(true);
+          if (result.demo) {
+            setDemo(true);
+            saveDemoMode(true);
+          }
         }
       } catch (error) {
         if (
@@ -895,14 +923,13 @@ export function useChatApp(): ChatAppState {
       .then((health) => {
         if (!cancelled && mountedRef.current) {
           setDemo(health.demo);
+          saveDemoMode(health.demo);
           setProvider(health.provider);
           setVision(health.vision);
           setVoice(health.voice);
         }
       })
-      .catch(() => {
-        if (!cancelled && mountedRef.current) setDemo(null);
-      });
+      .catch(() => undefined);
 
     return () => {
       cancelled = true;
