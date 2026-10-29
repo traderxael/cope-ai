@@ -18,6 +18,9 @@ test.describe('personalidad', () => {
     await settings.getByRole('radio', { name: /Examinador estricto/ }).check();
     await settings.getByLabel('Nombre').fill('Profe Ana');
     await settings
+      .getByLabel('Idioma de las respuestas')
+      .selectOption('en');
+    await settings
       .getByLabel(/Instrucciones/)
       .fill('Sé formal y pedí justificación.');
     await settings
@@ -39,11 +42,17 @@ test.describe('personalidad', () => {
     await page.getByRole('button', { name: 'Enviar mensaje' }).click();
 
     const body = (await chatRequest).postDataJSON() as {
-      personality?: { preset: string; name: string; instructions?: string };
+      personality?: {
+        preset: string;
+        name: string;
+        language?: string;
+        instructions?: string;
+      };
     };
     expect(body.personality).toEqual({
       preset: 'examinador',
       name: 'Profe Ana',
+      language: 'en',
       instructions: 'Sé formal y pedí justificación.',
     });
     await expect(page.locator('.assistantRow').last()).toContainText(

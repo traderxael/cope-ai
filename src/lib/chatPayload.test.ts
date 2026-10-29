@@ -162,11 +162,12 @@ describe('buildChatRequest', () => {
       'assistant',
       undefined,
       [message('user', 'hola')],
-      { preset: 'examinador', name: 'Profe Ana' },
+      { preset: 'examinador', name: 'Profe Ana', language: 'es' },
     );
     expect(request.personality).toEqual({
       preset: 'examinador',
       name: 'Profe Ana',
+      language: 'es',
     });
     expect(chatRequestSchema.safeParse(request).success).toBe(true);
   });

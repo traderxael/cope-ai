@@ -141,8 +141,8 @@ Variables opcionales:
   alemán, francés, historia, geografía, economía, informática, filosofía y
   psicología, además de General.
 - **Personalidad:** nombre, preset (Cope, examinador estricto, tutor cercano,
-  reto exigente) e instrucciones libres. Se aplica al chat, al tutor y al
-  examinador; se guarda solo en este dispositivo.
+  reto exigente), idioma de respuesta (13 opciones) e instrucciones libres. Se
+  aplica al chat, al tutor y al examinador; se guarda solo en este dispositivo.
 - **Tutor:** materia, nivel y dos estilos. **Socrático** da pistas y preguntas
   para que resuelvas vos; **Solver** muestra el procedimiento completo y la
   comprobación.

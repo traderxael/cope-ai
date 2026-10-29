@@ -89,7 +89,7 @@ function oralExam(overrides: Partial<OralExamSession> = {}): OralExamSession {
       topics: [],
       count: 3,
     },
-    personality: { preset: 'cope', name: 'Cope' },
+    personality: { preset: 'cope', name: 'Cope', language: 'es' },
     questions: [
       {
         id: 'q1',

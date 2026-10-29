@@ -6,6 +6,7 @@ import { buildTutorSystemPrompt } from './tutor';
 const examinador = {
   preset: 'examinador' as const,
   name: 'Profe Ana',
+  language: 'es' as const,
   instructions: 'Sé formal y breve.',
 };
 
@@ -22,11 +23,21 @@ describe('buildPersonalityFragment', () => {
     const fragment = buildPersonalityFragment({
       preset: 'cercano',
       name: 'Cope',
+      language: 'es',
       instructions: '<script>alert(1)</script>\u0000 Sé amable.',
     });
     expect(fragment).not.toContain('<script>');
     expect(fragment).not.toContain('\u0000');
     expect(fragment).toContain('script');
+  });
+
+  it('pide responder en el idioma elegido', () => {
+    const fragment = buildPersonalityFragment({
+      ...examinador,
+      language: 'en',
+    });
+    expect(fragment).toContain('Idioma de respuesta');
+    expect(fragment).toContain('Inglés');
   });
 });
 
@@ -41,7 +52,7 @@ describe('prompts con personalidad', () => {
   it('el tutor combina estilo pedagógico y personalidad', () => {
     const prompt = buildTutorSystemPrompt(
       { subject: 'math', level: 'secundaria', style: 'guided' },
-      { preset: 'exigente', name: 'Mentor' },
+      { preset: 'exigente', name: 'Mentor', language: 'es' },
     );
     expect(prompt).toContain('Mentor');
     expect(prompt).toContain('Estilo Socrático');

@@ -9,6 +9,7 @@ describe('personalityConfigSchema', () => {
     expect(personalityConfigSchema.parse({})).toEqual({
       preset: 'cope',
       name: 'Cope',
+      language: 'es',
     });
   });
 
@@ -22,6 +23,7 @@ describe('personalityConfigSchema', () => {
     ).toEqual({
       preset: 'examinador',
       name: 'Profe Ana',
+      language: 'es',
       instructions: 'Sé formal y breve.',
     });
     expect(
@@ -62,6 +64,20 @@ describe('personalityConfigSchema', () => {
         preset: 'cope',
         name: 'Cope',
         instructions: 'a'.repeat(601),
+      }).success,
+    ).toBe(false);
+  });
+
+  it('acepta el idioma de respuesta y rechaza uno desconocido', () => {
+    expect(
+      personalityConfigSchema.parse({ preset: 'cope', name: 'Cope', language: 'en' })
+        .language,
+    ).toBe('en');
+    expect(
+      personalityConfigSchema.safeParse({
+        preset: 'cope',
+        name: 'Cope',
+        language: 'xx',
       }).success,
     ).toBe(false);
   });

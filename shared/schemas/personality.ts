@@ -9,6 +9,40 @@ export const PERSONALITY_PRESETS = [
 
 const NAME_PATTERN = /^[\p{L}\p{M}\p{N} .'’_-]+$/u;
 
+export const RESPONSE_LANGUAGE_CODES = [
+  'es',
+  'en',
+  'pt',
+  'fr',
+  'de',
+  'it',
+  'ja',
+  'ko',
+  'zh',
+  'ar',
+  'hi',
+  'ru',
+  'uk',
+] as const;
+
+export type ResponseLanguage = (typeof RESPONSE_LANGUAGE_CODES)[number];
+
+export const RESPONSE_LANGUAGE_LABELS: Record<ResponseLanguage, string> = {
+  es: 'Español',
+  en: 'Inglés',
+  pt: 'Portugués',
+  fr: 'Francés',
+  de: 'Alemán',
+  it: 'Italiano',
+  ja: 'Japonés',
+  ko: 'Coreano',
+  zh: 'Chino',
+  ar: 'Árabe',
+  hi: 'Hindi',
+  ru: 'Ruso',
+  uk: 'Ucraniano',
+};
+
 export const personalityConfigSchema = z.object({
   preset: z.enum(PERSONALITY_PRESETS).default('cope'),
   name: z
@@ -18,6 +52,7 @@ export const personalityConfigSchema = z.object({
     .max(24, 'El nombre admite hasta 24 caracteres.')
     .regex(NAME_PATTERN, 'El nombre contiene caracteres no permitidos.')
     .default('Cope'),
+  language: z.enum(RESPONSE_LANGUAGE_CODES).default('es'),
   instructions: z
     .string()
     .trim()

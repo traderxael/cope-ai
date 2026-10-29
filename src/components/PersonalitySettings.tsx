@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { personalityConfigSchema } from '../../shared/schemas/personality';
 import {
+  RESPONSE_LANGUAGE_CODES,
+  RESPONSE_LANGUAGE_LABELS,
+  type ResponseLanguage,
+} from '../../shared/schemas/personality';
+import {
   DEFAULT_PERSONALITY,
   PERSONALITY_DESCRIPTIONS,
   PERSONALITY_LABELS,
@@ -111,6 +116,34 @@ export function PersonalitySettings({
           onChange={(event) => update({ name: event.target.value })}
           placeholder="Ej.: Profe Ana"
         />
+      </div>
+
+      <div className="fieldGroup">
+        <label className="fieldLabel" htmlFor="personality-language">
+          Idioma de las respuestas
+        </label>
+        <div className="selectWrap">
+          <select
+            id="personality-language"
+            className="selectInput"
+            value={draft.language ?? 'es'}
+            onChange={(event) =>
+              update({
+                language: event.target.value as ResponseLanguage,
+              })
+            }
+          >
+            {RESPONSE_LANGUAGE_CODES.map((code) => (
+              <option key={code} value={code}>
+                {RESPONSE_LANGUAGE_LABELS[code]}
+              </option>
+            ))}
+          </select>
+          <Icon name="chevronDown" size={16} className="selectChevron" />
+        </div>
+        <span className="fieldHint">
+          Aplica al chat, tutor y examen oral; la interfaz sigue en español.
+        </span>
       </div>
 
       <div className="fieldGroup">

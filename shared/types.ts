@@ -144,6 +144,7 @@ export const PERSONALITY_DESCRIPTIONS: Record<PersonalityPreset, string> = {
 export const DEFAULT_PERSONALITY: PersonalityConfig = {
   preset: 'cope',
   name: 'Cope',
+  language: 'es',
 };
 
 export const ORAL_ZONE_LABELS: Record<

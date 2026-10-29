@@ -50,6 +50,7 @@ describe('chatRequestSchema', () => {
     expect(parsed.personality).toEqual({
       preset: 'examinador',
       name: 'Profe Ana',
+      language: 'es',
       instructions: 'Sé formal.',
     });
   });
