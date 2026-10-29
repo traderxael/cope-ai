@@ -8,6 +8,8 @@ import {
   loadVoiceSettings,
   saveOwnerCode,
   saveVoiceSettings,
+  VOICE_PITCH_LIMIT,
+  VOICE_RATE_LIMIT,
   type VoiceMode,
   type VoiceSettings as VoiceSettingsValue,
 } from '../lib/voice';
@@ -319,14 +321,15 @@ export function VoiceSettings({
       )}
       <div className="fieldGroup">
         <label className="fieldLabel" htmlFor="voice-rate">
-          Rate (%)
+          Velocidad (%)
         </label>
         <div className="inputWrap">
           <input
             id="voice-rate"
             type="range"
-            min="-50"
-            max="50"
+            min={-VOICE_RATE_LIMIT}
+            max={VOICE_RATE_LIMIT}
+            step="5"
             value={settings.rate ?? 0}
             onChange={(e) => {
               const val = Number(e.target.value);
@@ -341,14 +344,15 @@ export function VoiceSettings({
       </div>
       <div className="fieldGroup">
         <label className="fieldLabel" htmlFor="voice-pitch">
-          Pitch (semitonos)
+          Tono (semitonos)
         </label>
         <div className="inputWrap">
           <input
             id="voice-pitch"
             type="range"
-            min="-20"
-            max="20"
+            min={-VOICE_PITCH_LIMIT}
+            max={VOICE_PITCH_LIMIT}
+            step="1"
             value={settings.pitch ?? 0}
             onChange={(e) => {
               const val = Number(e.target.value);
@@ -358,7 +362,7 @@ export function VoiceSettings({
           <span className="sliderValue">{settings.pitch ?? 0}</span>
         </div>
         <span className="fieldHint">
-          Ajuste de tono relativo al voz base.
+          Ajuste de tono relativo a la voz base.
         </span>
       </div>
 

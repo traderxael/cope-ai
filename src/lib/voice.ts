@@ -7,8 +7,17 @@ export interface VoiceSettings {
   mode: VoiceMode;
   clonedVoiceId?: string;
   clonedLabel?: string;
-  rate?: number;   // percent, e.g. -50 for -50%
-  pitch?: number;  // semitone offset
+  rate?: number;
+  pitch?: number;
+}
+
+export const VOICE_RATE_LIMIT = 50;
+export const VOICE_PITCH_LIMIT = 6;
+
+function clampSetting(value: unknown, limit: number): number {
+  return typeof value === 'number' && Number.isFinite(value)
+    ? Math.min(limit, Math.max(-limit, value))
+    : 0;
 }
 
 const SETTINGS_KEY = 'cope-voice-v1';
@@ -50,8 +59,8 @@ export function loadVoiceSettings(): VoiceSettings {
         typeof parsed.clonedLabel === 'string' && parsed.clonedLabel.trim()
           ? parsed.clonedLabel.trim()
           : undefined,
-      rate: typeof parsed.rate === 'number' ? parsed.rate : 0,
-      pitch: typeof parsed.pitch === 'number' ? parsed.pitch : 0,
+      rate: clampSetting(parsed.rate, VOICE_RATE_LIMIT),
+      pitch: clampSetting(parsed.pitch, VOICE_PITCH_LIMIT),
     };
   } catch {
     return { ...DEFAULT_VOICE_SETTINGS };
@@ -74,8 +83,8 @@ export function saveVoiceSettings(settings: VoiceSettings): VoiceSettings {
       typeof settings.clonedLabel === 'string' && settings.clonedLabel.trim()
         ? settings.clonedLabel.trim()
         : undefined,
-    rate: settings.rate ?? 0,
-    pitch: settings.pitch ?? 0,
+    rate: clampSetting(settings.rate, VOICE_RATE_LIMIT),
+    pitch: clampSetting(settings.pitch, VOICE_PITCH_LIMIT),
   };
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));

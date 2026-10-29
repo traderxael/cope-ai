@@ -50,6 +50,27 @@ describe('voice preferences', () => {
     expect(loadVoiceSettings()).toMatchObject({ rate: 20, pitch: -2 });
   });
 
+  it('limita velocidad y tono a rangos seguros', () => {
+    saveVoiceSettings({
+      profile: 'neutra',
+      mode: 'browser',
+      rate: 80,
+      pitch: 12,
+    });
+    expect(loadVoiceSettings()).toMatchObject({ rate: 50, pitch: 6 });
+
+    window.localStorage.setItem(
+      'cope-voice-v1',
+      JSON.stringify({
+        profile: 'neutra',
+        mode: 'browser',
+        rate: -90,
+        pitch: -10,
+      }),
+    );
+    expect(loadVoiceSettings()).toMatchObject({ rate: -50, pitch: -6 });
+  });
+
   it('cae al default si la preferencia está corrupta', () => {
     window.localStorage.setItem('cope-voice-v1', '{');
     expect(loadVoiceSettings()).toEqual({

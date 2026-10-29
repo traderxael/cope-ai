@@ -125,9 +125,14 @@ export function speakText(
   const base = PROFILE_SETTINGS[profile];
   const userPitch = voiceSettings.pitch ?? 0;
   const userRatePercent = voiceSettings.rate ?? 0;
-  const finalPitch = base.pitch + userPitch;
-  // rate is a multiplier where 1.0 is default speed
-  const finalRate = base.rate * (1 + userRatePercent / 100);
+  const finalPitch = Math.min(
+    2,
+    Math.max(0.1, base.pitch * 2 ** (userPitch / 12)),
+  );
+  const finalRate = Math.min(
+    2,
+    Math.max(0.5, base.rate * (1 + userRatePercent / 100)),
+  );
 
   const utterance = new SpeechSynthesisUtterance(clean);
   utterance.lang = 'es-ES';
