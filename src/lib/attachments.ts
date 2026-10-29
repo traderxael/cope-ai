@@ -4,6 +4,7 @@ import { prepareImage } from './image';
 import { extractPdf } from './pdf';
 import { extractPptx } from './pptx';
 import { newId, type StoredAttachment } from './storage';
+import { extractSubtitleText } from './subtitles';
 
 export { AttachmentError };
 
@@ -25,25 +26,29 @@ export function attachmentLimitError(
     return `Podés adjuntar como máximo ${LIMITS.maxImages} imágenes.`;
   }
   if (incomingKind !== 'image' && pdfCount(attachments) >= 1) {
-    return 'Podés adjuntar un PDF o TXT por mensaje.';
+    return 'Podés adjuntar un PDF, TXT o subtítulos por mensaje.';
   }
   return null;
 }
 
 export async function prepareAttachment(file: File): Promise<StoredAttachment> {
+  const name = file.name.toLowerCase();
   const isImage = file.type.startsWith('image/');
-  const isPdf =
-    file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-  const isText =
-    file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt');
+  const isPdf = file.type === 'application/pdf' || name.endsWith('.pdf');
+  const isText = file.type === 'text/plain' || name.endsWith('.txt');
+  const isSubtitle =
+    file.type === 'text/vtt' ||
+    file.type === 'application/x-subrip' ||
+    name.endsWith('.srt') ||
+    name.endsWith('.vtt');
   const isPptx =
     file.type ===
       'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
-    file.name.toLowerCase().endsWith('.pptx');
+    name.endsWith('.pptx');
 
-  if (!isImage && !isPdf && !isText && !isPptx) {
+  if (!isImage && !isPdf && !isText && !isSubtitle && !isPptx) {
     throw new AttachmentError(
-      'Solo se pueden adjuntar imágenes PNG, JPG, WebP, un PDF, un TXT o una presentación PPTX.',
+      'Solo se pueden adjuntar imágenes PNG, JPG, WebP, un PDF, un TXT, subtítulos SRT/VTT o una presentación PPTX.',
     );
   }
 
@@ -59,19 +64,30 @@ export async function prepareAttachment(file: File): Promise<StoredAttachment> {
     };
   }
 
-  if (isText) {
+  if (isText || isSubtitle) {
     if (file.size > LIMITS.maxTextBytes) {
-      throw new AttachmentError('El archivo de texto supera los 2 MB.');
+      throw new AttachmentError(
+        isSubtitle
+          ? 'El archivo de subtítulos supera los 2 MB.'
+          : 'El archivo de texto supera los 2 MB.',
+      );
     }
     const content = await file.text();
-    const truncated = content.length > LIMITS.maxSourceTextChars;
+    const text = isSubtitle ? extractSubtitleText(content) : content;
+    if (isSubtitle && !text.trim()) {
+      throw new AttachmentError(
+        'El archivo de subtítulos no tiene texto reconocible.',
+      );
+    }
+    const truncated = text.length > LIMITS.maxSourceTextChars;
     return {
       id: newId(),
       kind: 'text',
-      name: file.name || 'notas.txt',
+      name:
+        file.name || (isSubtitle ? 'subtitulos.srt' : 'notas.txt'),
       mime: 'text/plain',
       size: file.size,
-      text: content.slice(0, LIMITS.maxSourceTextChars),
+      text: text.slice(0, LIMITS.maxSourceTextChars),
       ...(truncated ? { truncated: true } : {}),
     };
   }

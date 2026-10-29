@@ -134,7 +134,7 @@ export function FlashcardsDialog({
         topic: cleanTopic,
         sourceName:
           usePdf && latestPdfText
-            ? 'Último PDF o TXT de la conversación'
+            ? 'Último PDF, TXT o subtítulos de la conversación'
             : undefined,
         cards,
         createdAt: now,
@@ -342,7 +342,7 @@ export function FlashcardsDialog({
                 disabled={busy}
               />
               <span>
-                Usar el último PDF o TXT de la conversación
+                Usar el último PDF, TXT o subtítulos de la conversación
                 <small>
                   Se envían hasta {LIMITS.maxSourceTextChars.toLocaleString('es')}{' '}
                   caracteres del texto extraído.

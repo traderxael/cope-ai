@@ -64,8 +64,10 @@ describe('attachment limits', () => {
     expect(pdfCount([image, pdf])).toBe(1);
     expect(pdfCount([image, text])).toBe(1);
     expect(attachmentLimitError([image, image], 'image')).toMatch(/2 imágenes/);
-    expect(attachmentLimitError([pdf], 'pdf')).toMatch(/un PDF o TXT/);
-    expect(attachmentLimitError([text], 'text')).toMatch(/un PDF o TXT/);
+    expect(attachmentLimitError([pdf], 'pdf')).toMatch(/PDF, TXT o subtítulos/);
+    expect(attachmentLimitError([text], 'text')).toMatch(
+      /PDF, TXT o subtítulos/,
+    );
     expect(attachmentLimitError([image], 'pdf')).toBeNull();
   });
 
@@ -87,6 +89,33 @@ describe('attachment limits', () => {
     );
     expect(long.text).toHaveLength(8_000);
     expect(long.truncated).toBe(true);
+  });
+
+  it('extrae subtítulos SRT y VTT como texto', async () => {
+    const srt = [
+      '1',
+      '00:00:01,000 --> 00:00:03,000',
+      'La fotosíntesis convierte luz en energía.',
+      '',
+      '2',
+      '00:00:03,200 --> 00:00:05,000',
+      'Ocurre en los cloroplastos.',
+    ].join('\n');
+    const prepared = await prepareAttachment(
+      new File([srt], 'clase.srt', { type: 'application/x-subrip' }),
+    );
+    expect(prepared).toMatchObject({
+      kind: 'text',
+      name: 'clase.srt',
+      mime: 'text/plain',
+      text: 'La fotosíntesis convierte luz en energía.\nOcurre en los cloroplastos.',
+    });
+
+    await expect(
+      prepareAttachment(
+        new File(['WEBVTT\n\n'], 'vacio.vtt', { type: 'text/vtt' }),
+      ),
+    ).rejects.toThrow(/no tiene texto reconocible/);
   });
 
   it('formatea tamaños', () => {

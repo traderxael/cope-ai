@@ -173,6 +173,46 @@ test.describe('adjuntos', () => {
     expect(String(content)).toContain('La célula es la unidad de la vida.');
   });
 
+  test('adjunta subtítulos SRT y extrae solo el texto', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+
+    const srt = [
+      '1',
+      '00:00:01,000 --> 00:00:04,000',
+      'La mitosis divide una célula en dos.',
+      '',
+      '2',
+      '00:00:04,200 --> 00:00:07,000',
+      'Cada copia conserva el ADN.',
+    ].join('\n');
+
+    await page
+      .getByLabel('Seleccionar archivo para adjuntar')
+      .setInputFiles({
+        name: 'clase.srt',
+        mimeType: 'application/x-subrip',
+        buffer: Buffer.from(srt),
+      });
+    await expect(page.getByText('clase.srt')).toBeVisible();
+
+    const chatRequest = page.waitForRequest(
+      (request) =>
+        request.url().includes('/api/chat') && request.method() === 'POST',
+    );
+    await page.getByLabel('Mensaje para Cope').fill('Resumí la clase');
+    await page.getByRole('button', { name: 'Enviar mensaje' }).click();
+
+    const body = (await chatRequest).postDataJSON() as {
+      messages: Array<{ content: unknown }>;
+    };
+    const content = String(body.messages[0]?.content);
+    expect(content).toContain('La mitosis divide una célula en dos.');
+    expect(content).toContain('Cada copia conserva el ADN.');
+    expect(content).not.toContain('00:00:01');
+    expect(content).not.toContain('-->');
+  });
+
   test('adjunta un PPTX y extrae el texto', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');

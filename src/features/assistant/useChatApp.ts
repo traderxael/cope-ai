@@ -757,14 +757,16 @@ export function useChatApp(): ChatAppState {
               file.name.toLowerCase().endsWith('.pdf')
             ? 'pdf'
             : file.type === 'text/plain' ||
-                file.name.toLowerCase().endsWith('.txt') ||
-                file.name.toLowerCase().endsWith('.pptx') ||
+                file.type === 'text/vtt' ||
+                file.type === 'application/x-subrip' ||
+                /\.(txt|srt|vtt|pptx)$/i.test(file.name) ||
                 file.type ===
                   'application/vnd.openxmlformats-officedocument.presentationml.presentation'
               ? 'text'
               : null;
         if (!kind) {
-          error = 'Solo se pueden adjuntar PNG, JPG, WebP, PDF, TXT o PPTX.';
+          error =
+            'Solo se pueden adjuntar PNG, JPG, WebP, PDF, TXT, SRT/VTT o PPTX.';
           continue;
         }
         const limit = attachmentLimitError(current, kind);
