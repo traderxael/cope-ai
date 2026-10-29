@@ -55,6 +55,15 @@ describe('chatRequestSchema', () => {
     });
   });
 
+  it('acepta un país de currículo y rechaza uno desconocido', () => {
+    expect(chatRequestSchema.parse(request({ country: 'mx' })).country).toBe(
+      'mx',
+    );
+    expect(
+      chatRequestSchema.safeParse(request({ country: 'xx' })).success,
+    ).toBe(false);
+  });
+
   it('rechaza roles de sistema', () => {
     expect(
       chatRequestSchema.safeParse(

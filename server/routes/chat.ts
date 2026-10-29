@@ -126,8 +126,12 @@ export async function prepareChat(
   const personality = request.personality ?? DEFAULT_PERSONALITY;
   const systemPrompt =
     request.mode === 'tutor'
-      ? buildTutorSystemPrompt(request.tutor ?? DEFAULT_TUTOR, personality)
-      : buildAssistantSystemPrompt(personality);
+      ? buildTutorSystemPrompt(
+          request.tutor ?? DEFAULT_TUTOR,
+          personality,
+          request.country,
+        )
+      : buildAssistantSystemPrompt(personality, request.country);
 
   try {
     const stream = await openChatStream({

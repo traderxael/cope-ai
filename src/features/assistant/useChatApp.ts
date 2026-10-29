@@ -25,6 +25,7 @@ import {
   contextNoticeMessage,
 } from '../../lib/chatPayload';
 import { isAbortError } from '../../lib/errors';
+import { loadCurriculumCountry } from '../../lib/curriculum';
 import { loadPersonality, savePersonality } from '../../lib/personality';
 import {
   clearAllData,
@@ -489,7 +490,9 @@ export function useChatApp(): ChatAppState {
           );
           return false;
         }
-        request = parsed.data;
+        const country = loadCurriculumCountry();
+        request =
+          country === 'general' ? parsed.data : { ...parsed.data, country };
       } catch (error) {
         setComposerError(errorMessage(error));
         return false;
@@ -571,7 +574,9 @@ export function useChatApp(): ChatAppState {
         );
         return;
       }
-      request = parsed.data;
+      const country = loadCurriculumCountry();
+      request =
+        country === 'general' ? parsed.data : { ...parsed.data, country };
     } catch (error) {
       setComposerError(errorMessage(error));
       return;

@@ -6,11 +6,14 @@ import {
   type PersonalityConfig,
   type TutorConfig,
 } from '../../shared/types.js';
+import type { CurriculumCountry } from '../../shared/curriculum.js';
+import { buildCurriculumFragment } from './curriculum.js';
 import { buildPersonalityFragment } from './personality.js';
 
 export function buildTutorSystemPrompt(
   tutor: TutorConfig,
   personality: PersonalityConfig = DEFAULT_PERSONALITY,
+  country?: CurriculumCountry,
 ): string {
   return `Sos ${personality.name}, un tutor académico para estudiantes.
 
@@ -45,5 +48,6 @@ Estilo Solver:
 - Mostrá una resolución completa y ordenada, con los pasos justificados.
 - Incluí el resultado final claramente marcado y una comprobación.
 - Señalá el error más frecuente y un consejo para evitarlo.
-${buildPersonalityFragment(personality)}`;
+${buildPersonalityFragment(personality)}
+${buildCurriculumFragment(country)}`;
 }

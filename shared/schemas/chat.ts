@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { LIMITS } from '../limits.js';
+import { CURRICULUM_COUNTRIES } from '../curriculum.js';
 import {
   levelSchema,
   modeSchema,
@@ -75,6 +76,7 @@ export const chatRequestSchema = z
     messages: z.array(chatMessageSchema).min(1).max(LIMITS.maxMessages),
     tutor: tutorConfigSchema.optional(),
     personality: personalityConfigSchema.optional(),
+    country: z.enum(CURRICULUM_COUNTRIES).optional(),
   })
   .superRefine((request, ctx) => {
     if (request.mode === 'tutor' && !request.tutor) {

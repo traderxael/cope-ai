@@ -20,6 +20,7 @@ test.describe('personalidad', () => {
     await settings
       .getByLabel('Idioma de las respuestas')
       .selectOption('en');
+    await settings.getByLabel('País de referencia').selectOption('mx');
     await settings
       .getByLabel(/Instrucciones/)
       .fill('Sé formal y pedí justificación.');
@@ -42,6 +43,7 @@ test.describe('personalidad', () => {
     await page.getByRole('button', { name: 'Enviar mensaje' }).click();
 
     const body = (await chatRequest).postDataJSON() as {
+      country?: string;
       personality?: {
         preset: string;
         name: string;
@@ -49,6 +51,7 @@ test.describe('personalidad', () => {
         instructions?: string;
       };
     };
+    expect(body.country).toBe('mx');
     expect(body.personality).toEqual({
       preset: 'examinador',
       name: 'Profe Ana',

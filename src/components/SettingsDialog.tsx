@@ -1,11 +1,20 @@
 import { useEffect, useState } from 'react';
 import {
+  CURRICULUM_COUNTRIES,
+  CURRICULUM_COUNTRY_LABELS,
+  type CurriculumCountry,
+} from '../../shared/curriculum';
+import {
   LEVEL_LABELS,
   SUBJECT_LABELS,
   type PersonalityConfig,
 } from '../../shared/types';
 import type { AiProvider, VoiceCapabilities } from '../lib/api';
 import { formatBytes } from '../lib/attachments';
+import {
+  loadCurriculumCountry,
+  saveCurriculumCountry,
+} from '../lib/curriculum';
 import type { UserProfile } from '../lib/profile';
 import { storageEstimate } from '../lib/storage';
 import { type Theme } from '../lib/theme';
@@ -60,6 +69,8 @@ export function SettingsDialog({
   const [storageLoading, setStorageLoading] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [country, setCountry] =
+    useState<CurriculumCountry>(loadCurriculumCountry);
 
   useEffect(() => {
     if (!open) {
@@ -152,6 +163,38 @@ export function SettingsDialog({
             práctica y exámenes antes de estudiarlo.
           </p>
         ) : null}
+      </div>
+
+      <div className="settingsSection">
+        <h3>Currículo</h3>
+        <label className="fieldLabel" htmlFor="settings-country">
+          País de referencia
+        </label>
+        <div className="selectWrap">
+          <select
+            id="settings-country"
+            className="selectInput"
+            value={country}
+            onChange={(event) => {
+              setCountry(
+                saveCurriculumCountry(
+                  event.target.value as CurriculumCountry,
+                ),
+              );
+            }}
+          >
+            {CURRICULUM_COUNTRIES.map((code) => (
+              <option key={code} value={code}>
+                {CURRICULUM_COUNTRY_LABELS[code]}
+              </option>
+            ))}
+          </select>
+          <Icon name="chevronDown" size={16} className="selectChevron" />
+        </div>
+        <p className="settingsHint">
+          Ajusta ejemplos y terminología del chat y el tutor al país. “General”
+          no aplica un currículo específico.
+        </p>
       </div>
 
       <div className="settingsSection">
