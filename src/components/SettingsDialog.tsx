@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   CURRICULUM_COUNTRIES,
   CURRICULUM_COUNTRY_LABELS,
+  CURRICULUM_COUNTRY_PROFILES,
   type CurriculumCountry,
 } from '../../shared/curriculum';
 import {
@@ -206,6 +207,12 @@ export function SettingsDialog({
           las flashcards, el plan y el examen oral. “General” no aplica un
           currículo específico.
         </p>
+        {country !== 'general' ? (
+          <p className="settingsHint">
+            Examen de referencia: {CURRICULUM_COUNTRY_PROFILES[country].exam}.
+            Es una referencia general, no contenido oficial.
+          </p>
+        ) : null}
       </div>
 
       <div className="settingsSection">

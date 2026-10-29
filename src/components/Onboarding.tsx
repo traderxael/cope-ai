@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   CURRICULUM_COUNTRIES,
   CURRICULUM_COUNTRY_LABELS,
+  CURRICULUM_COUNTRY_PROFILES,
   type CurriculumCountry,
 } from '../../shared/curriculum';
 import { SUBJECTS } from '../../shared/schemas/common';
@@ -303,6 +304,13 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               Alinea ejemplos y temas al currículo del país. Elegí “General” si
               no aplica.
             </span>
+            {country !== 'general' ? (
+              <span className="fieldHint">
+                Examen de referencia:{' '}
+                {CURRICULUM_COUNTRY_PROFILES[country].exam}. Es una referencia
+                general, no contenido oficial.
+              </span>
+            ) : null}
 
             <span className="fieldLabel">Materias</span>
             <div className="onboardingSubjects" role="group" aria-label="Materias">
