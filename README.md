@@ -167,6 +167,9 @@ Variables opcionales:
   idioma de respuesta elegido en Personalidad.
 - **Podcast:** guion breve por materia o tema, con reproducción por la voz del
   navegador y texto para seguir la explicación.
+- **Modo enfoque:** temporizador Pomodoro de 25 minutos de estudio y 5 de
+  descanso, con pausa, reinicio, progreso, sesiones completadas y aviso al
+  terminar cada fase; sigue corriendo aunque cierres el panel.
 - **Velocidad y tono:** en Ajustes → Voz podés ajustar la velocidad (±50%) y el
   tono (±6 semitonos) de la voz del navegador.
 - **Voz externa opcional:** ElevenLabs puede leer las preguntas como MP3. La

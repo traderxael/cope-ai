@@ -31,6 +31,7 @@ import { ProgressDialog } from './features/study/ProgressDialog';
 import { FlashcardsDialog } from './features/study/FlashcardsDialog';
 import { StudyPlanDialog } from './features/study/StudyPlanDialog';
 import { PodcastDialog } from './features/podcast/PodcastDialog';
+import { FocusDialog } from './components/FocusDialog';
 import { OralExamDialog } from './features/oral-exam/OralExamDialog';
 import { applyPwaUpdate, setupPwa } from './lib/pwa';
 import {
@@ -67,6 +68,7 @@ export default function App() {
   const [studyPlanOpen, setStudyPlanOpen] = useState(false);
   const [oralExamOpen, setOralExamOpen] = useState(false);
   const [podcastOpen, setPodcastOpen] = useState(false);
+  const [focusOpen, setFocusOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [renameTarget, setRenameTarget] = useState<Conversation | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Conversation | null>(null);
@@ -304,6 +306,11 @@ export default function App() {
     setPodcastOpen(true);
   }, []);
 
+  const openFocus = useCallback(() => {
+    setTutorOpen(false);
+    setFocusOpen(true);
+  }, []);
+
   const openProgress = useCallback(() => {
     setTutorOpen(false);
     setProgressOpen(true);
@@ -321,6 +328,7 @@ export default function App() {
     setStudyPlanOpen(false);
     setOralExamOpen(false);
     setPodcastOpen(false);
+    setFocusOpen(false);
   }, [chat.actions]);
 
   const handleDeleteConfirm = useCallback(async () => {
@@ -391,6 +399,7 @@ export default function App() {
             onDelete={setDeleteTarget}
             onSettings={() => setSettingsOpen(true)}
             onProgress={openProgress}
+            onFocus={openFocus}
             onToggleTheme={toggleTheme}
           />
         </aside>
@@ -640,6 +649,7 @@ export default function App() {
           onDelete={setDeleteTarget}
           onSettings={() => setSettingsOpen(true)}
           onProgress={openProgress}
+          onFocus={openFocus}
           onToggleTheme={toggleTheme}
         />
 
@@ -684,6 +694,12 @@ export default function App() {
           tutor={tutor}
           online={online}
           suggestedExamDate={profile?.examDate}
+        />
+
+        <FocusDialog
+          open={focusOpen}
+          onClose={() => setFocusOpen(false)}
+          onNotify={(message) => notify(message, 'success')}
         />
 
         <PodcastDialog

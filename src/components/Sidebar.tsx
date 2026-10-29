@@ -18,6 +18,7 @@ interface SidebarProps {
   onDelete: (conversation: Conversation) => void;
   onSettings: () => void;
   onProgress: () => void;
+  onFocus: () => void;
   onToggleTheme: () => void;
   onClose?: () => void;
 }
@@ -56,6 +57,7 @@ export function Sidebar({
   onDelete,
   onSettings,
   onProgress,
+  onFocus,
   onToggleTheme,
   onClose,
 }: SidebarProps) {
@@ -192,6 +194,14 @@ export function Sidebar({
           >
             <Icon name="chart" size={17} />
             Progreso
+          </button>
+          <button
+            type="button"
+            className="sidebarAction"
+            onClick={onFocus}
+          >
+            <Icon name="timer" size={17} />
+            Enfoque
           </button>
           <button
             type="button"
