@@ -15,6 +15,7 @@ import {
 import { Dialog } from '../../components/Dialog';
 import { Icon } from '../../components/Icon';
 import { requestStudyPlan } from '../../lib/api';
+import { curriculumCountryForRequest } from '../../lib/curriculum';
 import {
   newId,
   listStudyPlans,
@@ -134,6 +135,7 @@ export function StudyPlanDialog({
         subject: tutor.subject,
         level: tutor.level,
         difficulty: 'medium',
+        country: curriculumCountryForRequest(),
         examDate,
         topics: topicList,
         days: dayCount,

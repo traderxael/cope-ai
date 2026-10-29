@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CURRICULUM_COUNTRIES } from '../curriculum.js';
 import { isValidDateOnly } from '../date.js';
 import { LIMITS } from '../limits.js';
 import {
@@ -25,6 +26,7 @@ export const flashcardRequestSchema = z.object({
   count: z
     .union([z.literal(6), z.literal(8), z.literal(10)])
     .default(LIMITS.defaultFlashcards),
+  country: z.enum(CURRICULUM_COUNTRIES).optional(),
   sourceText: z
     .string()
     .trim()
@@ -111,6 +113,7 @@ export const studyPlanRequestSchema = z.object({
   subject: subjectSchema,
   level: levelSchema,
   difficulty: difficultySchema.default('medium'),
+  country: z.enum(CURRICULUM_COUNTRIES).optional(),
   examDate: z
     .string()
     .trim()

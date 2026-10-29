@@ -33,3 +33,10 @@ export function saveCurriculumCountry(
   }
   return next;
 }
+
+export function curriculumCountryForRequest():
+  | CurriculumCountry
+  | undefined {
+  const country = loadCurriculumCountry();
+  return country === 'general' ? undefined : country;
+}

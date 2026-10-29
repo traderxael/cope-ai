@@ -43,6 +43,37 @@ describe('prompts', () => {
     expect(prompt).toContain('No inventes');
   });
 
+  it('los generadores alinean el currículo al país', () => {
+    expect(
+      buildQuizSystemPrompt({
+        subject: 'math',
+        level: 'secundaria',
+        count: 5,
+        difficulty: 'medium',
+        country: 'mx',
+      }),
+    ).toContain('México');
+    expect(
+      buildFlashcardsSystemPrompt({
+        subject: 'math',
+        level: 'secundaria',
+        count: 6,
+        country: 'cl',
+      }),
+    ).toContain('Chile');
+    expect(
+      buildStudyPlanSystemPrompt({
+        subject: 'math',
+        level: 'secundaria',
+        difficulty: 'medium',
+        examDate: '2026-12-15',
+        topics: [],
+        days: 3,
+        country: 'ar',
+      }),
+    ).toContain('Argentina');
+  });
+
   it('el quiz exige JSON exacto y la cantidad pedida', () => {
     const prompt = buildQuizSystemPrompt({
       subject: 'math',

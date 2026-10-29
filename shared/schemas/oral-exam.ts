@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CURRICULUM_COUNTRIES } from '../curriculum.js';
 import { LIMITS } from '../limits.js';
 import { difficultySchema, levelSchema, subjectSchema } from './common.js';
 import { personalityConfigSchema } from './personality.js';
@@ -11,6 +12,7 @@ export const oralExamConfigSchema = z.object({
   subject: subjectSchema,
   level: levelSchema,
   difficulty: difficultySchema.default('medium'),
+  country: z.enum(CURRICULUM_COUNTRIES).optional(),
   topics: z
     .array(topicSchema)
     .max(LIMITS.maxOralTopics)

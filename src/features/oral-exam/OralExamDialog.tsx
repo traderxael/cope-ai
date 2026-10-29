@@ -24,6 +24,7 @@ import {
 import { Dialog } from '../../components/Dialog';
 import { Icon } from '../../components/Icon';
 import { ApiError, requestOralExam, requestOralGrade } from '../../lib/api';
+import { curriculumCountryForRequest } from '../../lib/curriculum';
 import {
   newId,
   deleteOralExam,
@@ -234,6 +235,7 @@ export function OralExamDialog({
       subject: setupSubject,
       level: setupLevel,
       difficulty: setupDifficulty,
+      country: curriculumCountryForRequest(),
       topics: parseTopics(setupTopics),
       count: setupCount,
     };

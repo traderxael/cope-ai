@@ -3,6 +3,7 @@ import {
   SUBJECT_LABELS,
   type FlashcardRequest,
 } from '../../shared/types.js';
+import { buildCurriculumFragment } from './curriculum.js';
 
 export function buildFlashcardsSystemPrompt(
   request: FlashcardRequest,
@@ -24,7 +25,8 @@ Reglas:
 Formato exacto:
 {"cards":[{"front":"...","back":"...","explanation":"..."}]}
 
-El array debe tener exactamente ${request.count} tarjetas.`;
+El array debe tener exactamente ${request.count} tarjetas.
+${buildCurriculumFragment(request.country)}`;
 }
 
 export function buildFlashcardsUserPrompt(

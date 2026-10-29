@@ -25,7 +25,7 @@ import {
   contextNoticeMessage,
 } from '../../lib/chatPayload';
 import { isAbortError } from '../../lib/errors';
-import { loadCurriculumCountry } from '../../lib/curriculum';
+import { loadCurriculumCountry, curriculumCountryForRequest } from '../../lib/curriculum';
 import { loadPersonality, savePersonality } from '../../lib/personality';
 import {
   clearAllData,
@@ -803,6 +803,7 @@ export function useChatApp(): ChatAppState {
             topic: cleaned.topic,
             count: cleaned.count,
             difficulty: cleaned.difficulty,
+            country: curriculumCountryForRequest(),
           },
           controller.signal,
         );

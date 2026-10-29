@@ -142,8 +142,8 @@ Variables opcionales:
   psicología, además de General.
 - **Personalidad:** nombre, preset (Cope, examinador estricto, tutor cercano,
   reto exigente), idioma de respuesta (13 opciones), país de referencia del
-  currículo e instrucciones libres. Se aplica al chat, al tutor y al examinador;
-  se guarda solo en este dispositivo.
+  currículo e instrucciones libres. El idioma aplica al chat, tutor y examen
+  oral; el país, a toda la suite de estudio. Se guarda solo en este dispositivo.
 - **Tutor:** materia, nivel y dos estilos. **Socrático** da pistas y preguntas
   para que resuelvas vos; **Solver** muestra el procedimiento completo y la
   comprobación.

@@ -4,6 +4,7 @@ import {
   SUBJECT_LABELS,
   type StudyPlanRequest,
 } from '../../shared/types.js';
+import { buildCurriculumFragment } from './curriculum.js';
 
 export function buildStudyPlanSystemPrompt(
   request: StudyPlanRequest,
@@ -32,7 +33,8 @@ Reglas:
 Formato exacto:
 {"title":"...","days":[{"day":1,"focus":"...","tasks":[{"title":"...","description":"...","minutes":30,"type":"study"}]}]}
 
-type debe ser study, practice, review o rest. El array debe tener exactamente ${request.days} días.`;
+type debe ser study, practice, review o rest. El array debe tener exactamente ${request.days} días.
+${buildCurriculumFragment(request.country)}`;
 }
 
 export function buildStudyPlanUserPrompt(

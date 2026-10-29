@@ -192,8 +192,9 @@ export function SettingsDialog({
           <Icon name="chevronDown" size={16} className="selectChevron" />
         </div>
         <p className="settingsHint">
-          Ajusta ejemplos y terminología del chat y el tutor al país. “General”
-          no aplica un currículo específico.
+          Ajusta ejemplos y terminología de la IA al país, incluida la práctica,
+          las flashcards, el plan y el examen oral. “General” no aplica un
+          currículo específico.
         </p>
       </div>
 

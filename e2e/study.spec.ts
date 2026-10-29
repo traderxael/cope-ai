@@ -86,6 +86,9 @@ test.describe('suite de estudio', () => {
   });
 
   test('inicia un simulacro de 10 preguntas con tiempo', async ({ page }) => {
+    await page.addInitScript(() =>
+      localStorage.setItem('cope-curriculum-v1', 'cl'),
+    );
     await openTutor(page);
 
     const quizRequest = page.waitForRequest(
@@ -95,6 +98,7 @@ test.describe('suite de estudio', () => {
     await page.getByRole('button', { name: /Simulacro/ }).click();
     expect((await quizRequest).postDataJSON()).toMatchObject({
       count: 10,
+      country: 'cl',
     });
 
     await expect(page.locator('.quizCard')).toBeVisible({ timeout: 20_000 });

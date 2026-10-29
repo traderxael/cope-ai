@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CURRICULUM_COUNTRIES } from '../curriculum.js';
 import { LIMITS } from '../limits.js';
 import { difficultySchema, levelSchema, subjectSchema } from './common.js';
 
@@ -48,6 +49,7 @@ export const quizRequestSchema = z.object({
     .union([z.literal(5), z.literal(10)])
     .default(LIMITS.defaultQuizQuestions),
   difficulty: difficultySchema.default('medium'),
+  country: z.enum(CURRICULUM_COUNTRIES).optional(),
 });
 
 export const quizContentSchema = z.object({

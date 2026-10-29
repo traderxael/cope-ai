@@ -4,6 +4,7 @@ import {
   SUBJECT_LABELS,
   type QuizRequest,
 } from '../../shared/types.js';
+import { buildCurriculumFragment } from './curriculum.js';
 
 export function buildQuizSystemPrompt(request: QuizRequest): string {
   const count = request.count;
@@ -27,7 +28,8 @@ Reglas:
 Formato exacto:
 {"questions":[{"id":"q1","prompt":"...","options":["...","...","...","..."],"correctIndex":0,"explanation":"..."}]}
 
-correctIndex es un número entre 0 y 3. El array debe tener exactamente ${count} preguntas.`;
+correctIndex es un número entre 0 y 3. El array debe tener exactamente ${count} preguntas.
+${buildCurriculumFragment(request.country)}`;
 }
 
 export function buildQuizUserPrompt(request: QuizRequest): string {

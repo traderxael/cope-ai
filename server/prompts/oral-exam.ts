@@ -7,6 +7,7 @@ import {
   type OralQuestion,
   type PersonalityConfig,
 } from '../../shared/types.js';
+import { buildCurriculumFragment } from './curriculum.js';
 import { buildPersonalityFragment } from './personality.js';
 
 export function buildOralExamSystemPrompt(
@@ -39,6 +40,7 @@ Formato exacto:
 {"title":"...","questions":[{"prompt":"...","expectedPoints":["...","..."],"rubric":"..."}]}
 
 El array debe tener exactamente ${config.count} preguntas.
+${buildCurriculumFragment(config.country)}
 ${buildPersonalityFragment(personality)}`;
 }
 
@@ -76,6 +78,7 @@ Formato exacto:
 {"results":[{"questionId":"q1","score":3,"strengths":["..."],"improvements":["..."],"modelAnswer":"..."}],"summary":"...","nextSteps":["..."]}
 
 No incluyas un puntaje global ni una zona; el servidor los calcula.
+${buildCurriculumFragment(config.country)}
 ${buildPersonalityFragment(personality)}`;
 }
 
