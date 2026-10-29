@@ -37,6 +37,7 @@ import {
   clearProfile,
   loadProfile,
   saveProfile,
+  type LearningGoal,
   type UserProfile,
 } from './lib/profile';
 import type { Conversation, PracticeResult } from './lib/storage';
@@ -181,6 +182,12 @@ export default function App() {
     setProfile(null);
     setSettingsOpen(false);
   }, [chat.actions]);
+
+  const updateGoal = useCallback((goal: LearningGoal) => {
+    setProfile((current) =>
+      current ? saveProfile({ ...current, goal }) : current,
+    );
+  }, []);
 
   const handleNewChat = useCallback(() => {
     chat.actions.newChat();
@@ -708,6 +715,7 @@ export default function App() {
           demo={chat.demo}
           profile={profile}
           onRestartOnboarding={restartOnboarding}
+          onGoalChange={updateGoal}
           onClearAll={clearEverything}
         />
 

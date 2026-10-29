@@ -5,6 +5,12 @@ export type LearningGoal = 'exam' | 'grades' | 'practice';
 
 const LEARNING_GOALS: LearningGoal[] = ['exam', 'grades', 'practice'];
 
+export const LEARNING_GOAL_LABELS: Record<LearningGoal, string> = {
+  exam: 'Preparar un examen',
+  grades: 'Mejorar mis notas',
+  practice: 'Practicar bajo presión',
+};
+
 export interface UserProfile {
   name: string;
   level: Level;

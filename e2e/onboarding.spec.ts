@@ -62,7 +62,12 @@ test.describe('onboarding', () => {
       .getByRole('button', { name: 'Ajustes' })
       .click();
     await expect(page.getByLabel('País de referencia')).toHaveValue('mx');
+    await expect(page.getByLabel('Objetivo')).toHaveValue('grades');
+    await page.getByLabel('Objetivo').selectOption('practice');
     await page.getByRole('button', { name: 'Cerrar', exact: true }).click();
+    await expect(
+      page.locator('.goalBanner').getByText('Practicar bajo presión'),
+    ).toBeVisible();
     expect(
       await page.evaluate(() => {
         try {

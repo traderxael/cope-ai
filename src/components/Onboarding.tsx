@@ -14,7 +14,11 @@ import {
 } from '../../shared/types';
 import { Logo } from './Logo';
 import { Icon } from './Icon';
-import type { LearningGoal, UserProfile } from '../lib/profile';
+import {
+  LEARNING_GOAL_LABELS,
+  type LearningGoal,
+  type UserProfile,
+} from '../lib/profile';
 import {
   loadCurriculumCountry,
   saveCurriculumCountry,
@@ -50,11 +54,7 @@ const GOALS: Array<{
   },
 ];
 
-const GOAL_LABELS: Record<LearningGoal, string> = {
-  exam: 'Preparar un examen',
-  grades: 'Mejorar mis notas',
-  practice: 'Practicar bajo presión',
-};
+const GOAL_LABELS = LEARNING_GOAL_LABELS;
 
 type Stage = 'welcome' | 'profile' | 'setup' | 'goal' | 'voice' | 'ready';
 

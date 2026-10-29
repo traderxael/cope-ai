@@ -15,7 +15,11 @@ import {
   loadCurriculumCountry,
   saveCurriculumCountry,
 } from '../lib/curriculum';
-import type { UserProfile } from '../lib/profile';
+import {
+  LEARNING_GOAL_LABELS,
+  type LearningGoal,
+  type UserProfile,
+} from '../lib/profile';
 import { storageEstimate } from '../lib/storage';
 import { type Theme } from '../lib/theme';
 import { Dialog } from './Dialog';
@@ -35,6 +39,7 @@ interface SettingsDialogProps {
   demo: boolean | null;
   profile?: UserProfile | null;
   onRestartOnboarding?: () => void;
+  onGoalChange?: (goal: LearningGoal) => void;
   onClearAll: () => Promise<void>;
 }
 
@@ -60,6 +65,7 @@ export function SettingsDialog({
   demo,
   profile,
   onRestartOnboarding,
+  onGoalChange,
   onClearAll,
 }: SettingsDialogProps) {
   const [storage, setStorage] = useState<{
@@ -236,6 +242,28 @@ export function SettingsDialog({
                 .map((subject) => SUBJECT_LABELS[subject])
                 .join(', ')}
             </p>
+            <label className="fieldLabel" htmlFor="settings-goal">
+              Objetivo
+            </label>
+            <div className="selectWrap">
+              <select
+                id="settings-goal"
+                className="selectInput"
+                value={profile.goal ?? 'exam'}
+                onChange={(event) =>
+                  onGoalChange?.(event.target.value as LearningGoal)
+                }
+              >
+                {(['exam', 'grades', 'practice'] as LearningGoal[]).map(
+                  (goal) => (
+                    <option key={goal} value={goal}>
+                      {LEARNING_GOAL_LABELS[goal]}
+                    </option>
+                  ),
+                )}
+              </select>
+              <Icon name="chevronDown" size={16} className="selectChevron" />
+            </div>
             <p className="settingsHint">
               Rehacer el onboarding no borra tu historial ni tus prácticas.
             </p>
