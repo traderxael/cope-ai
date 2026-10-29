@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   addDaysDateOnly,
   formatDateOnlyEs,
+  pickUpcomingDate,
   todayDateOnlyLocal,
 } from '../../../shared/date';
 import { LIMITS } from '../../../shared/limits';
@@ -27,6 +28,7 @@ interface StudyPlanDialogProps {
   onClose: () => void;
   tutor: TutorConfig;
   online: boolean;
+  suggestedExamDate?: string;
 }
 
 function parseTopics(value: string): string[] {
@@ -45,6 +47,7 @@ export function StudyPlanDialog({
   onClose,
   tutor,
   online,
+  suggestedExamDate,
 }: StudyPlanDialogProps) {
   const [plans, setPlans] = useState<StudyPlan[]>([]);
   const [selected, setSelected] = useState<StudyPlan | null>(null);
@@ -62,7 +65,7 @@ export function StudyPlanDialog({
     setLoading(true);
     setError(null);
     setView('list');
-    setExamDate(addDaysDateOnly(todayDateOnlyLocal(), 7));
+    setExamDate(pickUpcomingDate(suggestedExamDate, todayDateOnlyLocal(), 7));
     setTopics('');
     setDays('7');
     void listStudyPlans()
@@ -80,7 +83,7 @@ export function StudyPlanDialog({
     return () => {
       cancelled = true;
     };
-  }, [open]);
+  }, [open, suggestedExamDate]);
 
   const totalTasks = selected
     ? selected.days.reduce((total, day) => total + day.tasks.length, 0)

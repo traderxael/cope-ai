@@ -5,6 +5,7 @@ import {
   dateOnlyFromParts,
   formatDateOnlyEs,
   isValidDateOnly,
+  pickUpcomingDate,
   todayDateOnlyLocal,
 } from './date';
 
@@ -21,6 +22,19 @@ describe('isValidDateOnly', () => {
     expect(isValidDateOnly('2026-1-5')).toBe(false);
     expect(isValidDateOnly('27/10/2026')).toBe(false);
     expect(isValidDateOnly('')).toBe(false);
+  });
+});
+
+describe('pickUpcomingDate', () => {
+  it('usa la fecha sugerida si es válida y no pasó', () => {
+    expect(pickUpcomingDate('2026-12-15', '2026-10-28', 7)).toBe('2026-12-15');
+    expect(pickUpcomingDate('2026-10-28', '2026-10-28', 7)).toBe('2026-10-28');
+  });
+
+  it('cae al valor por defecto si falta, es inválida o ya pasó', () => {
+    expect(pickUpcomingDate(undefined, '2026-10-28', 7)).toBe('2026-11-04');
+    expect(pickUpcomingDate('2026-02-30', '2026-10-28', 7)).toBe('2026-11-04');
+    expect(pickUpcomingDate('2026-01-01', '2026-10-28', 7)).toBe('2026-11-04');
   });
 });
 

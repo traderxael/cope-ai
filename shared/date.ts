@@ -35,6 +35,16 @@ export function dateOnlyFromEpochLocal(epoch: number): string {
   return todayDateOnlyLocal(epoch);
 }
 
+export function pickUpcomingDate(
+  suggested: string | undefined,
+  today: string,
+  fallbackDays: number,
+): string {
+  return suggested && isValidDateOnly(suggested) && suggested >= today
+    ? suggested
+    : addDaysDateOnly(today, fallbackDays);
+}
+
 export function addDaysDateOnly(value: string, days: number): string {
   const match = DATE_ONLY.exec(value);
   if (!match) return value;

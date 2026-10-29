@@ -29,6 +29,10 @@ test.describe('onboarding', () => {
     await page.getByRole('button', { name: 'Continuar' }).click();
     await page.getByLabel('Nivel').selectOption('universidad');
     await page.getByRole('button', { name: 'Biología' }).click();
+    const examDate = new Date(Date.now() + 30 * 86_400_000)
+      .toISOString()
+      .slice(0, 10);
+    await page.getByLabel('Fecha de examen').fill(examDate);
     await page.getByRole('button', { name: 'Entrar a Cope' }).click();
 
     await expect(
@@ -42,5 +46,9 @@ test.describe('onboarding', () => {
     await expect(
       page.getByRole('heading', { name: 'Aprender paso a paso, sin atajos.' }),
     ).toBeVisible();
+
+    await page.getByRole('button', { name: /Exam Prep/ }).click();
+    await page.getByRole('button', { name: 'Nuevo plan' }).click();
+    await expect(page.getByLabel('Fecha del examen')).toHaveValue(examDate);
   });
 });

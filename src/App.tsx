@@ -646,6 +646,7 @@ export default function App() {
           onClose={() => setStudyPlanOpen(false)}
           tutor={tutor}
           online={online}
+          suggestedExamDate={profile?.examDate}
         />
 
         <OralExamDialog

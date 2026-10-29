@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { SUBJECTS } from '../../shared/schemas/common';
+import { todayDateOnlyLocal } from '../../shared/date';
 import {
   LEVEL_LABELS,
   SUBJECT_LABELS,
@@ -36,6 +37,10 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   const finish = () => {
     if (subjects.length === 0) {
       setError('Elegí al menos una materia.');
+      return;
+    }
+    if (examDate && examDate < todayDateOnlyLocal()) {
+      setError('La fecha de examen debe ser de hoy en adelante.');
       return;
     }
     onComplete({
@@ -155,6 +160,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               type="date"
               className="textInput"
               value={examDate}
+              min={todayDateOnlyLocal()}
               onChange={(event) => setExamDate(event.target.value)}
             />
 
