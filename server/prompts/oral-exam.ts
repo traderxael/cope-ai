@@ -17,7 +17,8 @@ export function buildOralExamSystemPrompt(
     config.topics.length > 0
       ? config.topics.join(', ')
       : 'repaso general de la materia';
-  return `Sos ${personality.name}, examinador de un examen oral simulado en español.
+  return `Sos ${personality.name}, examinador de un examen oral simulado.
+Respondé en el idioma elegido en la personalidad; si no hay uno distinto, en español.
 
 Materia: ${SUBJECT_LABELS[config.subject]}
 Nivel: ${LEVEL_LABELS[config.level]}
@@ -53,7 +54,8 @@ export function buildOralGradeSystemPrompt(
   config: OralExamConfig,
   personality: PersonalityConfig = DEFAULT_PERSONALITY,
 ): string {
-  return `Sos ${personality.name}, evaluador de un examen oral simulado en español.
+  return `Sos ${personality.name}, evaluador de un examen oral simulado.
+Respondé en el idioma elegido en la personalidad; si no hay uno distinto, en español.
 
 Materia: ${SUBJECT_LABELS[config.subject]}
 Nivel: ${LEVEL_LABELS[config.level]}
