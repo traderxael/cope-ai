@@ -18,6 +18,7 @@ interface SidebarProps {
   onDelete: (conversation: Conversation) => void;
   onSettings: () => void;
   onProgress: () => void;
+  onBadges: () => void;
   onFocus: () => void;
   onToggleTheme: () => void;
   onClose?: () => void;
@@ -57,6 +58,7 @@ export function Sidebar({
   onDelete,
   onSettings,
   onProgress,
+  onBadges,
   onFocus,
   onToggleTheme,
   onClose,
@@ -165,21 +167,42 @@ export function Sidebar({
       </nav>
 
       <div className="sidebarFooter">
-        {demo === true ? (
-          <div className="connectionBadge isDemo" role="status">
-            <span className="statusDot" aria-hidden="true" />
-            Entorno de prueba
-          </div>
-        ) : demo === false ? (
-          <div className="connectionBadge isLive" role="status">
-            <span className="statusDot" aria-hidden="true" />
-            {provider === 'ollama'
-              ? 'IA local'
-              : provider === 'pollinations'
-                ? 'IA gratis'
-                : 'IA configurada'}
-          </div>
-        ) : null}
+        <div className="sidebarStatusRow">
+          {demo === true ? (
+            <div className="connectionBadge isDemo" role="status">
+              <span className="statusDot" aria-hidden="true" />
+              Entorno de prueba
+            </div>
+          ) : demo === false ? (
+            <div className="connectionBadge isLive" role="status">
+              <span className="statusDot" aria-hidden="true" />
+              {provider === 'ollama'
+                ? 'IA local'
+                : provider === 'pollinations'
+                  ? 'IA gratis'
+                  : 'IA configurada'}
+            </div>
+          ) : (
+            <span />
+          )}
+          <button
+            type="button"
+            className="iconButton"
+            aria-label={
+              resolvedTheme === 'dark'
+                ? 'Cambiar a tema claro'
+                : 'Cambiar a tema oscuro'
+            }
+            title={
+              resolvedTheme === 'dark'
+                ? 'Cambiar a tema claro'
+                : 'Cambiar a tema oscuro'
+            }
+            onClick={onToggleTheme}
+          >
+            <Icon name={resolvedTheme === 'dark' ? 'sun' : 'moon'} size={18} />
+          </button>
+        </div>
 
         <p className="sidebarPrivacy">
           <Icon name="shield" size={14} />
@@ -198,6 +221,14 @@ export function Sidebar({
           <button
             type="button"
             className="sidebarAction"
+            onClick={onBadges}
+          >
+            <Icon name="sparkles" size={17} />
+            Insignias
+          </button>
+          <button
+            type="button"
+            className="sidebarAction"
             onClick={onFocus}
           >
             <Icon name="timer" size={17} />
@@ -210,23 +241,6 @@ export function Sidebar({
           >
             <Icon name="settings" size={17} />
             Ajustes
-          </button>
-          <button
-            type="button"
-            className="iconButton"
-            aria-label={
-              resolvedTheme === 'dark'
-                ? 'Cambiar a tema claro'
-                : 'Cambiar a tema oscuro'
-            }
-            title={
-              resolvedTheme === 'dark'
-                ? 'Cambiar a tema claro'
-                : 'Cambiar a tema oscuro'
-            }
-            onClick={onToggleTheme}
-          >
-            <Icon name={resolvedTheme === 'dark' ? 'sun' : 'moon'} size={18} />
           </button>
         </div>
       </div>

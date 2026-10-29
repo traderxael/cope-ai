@@ -13,14 +13,22 @@ interface FocusDialogProps {
   open: boolean;
   onClose: () => void;
   onNotify: (message: string) => void;
+  onSessionComplete?: (minutes: number) => void;
 }
 
-export function FocusDialog({ open, onClose, onNotify }: FocusDialogProps) {
+export function FocusDialog({
+  open,
+  onClose,
+  onNotify,
+  onSessionComplete,
+}: FocusDialogProps) {
   const [phase, setPhase] = useState<FocusPhase>('focus');
   const [remaining, setRemaining] = useState(phaseDuration('focus'));
   const [running, setRunning] = useState(false);
   const [sessions, setSessions] = useState(0);
   const endAtRef = useRef<number | null>(null);
+  const startedAtRef = useRef<number | null>(null);
+  const elapsedRef = useRef(0);
 
   useEffect(() => {
     if (!running) return;
@@ -36,6 +44,12 @@ export function FocusDialog({ open, onClose, onNotify }: FocusDialogProps) {
       const finished = phase;
       if (finished === 'focus') {
         setSessions((previous) => previous + 1);
+        const elapsed =
+          elapsedRef.current +
+          (startedAtRef.current !== null ? Date.now() - startedAtRef.current : 0);
+        elapsedRef.current = 0;
+        startedAtRef.current = null;
+        onSessionComplete?.(Math.max(1, Math.round(elapsed / 60_000)));
         onNotify('Enfoque completado. Tomate un descanso.');
       } else {
         onNotify('Descanso terminado. Volvamos al enfoque.');
@@ -48,9 +62,10 @@ export function FocusDialog({ open, onClose, onNotify }: FocusDialogProps) {
     tick();
     const interval = window.setInterval(tick, 500);
     return () => window.clearInterval(interval);
-  }, [onNotify, phase, running]);
+  }, [onNotify, onSessionComplete, phase, running]);
 
   const start = () => {
+    startedAtRef.current = Date.now();
     endAtRef.current = Date.now() + remaining * 1000;
     setRunning(true);
   };
@@ -60,12 +75,18 @@ export function FocusDialog({ open, onClose, onNotify }: FocusDialogProps) {
     if (endAt !== null) {
       setRemaining(Math.max(0, Math.ceil((endAt - Date.now()) / 1000)));
     }
+    if (startedAtRef.current !== null) {
+      elapsedRef.current += Date.now() - startedAtRef.current;
+      startedAtRef.current = null;
+    }
     endAtRef.current = null;
     setRunning(false);
   };
 
   const reset = () => {
     endAtRef.current = null;
+    startedAtRef.current = null;
+    elapsedRef.current = 0;
     setRunning(false);
     setRemaining(phaseDuration(phase));
   };
