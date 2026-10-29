@@ -114,6 +114,7 @@ export function readServerConfig(
       ? 'max_completion_tokens'
       : 'max_tokens';
   const slowLocalModel = provider === 'ollama';
+  const slowFreeCloud = provider === 'pollinations';
 
   return {
     provider,
@@ -189,7 +190,13 @@ export function readServerConfig(
     chatTimeoutMs: slowLocalModel ? 180_000 : LIMITS.chatTimeoutMs,
     jsonAttemptTimeoutMs: slowLocalModel
       ? 180_000
-      : LIMITS.jsonAttemptTimeoutMs,
-    jsonRouteBudgetMs: slowLocalModel ? 240_000 : LIMITS.jsonRouteBudgetMs,
+      : slowFreeCloud
+        ? LIMITS.freeCloudJsonAttemptTimeoutMs
+        : LIMITS.jsonAttemptTimeoutMs,
+    jsonRouteBudgetMs: slowLocalModel
+      ? 240_000
+      : slowFreeCloud
+        ? LIMITS.freeCloudJsonRouteBudgetMs
+        : LIMITS.jsonRouteBudgetMs,
   };
 }

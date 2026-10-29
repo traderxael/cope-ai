@@ -11,6 +11,10 @@ describe('readServerConfig', () => {
     expect(config.model).toBe('openai');
     expect(config.baseUrl).toContain('text.pollinations.ai');
     expect(config.chatTimeoutMs).toBe(LIMITS.chatTimeoutMs);
+    expect(config.jsonAttemptTimeoutMs).toBe(
+      LIMITS.freeCloudJsonAttemptTimeoutMs,
+    );
+    expect(config.jsonRouteBudgetMs).toBe(LIMITS.freeCloudJsonRouteBudgetMs);
   });
 
   it('mantiene fixtures solo para pruebas explícitas', () => {

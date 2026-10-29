@@ -11,6 +11,8 @@ export const LIMITS = {
   chatTimeoutMs: 100_000,
   jsonAttemptTimeoutMs: 45_000,
   jsonRouteBudgetMs: 100_000,
+  freeCloudJsonAttemptTimeoutMs: 70_000,
+  freeCloudJsonRouteBudgetMs: 110_000,
   jsonRepairMinRemainingMs: 20_000,
   minQuizQuestions: 5,
   maxQuizQuestions: 10,
