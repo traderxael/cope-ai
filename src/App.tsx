@@ -33,6 +33,7 @@ import { StudyPlanDialog } from './features/study/StudyPlanDialog';
 import { OralExamDialog } from './features/oral-exam/OralExamDialog';
 import { applyPwaUpdate, setupPwa } from './lib/pwa';
 import {
+  clearProfile,
   loadProfile,
   saveProfile,
   type UserProfile,
@@ -171,6 +172,12 @@ export default function App() {
     },
     [],
   );
+
+  const restartOnboarding = useCallback(() => {
+    clearProfile();
+    setProfile(null);
+    setSettingsOpen(false);
+  }, []);
 
   const handleNewChat = useCallback(() => {
     chat.actions.newChat();
@@ -670,6 +677,8 @@ export default function App() {
           voice={chat.voice}
           provider={chat.provider}
           demo={chat.demo}
+          profile={profile}
+          onRestartOnboarding={restartOnboarding}
           onClearAll={clearEverything}
         />
 

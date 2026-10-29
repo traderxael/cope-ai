@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
-import type { PersonalityConfig } from '../../shared/types';
+import {
+  LEVEL_LABELS,
+  SUBJECT_LABELS,
+  type PersonalityConfig,
+} from '../../shared/types';
 import type { AiProvider, VoiceCapabilities } from '../lib/api';
 import { formatBytes } from '../lib/attachments';
+import type { UserProfile } from '../lib/profile';
 import { storageEstimate } from '../lib/storage';
 import { type Theme } from '../lib/theme';
 import { Dialog } from './Dialog';
@@ -19,6 +24,8 @@ interface SettingsDialogProps {
   voice: VoiceCapabilities;
   provider?: AiProvider | null;
   demo: boolean | null;
+  profile?: UserProfile | null;
+  onRestartOnboarding?: () => void;
   onClearAll: () => Promise<void>;
 }
 
@@ -42,6 +49,8 @@ export function SettingsDialog({
   voice,
   provider,
   demo,
+  profile,
+  onRestartOnboarding,
   onClearAll,
 }: SettingsDialogProps) {
   const [storage, setStorage] = useState<{
@@ -162,6 +171,37 @@ export function SettingsDialog({
           El examen oral puede leer las preguntas y escuchar tus respuestas.
         </p>
         <VoiceSettings capabilities={voice} active={open} />
+      </div>
+
+      <div className="settingsSection">
+        <h3>Perfil local</h3>
+        {profile ? (
+          <>
+            <div className="settingsRow">
+              <span>{profile.name}</span>
+              <span className="settingsValue">
+                {LEVEL_LABELS[profile.level]}
+              </span>
+            </div>
+            <p className="settingsHint">
+              {profile.subjects
+                .map((subject) => SUBJECT_LABELS[subject])
+                .join(', ')}
+            </p>
+            <p className="settingsHint">
+              Rehacer el onboarding no borra tu historial ni tus prácticas.
+            </p>
+            <button
+              type="button"
+              className="button ghost small"
+              onClick={onRestartOnboarding}
+            >
+              Rehacer el onboarding
+            </button>
+          </>
+        ) : (
+          <p className="settingsHint">Todavía no hay un perfil guardado.</p>
+        )}
       </div>
 
       <div className="settingsSection">

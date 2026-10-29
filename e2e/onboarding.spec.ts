@@ -58,4 +58,49 @@ test.describe('onboarding', () => {
     await page.getByRole('button', { name: 'Nuevo plan' }).click();
     await expect(page.getByLabel('Fecha del examen')).toHaveValue(examDate);
   });
+
+  test('permite rehacer el onboarding', async ({ page }) => {
+    await page.route('**/api/health', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: true,
+          demo: false,
+          configured: true,
+          provider: 'pollinations',
+          model: 'openai',
+          vision: false,
+          voice: { tts: false, clone: false },
+        }),
+      }),
+    );
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        'cope-profile-v1',
+        JSON.stringify({
+          name: 'Ana',
+          level: 'universidad',
+          subjects: ['biology'],
+          createdAt: Date.now(),
+        }),
+      );
+    });
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await expect(
+      page.getByRole('heading', { name: 'Aprender paso a paso, sin atajos.' }),
+    ).toBeVisible();
+
+    await page
+      .locator('.desktopSidebar')
+      .getByRole('button', { name: 'Ajustes' })
+      .click();
+    await page.getByRole('button', { name: 'Rehacer el onboarding' }).click();
+
+    await expect(
+      page.getByRole('heading', { name: 'Aprender puede ser más simple.' }),
+    ).toBeVisible();
+  });
 });
