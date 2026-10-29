@@ -35,6 +35,8 @@ test.describe('onboarding', () => {
       .slice(0, 10);
     await page.getByLabel('Fecha de examen').fill(examDate);
     await page.getByRole('button', { name: 'Continuar' }).click();
+    await page.getByRole('button', { name: 'Grave' }).click();
+    await page.getByRole('button', { name: 'Continuar' }).click();
 
     await expect(
       page.getByRole('heading', { name: 'Todo listo, Ana.' }),
@@ -45,6 +47,16 @@ test.describe('onboarding', () => {
       page.getByRole('heading', { name: 'Aprender paso a paso, sin atajos.' }),
     ).toBeVisible();
     await expect(page.getByText('Hola, Ana. Resolvamos juntos')).toBeVisible();
+    expect(
+      await page.evaluate(() => {
+        try {
+          return JSON.parse(localStorage.getItem('cope-voice-v1') ?? '{}')
+            .profile;
+        } catch {
+          return null;
+        }
+      }),
+    ).toBe('grave');
     await expect(
       page.locator('.tutorAside').getByLabel('Nivel'),
     ).toHaveValue('universidad');

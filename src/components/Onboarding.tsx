@@ -10,15 +10,23 @@ import {
 import { Logo } from './Logo';
 import { Icon } from './Icon';
 import type { UserProfile } from '../lib/profile';
+import { loadVoiceSettings, saveVoiceSettings } from '../lib/voice';
+import {
+  speakText,
+  VOICE_PROFILE_LABELS,
+  type VoiceProfile,
+} from '../lib/speech/tts';
 
 const LEVELS: Level[] = ['primaria', 'secundaria', 'bachillerato', 'universidad'];
+const VOICE_PROFILES: VoiceProfile[] = ['grave', 'cercana', 'neutra'];
 
-type Stage = 'welcome' | 'profile' | 'setup' | 'ready';
+type Stage = 'welcome' | 'profile' | 'setup' | 'voice' | 'ready';
 
 const PROGRESS: Record<Stage, number> = {
   welcome: 10,
-  profile: 40,
-  setup: 70,
+  profile: 30,
+  setup: 50,
+  voice: 70,
   ready: 100,
 };
 
@@ -32,6 +40,9 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   const [level, setLevel] = useState<Level>('secundaria');
   const [subjects, setSubjects] = useState<Subject[]>(['math']);
   const [examDate, setExamDate] = useState('');
+  const [voiceProfile, setVoiceProfile] = useState<VoiceProfile>(
+    () => loadVoiceSettings().profile,
+  );
   const [error, setError] = useState<string | null>(null);
 
   const goTo = (next: Stage) => {
@@ -47,7 +58,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     goTo('setup');
   };
 
-  const toReady = () => {
+  const toVoice = () => {
     if (subjects.length === 0) {
       setError('Elegí al menos una materia.');
       return;
@@ -56,10 +67,14 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       setError('La fecha de examen debe ser de hoy en adelante.');
       return;
     }
-    goTo('ready');
+    goTo('voice');
   };
 
   const finish = () => {
+    saveVoiceSettings({
+      ...loadVoiceSettings(),
+      profile: voiceProfile,
+    });
     onComplete({
       name: name.trim(),
       level,
@@ -79,12 +94,14 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
   const stepLabel =
     stage === 'profile'
-      ? 'Paso 1 de 3'
+      ? 'Paso 1 de 4'
       : stage === 'setup'
-        ? 'Paso 2 de 3'
-        : stage === 'ready'
-          ? 'Paso 3 de 3'
-          : 'Tu espacio de estudio';
+        ? 'Paso 2 de 4'
+        : stage === 'voice'
+          ? 'Paso 3 de 4'
+          : stage === 'ready'
+            ? 'Paso 4 de 4'
+            : 'Tu espacio de estudio';
 
   const errorBlock = error ? (
     <p className="inlineError" role="alert">
@@ -256,7 +273,70 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               >
                 Atrás
               </button>
-              <button type="button" className="button primary" onClick={toReady}>
+              <button type="button" className="button primary" onClick={toVoice}>
+                Continuar
+              </button>
+            </div>
+          </>
+        ) : null}
+
+        {stage === 'voice' ? (
+          <>
+            <p className="eyebrow">{stepLabel}</p>
+            <h1 id="onboarding-title">¿Cómo querés que suene?</h1>
+            <p className="onboardingLead">
+              Elegí la voz del examen oral. Podés probarla y cambiarla después
+              en Ajustes.
+            </p>
+            <div className="onboardingSubjects" role="group" aria-label="Voz">
+              {VOICE_PROFILES.map((profile) => (
+                <button
+                  key={profile}
+                  type="button"
+                  className={
+                    voiceProfile === profile
+                      ? 'subjectChip isActive'
+                      : 'subjectChip'
+                  }
+                  aria-pressed={voiceProfile === profile}
+                  onClick={() => {
+                    setVoiceProfile(profile);
+                    setError(null);
+                  }}
+                >
+                  {VOICE_PROFILE_LABELS[profile]}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="button ghost small"
+              onClick={() => {
+                void speakText(
+                  'Hola, soy Cope. Así suena mi voz.',
+                  voiceProfile,
+                ).catch(() =>
+                  setError('No se pudo reproducir la voz del navegador.'),
+                );
+              }}
+            >
+              <Icon name="volume" size={16} />
+              Probar voz
+            </button>
+            {errorBlock}
+            <div className="onboardingActions">
+              <button
+                type="button"
+                className="button ghost"
+                onClick={() => goTo('setup')}
+              >
+                Atrás
+              </button>
+              <button
+                type="button"
+                className="button primary"
+                onClick={() => goTo('ready')}
+              >
                 Continuar
               </button>
             </div>
@@ -286,12 +366,16 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                 <dt>Examen</dt>
                 <dd>{examDate ? formatDateOnlyEs(examDate) : 'Sin fecha'}</dd>
               </div>
+              <div>
+                <dt>Voz</dt>
+                <dd>{VOICE_PROFILE_LABELS[voiceProfile]}</dd>
+              </div>
             </dl>
             <div className="onboardingActions">
               <button
                 type="button"
                 className="button ghost"
-                onClick={() => goTo('setup')}
+                onClick={() => goTo('voice')}
               >
                 Atrás
               </button>
