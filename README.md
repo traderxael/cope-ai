@@ -148,8 +148,9 @@ Variables opcionales:
   comprobación.
 - **Práctica:** 5 o 10 preguntas, dificultad, tema opcional y modo con tiempo.
   Corrige al instante, explica cada respuesta y guarda el resultado.
-- **Progreso:** precisión global y por materia, racha de días y últimas
-  prácticas, calculado sobre el historial local.
+- **Progreso:** precisión global y por materia, racha de días, puntos a
+  reforzar (materias practicadas bajo 70%) y últimas prácticas, calculado sobre
+  el historial local.
 - **Flashcards:** generación por materia o tema (también desde el último PDF),
   repaso con repetición espaciada y decks persistentes. “Todo al día” no
   reprograma tarjetas sin vencer.
@@ -158,6 +159,8 @@ Variables opcionales:
 - **Examen oral:** preguntas abiertas con rúbrica, respuesta por texto o
   micrófono, corrección con puntajes y zonas de desempeño, respuesta modelo e
   historial local. La voz del navegador está siempre disponible.
+- **Velocidad y tono:** en Ajustes → Voz podés ajustar la velocidad (±50%) y el
+  tono (±6 semitonos) de la voz del navegador.
 - **Voz externa opcional:** ElevenLabs puede leer las preguntas como MP3. La
   clonación de una muestra MP3 es opcional, requiere consentimiento y código de
   propietario, y no guarda el audio en el servidor.
