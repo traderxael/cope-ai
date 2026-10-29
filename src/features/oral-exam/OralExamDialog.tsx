@@ -376,7 +376,11 @@ export function OralExamDialog({
       }
     }
     try {
-      await speakText(current.prompt, settings.profile);
+      await speakText(
+        current.prompt,
+        settings.profile,
+        personality.language ?? 'es',
+      );
     } catch (caught) {
       setVoiceError(
         caught instanceof Error ? caught.message : 'No se pudo reproducir la voz.',

@@ -163,7 +163,8 @@ Variables opcionales:
   repaso y descanso con avance marcable.
 - **Examen oral:** preguntas abiertas con rúbrica, respuesta por texto o
   micrófono, corrección con puntajes y zonas de desempeño, respuesta modelo e
-  historial local. La voz del navegador está siempre disponible.
+  historial local. La voz del navegador está siempre disponible y sigue el
+  idioma de respuesta elegido en Personalidad.
 - **Podcast:** guion breve por materia o tema, con reproducción por la voz del
   navegador y texto para seguir la explicación.
 - **Velocidad y tono:** en Ajustes → Voz podés ajustar la velocidad (±50%) y el

@@ -1,6 +1,23 @@
 import { loadVoiceSettings } from '../voice';
+import type { ResponseLanguage } from '../../../shared/schemas/personality';
 
 export type VoiceProfile = 'grave' | 'cercana' | 'neutra';
+
+export const VOICE_LANGUAGE_LOCALES: Record<ResponseLanguage, string> = {
+  es: 'es-ES',
+  en: 'en-US',
+  pt: 'pt-BR',
+  fr: 'fr-FR',
+  de: 'de-DE',
+  it: 'it-IT',
+  ja: 'ja-JP',
+  ko: 'ko-KR',
+  zh: 'zh-CN',
+  ar: 'ar-SA',
+  hi: 'hi-IN',
+  ru: 'ru-RU',
+  uk: 'uk-UA',
+};
 
 export const VOICE_PROFILE_LABELS: Record<VoiceProfile, string> = {
   grave: 'Grave',
@@ -97,22 +114,36 @@ export async function speakExternal(
   });
 }
 
-function pickVoice(profile: VoiceProfile): SpeechSynthesisVoice | null {
+function pickVoice(
+  profile: VoiceProfile,
+  language: ResponseLanguage,
+): SpeechSynthesisVoice | null {
   const voices = window.speechSynthesis.getVoices();
-  const spanish = voices.filter((voice) => voice.lang.toLowerCase().startsWith('es'));
-  if (!spanish.length) return null;
-  for (const lang of PROFILE_SETTINGS[profile].preferred) {
-    const match = spanish.find(
-      (voice) => voice.lang.toLowerCase() === lang.toLowerCase(),
-    );
-    if (match) return match;
+  const locale = VOICE_LANGUAGE_LOCALES[language] ?? 'es-ES';
+  const primary = locale.split('-')[0]?.toLowerCase() ?? 'es';
+  const matching = voices.filter((voice) =>
+    voice.lang.toLowerCase().startsWith(primary),
+  );
+  if (!matching.length) return null;
+  const exact = matching.find(
+    (voice) => voice.lang.toLowerCase() === locale.toLowerCase(),
+  );
+  if (exact) return exact;
+  if (language === 'es') {
+    for (const lang of PROFILE_SETTINGS[profile].preferred) {
+      const match = matching.find(
+        (voice) => voice.lang.toLowerCase() === lang.toLowerCase(),
+      );
+      if (match) return match;
+    }
   }
-  return spanish[0] ?? null;
+  return matching[0] ?? null;
 }
 
 export function speakText(
   text: string,
   profile: VoiceProfile = 'neutra',
+  language: ResponseLanguage = 'es',
 ): Promise<void> {
   if (!speechSynthesisSupported()) {
     return Promise.reject(new Error('La voz del navegador no está disponible.'));
@@ -135,10 +166,10 @@ export function speakText(
   );
 
   const utterance = new SpeechSynthesisUtterance(clean);
-  utterance.lang = 'es-ES';
+  utterance.lang = VOICE_LANGUAGE_LOCALES[language] ?? 'es-ES';
   utterance.pitch = finalPitch;
   utterance.rate = finalRate;
-  const voice = pickVoice(profile);
+  const voice = pickVoice(profile, language);
   if (voice) utterance.voice = voice;
 
   return new Promise<void>((resolve, reject) => {

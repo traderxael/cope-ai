@@ -7,6 +7,7 @@ import {
   saveOwnerCode,
   saveVoiceSettings,
 } from './voice';
+import { VOICE_LANGUAGE_LOCALES } from './speech/tts';
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -14,6 +15,13 @@ beforeEach(() => {
 });
 
 describe('voice preferences', () => {
+  it('mapea los idiomas de respuesta a locales de voz', () => {
+    expect(VOICE_LANGUAGE_LOCALES.es).toBe('es-ES');
+    expect(VOICE_LANGUAGE_LOCALES.en).toBe('en-US');
+    expect(VOICE_LANGUAGE_LOCALES.pt).toBe('pt-BR');
+    expect(VOICE_LANGUAGE_LOCALES.ja).toBe('ja-JP');
+  });
+
   it('usa navegador y voz cercana por defecto', () => {
     expect(loadVoiceSettings()).toEqual({
       profile: 'cercana',
