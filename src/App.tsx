@@ -532,6 +532,7 @@ export default function App() {
                         count: 10,
                         difficulty: 'medium',
                         timed: true,
+                        examFormat: 'general',
                       })
                     }
                     practiceLoading={chat.practiceLoading}

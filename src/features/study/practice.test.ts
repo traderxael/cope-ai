@@ -10,6 +10,7 @@ describe('practice settings', () => {
       count: 5,
       difficulty: 'medium',
       timed: false,
+      examFormat: 'general',
     });
   });
 

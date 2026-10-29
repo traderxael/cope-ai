@@ -51,6 +51,7 @@ describe('prompts', () => {
         count: 5,
         difficulty: 'medium',
         country: 'mx',
+        examFormat: 'general',
       }),
     ).toContain('México');
     expect(
@@ -74,12 +75,25 @@ describe('prompts', () => {
     ).toContain('Argentina');
   });
 
+  it('el formato de examen se marca como orientativo', () => {
+    const prompt = buildQuizSystemPrompt({
+      subject: 'math',
+      level: 'secundaria',
+      count: 10,
+      difficulty: 'hard',
+      examFormat: 'paes',
+    });
+    expect(prompt).toContain('PAES');
+    expect(prompt).toContain('no preguntas oficiales');
+  });
+
   it('el quiz exige JSON exacto y la cantidad pedida', () => {
     const prompt = buildQuizSystemPrompt({
       subject: 'math',
       level: 'secundaria',
       count: 10,
       difficulty: 'hard',
+      examFormat: 'general',
     });
     expect(prompt).toContain('Matemáticas');
     expect(prompt).toContain('Secundaria');
@@ -96,6 +110,7 @@ describe('prompts', () => {
         level: 'secundaria',
         count: 5,
         difficulty: 'medium',
+        examFormat: 'general',
         topic: 'factorización',
       }),
     ).toContain('factorización');
@@ -105,6 +120,7 @@ describe('prompts', () => {
         level: 'secundaria',
         count: 5,
         difficulty: 'medium',
+        examFormat: 'general',
       }),
     ).toContain('repaso general');
   });

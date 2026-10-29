@@ -72,6 +72,7 @@ describe('TutorPanel', () => {
       count: 10,
       difficulty: 'hard',
       timed: true,
+      examFormat: 'general',
       topic: 'derivadas',
     });
   });

@@ -17,6 +17,7 @@ test.describe('suite de estudio', () => {
 
     await panel.getByRole('button', { name: '10' }).click();
     await panel.getByLabel('Dificultad').selectOption('hard');
+    await panel.getByLabel('Formato de examen').selectOption('paes');
     await panel.locator('.switchRow').click();
     await expect(
       panel.getByRole('checkbox', { name: /Con tiempo/ }),
@@ -32,6 +33,7 @@ test.describe('suite de estudio', () => {
       level: 'secundaria',
       count: 10,
       difficulty: 'hard',
+      examFormat: 'paes',
     });
 
     await expect(page.locator('.quizCard')).toBeVisible({ timeout: 20_000 });

@@ -14,6 +14,12 @@ import {
 } from '../../../shared/types';
 import { Icon, type IconName } from '../../components/Icon';
 import type { PracticeSettings } from '../study/practice';
+import {
+  EXAM_FORMATS,
+  EXAM_FORMAT_LABELS,
+  EXAM_FORMAT_NOTES,
+  type ExamFormat,
+} from '../../../shared/exams';
 
 const SUBJECT_ICONS: Record<Subject, IconName> = {
   math: 'calculator',
@@ -69,6 +75,8 @@ export function TutorPanel({
   const [count, setCount] = useState<5 | 10>(5);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [timed, setTimed] = useState(false);
+  const [examFormat, setExamFormat] = useState<ExamFormat>('general');
+  const examFormatId = useId();
 
   const practiceDisabled = disabled || practiceLoading || !online;
 
@@ -211,6 +219,33 @@ export function TutorPanel({
         </div>
       </div>
 
+      <div className="fieldGroup">
+        <label className="fieldLabel" htmlFor={examFormatId}>
+          Formato de examen
+        </label>
+        <div className="selectWrap">
+          <select
+            id={examFormatId}
+            className="selectInput"
+            value={examFormat}
+            onChange={(event) =>
+              setExamFormat(event.target.value as ExamFormat)
+            }
+            disabled={disabled}
+          >
+            {EXAM_FORMATS.map((value) => (
+              <option key={value} value={value}>
+                {EXAM_FORMAT_LABELS[value]}
+              </option>
+            ))}
+          </select>
+          <Icon name="chevronDown" size={16} className="selectChevron" />
+        </div>
+        {examFormat !== 'general' ? (
+          <span className="fieldHint">{EXAM_FORMAT_NOTES[examFormat]}</span>
+        ) : null}
+      </div>
+
       <label className="switchRow">
         <span>
           <span className="fieldLabel">Con tiempo</span>
@@ -251,6 +286,7 @@ export function TutorPanel({
             count,
             difficulty,
             timed,
+            examFormat,
             topic: topic.trim() || undefined,
           })
         }

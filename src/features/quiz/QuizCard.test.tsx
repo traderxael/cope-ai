@@ -30,7 +30,12 @@ function makeSession(overrides: Partial<PracticeSession> = {}): PracticeSession 
   return {
     id: 'session-1',
     quiz: makeQuiz(),
-    settings: { count: 5, difficulty: 'medium', timed: false },
+    settings: {
+      count: 5,
+      difficulty: 'medium',
+      timed: false,
+      examFormat: 'general',
+    },
     subject: 'math',
     level: 'secundaria',
     startedAt: Date.now(),
@@ -150,12 +155,18 @@ describe('QuizCard', () => {
       count: 5,
       difficulty: 'medium',
       timed: false,
+      examFormat: 'general',
     });
   });
 
   it('finaliza al agotarse el tiempo y registra el resultado', async () => {
     const session = makeSession({
-      settings: { count: 5, difficulty: 'medium', timed: true },
+      settings: {
+        count: 5,
+        difficulty: 'medium',
+        timed: true,
+        examFormat: 'general',
+      },
       startedAt: Date.now() - 301_000,
     });
     const { onComplete } = renderQuiz(session);

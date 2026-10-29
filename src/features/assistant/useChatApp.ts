@@ -804,6 +804,7 @@ export function useChatApp(): ChatAppState {
             count: cleaned.count,
             difficulty: cleaned.difficulty,
             country: curriculumCountryForRequest(),
+            examFormat: cleaned.examFormat,
           },
           controller.signal,
         );

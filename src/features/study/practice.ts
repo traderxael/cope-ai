@@ -4,12 +4,14 @@ import type {
   QuizResponse,
   Subject,
 } from '../../../shared/types';
+import type { ExamFormat } from '../../../shared/exams';
 
 export interface PracticeSettings {
   count: 5 | 10;
   difficulty: Difficulty;
   topic?: string;
   timed: boolean;
+  examFormat: ExamFormat;
 }
 
 export interface PracticeSession {
@@ -25,6 +27,7 @@ export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
   count: 5,
   difficulty: 'medium',
   timed: false,
+  examFormat: 'general',
 };
 
 export function practiceTimeLimitSeconds(settings: PracticeSettings): number {

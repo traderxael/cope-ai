@@ -4,11 +4,17 @@ import {
   SUBJECT_LABELS,
   type QuizRequest,
 } from '../../shared/types.js';
+import { EXAM_FORMAT_LABELS } from '../../shared/exams.js';
 import { buildCurriculumFragment } from './curriculum.js';
 
 export function buildQuizSystemPrompt(request: QuizRequest): string {
   const count = request.count;
   const difficulty = DIFFICULTY_LABELS[request.difficulty];
+  const examFormat = request.examFormat ?? 'general';
+  const examFormatBlock =
+    examFormat === 'general'
+      ? ''
+      : `Formato de examen: estilo ${EXAM_FORMAT_LABELS[examFormat]}, con enunciados y opciones propias de ese formato. Son preguntas generadas de práctica, no preguntas oficiales ni copiadas.`;
   return `Sos Cope, un generador de práctica académica en español.
 
 Materia: ${SUBJECT_LABELS[request.subject]}
@@ -29,6 +35,7 @@ Formato exacto:
 {"questions":[{"id":"q1","prompt":"...","options":["...","...","...","..."],"correctIndex":0,"explanation":"..."}]}
 
 correctIndex es un número entre 0 y 3. El array debe tener exactamente ${count} preguntas.
+${examFormatBlock}
 ${buildCurriculumFragment(request.country)}`;
 }
 
