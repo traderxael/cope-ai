@@ -44,6 +44,7 @@ test.describe('onboarding', () => {
     await expect(
       page.getByRole('heading', { name: 'Aprender paso a paso, sin atajos.' }),
     ).toBeVisible();
+    await expect(page.getByText('Hola, Ana. Resolvamos juntos')).toBeVisible();
     await expect(
       page.locator('.tutorAside').getByLabel('Nivel'),
     ).toHaveValue('universidad');

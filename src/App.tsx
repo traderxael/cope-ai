@@ -509,6 +509,7 @@ export default function App() {
                     onOpenOralExam={openOralExam}
                     practiceLoading={chat.practiceLoading}
                     vision={chat.vision}
+                    userName={profile?.name}
                     disabled={
                       !online ||
                       chat.streaming ||
