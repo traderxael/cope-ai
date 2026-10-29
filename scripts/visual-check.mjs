@@ -57,8 +57,11 @@ if (await badgesButton.count()) {
 const input = page.locator('textarea').first();
 await input.fill('Explicame la ley de los senos con un ejemplo');
 await input.press('Enter');
-await page.waitForTimeout(900);
-await page.screenshot({ path: `${OUT}/03-progress.png` });
+await page.waitForTimeout(Number(process.env.WAIT_MS || 900));
+const clip = process.env.CLIP
+  ? JSON.parse(process.env.CLIP)
+  : undefined;
+await page.screenshot({ path: `${OUT}/03-progress.png`, clip });
 
 await page.waitForTimeout(28000);
 await page.screenshot({ path: `${OUT}/04-answer.png` });

@@ -17,6 +17,14 @@ tiempo estimado y una grilla de insignias por rachas.
 
 ## Capturas
 
+| Tema oscuro (predeterminado) | Insignias por órbita |
+| --- | --- |
+| <img src="docs/astra-dark.png" alt="Cope AI en tema oscuro" width="640" /> | <img src="docs/astra-badges.png" alt="Panel de insignias por órbita" width="420" /> |
+
+| Barra de progreso con tiempo estimado |
+| --- |
+| <img src="docs/astra-progress.png" alt="Barra de progreso con tiempo estimado" width="640" /> |
+
 | Bienvenida | Escritorio |
 | --- | --- |
 | <img src="docs/onboarding.png" alt="Bienvenida de Cope AI con perfil local" width="640" /> | <img src="docs/desktop-light.png" alt="Cope AI en escritorio" width="420" /> |
