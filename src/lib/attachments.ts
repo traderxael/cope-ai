@@ -11,18 +11,20 @@ export function imageCount(attachments: StoredAttachment[]): number {
 }
 
 export function pdfCount(attachments: StoredAttachment[]): number {
-  return attachments.filter((attachment) => attachment.kind === 'pdf').length;
+  return attachments.filter(
+    (attachment) => attachment.kind === 'pdf' || attachment.kind === 'text',
+  ).length;
 }
 
 export function attachmentLimitError(
   attachments: StoredAttachment[],
-  incomingKind: 'image' | 'pdf',
+  incomingKind: 'image' | 'pdf' | 'text',
 ): string | null {
   if (incomingKind === 'image' && imageCount(attachments) >= LIMITS.maxImages) {
     return `Podés adjuntar como máximo ${LIMITS.maxImages} imágenes.`;
   }
-  if (incomingKind === 'pdf' && pdfCount(attachments) >= 1) {
-    return 'Podés adjuntar un PDF por mensaje.';
+  if (incomingKind !== 'image' && pdfCount(attachments) >= 1) {
+    return 'Podés adjuntar un PDF o TXT por mensaje.';
   }
   return null;
 }
@@ -31,10 +33,12 @@ export async function prepareAttachment(file: File): Promise<StoredAttachment> {
   const isImage = file.type.startsWith('image/');
   const isPdf =
     file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+  const isText =
+    file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt');
 
-  if (!isImage && !isPdf) {
+  if (!isImage && !isPdf && !isText) {
     throw new AttachmentError(
-      'Solo se pueden adjuntar imágenes PNG, JPG, WebP o un PDF.',
+      'Solo se pueden adjuntar imágenes PNG, JPG, WebP, un PDF o un TXT.',
     );
   }
 
@@ -47,6 +51,23 @@ export async function prepareAttachment(file: File): Promise<StoredAttachment> {
       mime: 'image/jpeg',
       size: file.size,
       dataUrl: image.dataUrl,
+    };
+  }
+
+  if (isText) {
+    if (file.size > LIMITS.maxTextBytes) {
+      throw new AttachmentError('El archivo de texto supera los 2 MB.');
+    }
+    const content = await file.text();
+    const truncated = content.length > LIMITS.maxSourceTextChars;
+    return {
+      id: newId(),
+      kind: 'text',
+      name: file.name || 'notas.txt',
+      mime: 'text/plain',
+      size: file.size,
+      text: content.slice(0, LIMITS.maxSourceTextChars),
+      ...(truncated ? { truncated: true } : {}),
     };
   }
 

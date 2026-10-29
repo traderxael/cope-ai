@@ -19,6 +19,7 @@ export const LIMITS = {
   maxFlashcards: 10,
   defaultFlashcards: 8,
   maxSourceTextChars: 8_000,
+  maxTextBytes: 2_000_000,
   minPlanDays: 3,
   maxPlanDays: 14,
   defaultPlanDays: 7,

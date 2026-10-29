@@ -17,7 +17,7 @@ import type { SrsFields } from './srs';
 
 export interface StoredAttachment {
   id: string;
-  kind: 'image' | 'pdf';
+  kind: 'image' | 'pdf' | 'text';
   name: string;
   mime: string;
   size: number;

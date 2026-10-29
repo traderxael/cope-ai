@@ -21,7 +21,7 @@ interface ComposerProps {
 }
 
 const ACCEPTED_FILES =
-  'image/png,image/jpeg,image/webp,application/pdf,.pdf';
+  'image/png,image/jpeg,image/webp,application/pdf,text/plain,.pdf,.txt';
 
 export function Composer({
   value,
@@ -191,8 +191,8 @@ export function Composer({
           <button
             type="button"
             className="composerTool"
-            aria-label="Adjuntar imagen o PDF"
-            title="Adjuntar imagen o PDF"
+            aria-label="Adjuntar imagen, PDF o TXT"
+            title="Adjuntar imagen, PDF o TXT"
             onClick={() => fileInputRef.current?.click()}
             disabled={processing || streaming}
           >

@@ -102,6 +102,35 @@ test.describe('adjuntos', () => {
     );
   });
 
+  test('adjunta un TXT y lo envía como contexto', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+
+    await page
+      .getByLabel('Seleccionar archivo para adjuntar')
+      .setInputFiles({
+        name: 'resumen.txt',
+        mimeType: 'text/plain',
+        buffer: Buffer.from('La célula es la unidad de la vida.'),
+      });
+    await expect(page.getByText('resumen.txt')).toBeVisible();
+
+    const chatRequest = page.waitForRequest(
+      (request) =>
+        request.url().includes('/api/chat') && request.method() === 'POST',
+    );
+    await page.getByLabel('Mensaje para Cope').fill('Resumí el archivo');
+    await page.getByRole('button', { name: 'Enviar mensaje' }).click();
+
+    const body = (await chatRequest).postDataJSON() as {
+      messages: Array<{ content: unknown }>;
+    };
+    const content = body.messages[0]?.content;
+    expect(typeof content).toBe('string');
+    expect(String(content)).toContain('<documento>');
+    expect(String(content)).toContain('La célula es la unidad de la vida.');
+  });
+
   test('escanea una tarea con la cámara trasera', async ({ page }) => {
     const JPEG = await sharp({
       create: {
@@ -154,8 +183,8 @@ test.describe('adjuntos', () => {
     await page
       .getByLabel('Seleccionar archivo para adjuntar')
       .setInputFiles({
-        name: 'notas.txt',
-        mimeType: 'text/plain',
+        name: 'notas.docx',
+        mimeType: 'application/msword',
         buffer: Buffer.from('hola'),
       });
     await expect(page.getByRole('alert')).toContainText(

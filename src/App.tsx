@@ -352,7 +352,10 @@ export default function App() {
         attachmentIndex -= 1
       ) {
         const attachment = attachments[attachmentIndex];
-        if (attachment?.kind === 'pdf' && attachment.text) {
+        if (
+          (attachment?.kind === 'pdf' || attachment?.kind === 'text') &&
+          attachment.text
+        ) {
           return attachment.text;
         }
       }

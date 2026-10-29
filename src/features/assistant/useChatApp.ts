@@ -726,9 +726,12 @@ export function useChatApp(): ChatAppState {
           : file.type === 'application/pdf' ||
               file.name.toLowerCase().endsWith('.pdf')
             ? 'pdf'
-            : null;
+            : file.type === 'text/plain' ||
+                file.name.toLowerCase().endsWith('.txt')
+              ? 'text'
+              : null;
         if (!kind) {
-          error = 'Solo se pueden adjuntar PNG, JPG, WebP o un PDF.';
+          error = 'Solo se pueden adjuntar PNG, JPG, WebP, PDF o TXT.';
           continue;
         }
         const limit = attachmentLimitError(current, kind);

@@ -65,6 +65,23 @@ describe('buildChatRequest', () => {
     expect(chatRequestSchema.safeParse(request).success).toBe(true);
   });
 
+  it('incluye el texto de un TXT delimitado', () => {
+    const request = buildChatRequest('assistant', undefined, [
+      message('user', 'Resumí esto', [
+        {
+          ...pdf('d2', 'Contenido del TXT de prueba', 'notas.txt'),
+          kind: 'text',
+          mime: 'text/plain',
+        },
+      ]),
+    ]);
+    const content = request.messages[0]?.content;
+    expect(typeof content).toBe('string');
+    expect(content).toContain('<documento>');
+    expect(content).toContain('Contenido del TXT de prueba');
+    expect(chatRequestSchema.safeParse(request).success).toBe(true);
+  });
+
   it('convierte imágenes en partes y usa fallback de texto', () => {
     const request = buildChatRequest('assistant', undefined, [
       message('user', '', [image('i1')]),

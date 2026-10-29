@@ -35,7 +35,8 @@ function AttachmentGallery({
     (attachment) => attachment.kind === 'image' && attachment.dataUrl,
   );
   const documents = attachments.filter(
-    (attachment) => attachment.kind === 'pdf',
+    (attachment) =>
+      attachment.kind === 'pdf' || attachment.kind === 'text',
   );
 
   return (
@@ -67,7 +68,7 @@ function AttachmentGallery({
           className="pdfAttachment"
           title={
             document.truncated
-              ? 'El texto del PDF se truncó al límite permitido.'
+              ? 'El texto del archivo se truncó al límite permitido.'
               : undefined
           }
         >

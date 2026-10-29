@@ -88,7 +88,12 @@ function buildUserText(
   }
 
   for (const document of attachments) {
-    if (document.kind !== 'pdf' || !document.text) continue;
+    if (
+      (document.kind !== 'pdf' && document.kind !== 'text') ||
+      !document.text
+    ) {
+      continue;
+    }
     if (document.truncated) notices.truncatedDocuments += 1;
     text += `\n\n[Documento adjunto: ${safeDocumentName(document.name)}]\n<documento>\n${document.text}\n</documento>`;
   }

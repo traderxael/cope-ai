@@ -4,6 +4,7 @@ import {
   formatBytes,
   imageCount,
   pdfCount,
+  prepareAttachment,
 } from './attachments';
 import { AttachmentError } from './errors';
 import { fitDimensions } from './image';
@@ -23,6 +24,15 @@ const pdf: StoredAttachment = {
   kind: 'pdf',
   name: 'notas.pdf',
   mime: 'application/pdf',
+  size: 100,
+  text: 'texto',
+};
+
+const text: StoredAttachment = {
+  id: 't',
+  kind: 'text',
+  name: 'notas.txt',
+  mime: 'text/plain',
   size: 100,
   text: 'texto',
 };
@@ -50,11 +60,33 @@ describe('fitDimensions', () => {
 
 describe('attachment limits', () => {
   it('cuenta tipos y bloquea excesos', () => {
-    expect(imageCount([image, pdf])).toBe(1);
+    expect(imageCount([image, pdf, text])).toBe(1);
     expect(pdfCount([image, pdf])).toBe(1);
+    expect(pdfCount([image, text])).toBe(1);
     expect(attachmentLimitError([image, image], 'image')).toMatch(/2 imágenes/);
-    expect(attachmentLimitError([pdf], 'pdf')).toMatch(/un PDF/);
+    expect(attachmentLimitError([pdf], 'pdf')).toMatch(/un PDF o TXT/);
+    expect(attachmentLimitError([text], 'text')).toMatch(/un PDF o TXT/);
     expect(attachmentLimitError([image], 'pdf')).toBeNull();
+  });
+
+  it('prepara un TXT y trunca textos largos', async () => {
+    const prepared = await prepareAttachment(
+      new File(['La célula es la unidad de la vida.'], 'notas.txt', {
+        type: 'text/plain',
+      }),
+    );
+    expect(prepared).toMatchObject({
+      kind: 'text',
+      name: 'notas.txt',
+      mime: 'text/plain',
+      text: 'La célula es la unidad de la vida.',
+    });
+
+    const long = await prepareAttachment(
+      new File(['x'.repeat(9_000)], 'largo.txt', { type: 'text/plain' }),
+    );
+    expect(long.text).toHaveLength(8_000);
+    expect(long.truncated).toBe(true);
   });
 
   it('formatea tamaños', () => {
