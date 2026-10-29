@@ -3648,6 +3648,43 @@ img {
   transition: width var(--transition);
 }
 
+.progressWeak {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.progressWeak li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-soft);
+}
+
+.progressWeak li strong {
+  font-size: 0.8rem;
+}
+
+.progressWeak li span {
+  color: var(--muted);
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.progressWeakEmpty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
 .progressRecent {
   display: flex;
   flex-direction: column;

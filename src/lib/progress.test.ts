@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { addDaysDateOnly, todayDateOnlyLocal } from '../../shared/date';
-import { summarizePractice } from './progress';
+import { summarizePractice, findWeakAreas } from './progress';
 import type { PracticeResult } from './storage';
 
 let counter = 0;
@@ -68,6 +68,33 @@ describe('summarizePractice', () => {
     });
     expect(summary.bySubject.physics.accuracy).toBeCloseTo(0.4);
     expect(summary.bySubject.chemistry.attempts).toBe(0);
+  });
+
+  it('detecta materias flojas y las ordena por precisión', () => {
+    const summary = summarizePractice([
+      result({ subject: 'math', questionCount: 10, score: 9 }),
+      result({ subject: 'physics', questionCount: 10, score: 4 }),
+      result({ subject: 'chemistry', questionCount: 10, score: 6 }),
+      result({ subject: 'biology', questionCount: 10, score: 5 }),
+    ]);
+    const weak = findWeakAreas(summary);
+    expect(weak.map((item) => item.subject)).toEqual([
+      'physics',
+      'biology',
+      'chemistry',
+    ]);
+    expect(weak[0]?.accuracy).toBeCloseTo(0.4);
+    expect(weak[0]?.questions).toBe(10);
+    expect(findWeakAreas(summary, 0.5).map((item) => item.subject)).toEqual([
+      'physics',
+    ]);
+    expect(findWeakAreas(summary, 0.7, 2)).toHaveLength(2);
+  });
+
+  it('no marca materias sin prácticas', () => {
+    const summary = summarizePractice([result({ subject: 'math', score: 5 })]);
+    expect(findWeakAreas(summary)).toEqual([]);
+    expect(findWeakAreas(summary, 0.9)).toEqual([]);
   });
 
   it('ordena y limita las prácticas recientes', () => {

@@ -7,7 +7,7 @@ import {
 import { Dialog } from '../../components/Dialog';
 import { Icon } from '../../components/Icon';
 import { listPracticeResults, type PracticeResult } from '../../lib/storage';
-import { summarizePractice } from '../../lib/progress';
+import { findWeakAreas, summarizePractice } from '../../lib/progress';
 
 interface ProgressDialogProps {
   open: boolean;
@@ -40,6 +40,7 @@ export function ProgressDialog({ open, onClose }: ProgressDialogProps) {
   }, [open]);
 
   const summary = summarizePractice(results);
+  const weakAreas = findWeakAreas(summary);
 
   return (
     <Dialog
@@ -93,6 +94,30 @@ export function ProgressDialog({ open, onClose }: ProgressDialogProps) {
               </strong>
             </div>
           </div>
+
+          <section
+            className="progressSection"
+            aria-labelledby="progress-weak"
+          >
+            <h3 id="progress-weak">Puntos a reforzar</h3>
+            {weakAreas.length ? (
+              <ul className="progressWeak">
+                {weakAreas.map((item) => (
+                  <li key={item.subject}>
+                    <strong>{SUBJECT_LABELS[item.subject]}</strong>
+                    <span>
+                      {Math.round(item.accuracy * 100)}% en {item.questions}{' '}
+                      preguntas
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="progressWeakEmpty">
+                Buen trabajo: no hay materias practicadas por debajo del 70%.
+              </p>
+            )}
+          </section>
 
           <section className="progressSection" aria-labelledby="progress-subjects">
             <h3 id="progress-subjects">Por materia</h3>

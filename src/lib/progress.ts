@@ -65,6 +65,28 @@ function calculateStreak(results: PracticeResult[], now: number): number {
   return streak;
 }
 
+export interface WeakArea {
+  subject: Subject;
+  accuracy: number;
+  questions: number;
+}
+
+export function findWeakAreas(
+  summary: ProgressSummary,
+  threshold = 0.7,
+  limit = 4,
+): WeakArea[] {
+  return SUBJECTS.map((subject) => ({ subject, ...summary.bySubject[subject] }))
+    .filter((item) => item.attempts > 0 && item.accuracy < threshold)
+    .sort((a, b) => a.accuracy - b.accuracy)
+    .slice(0, limit)
+    .map(({ subject, accuracy, questions }) => ({
+      subject,
+      accuracy,
+      questions,
+    }));
+}
+
 export function summarizePractice(
   results: PracticeResult[],
   now = Date.now(),
