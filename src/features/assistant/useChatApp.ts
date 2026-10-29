@@ -765,8 +765,9 @@ export function useChatApp(): ChatAppState {
               ? 'text'
               : null;
         if (!kind) {
-          error =
-            'Solo se pueden adjuntar PNG, JPG, WebP, PDF, TXT, SRT/VTT o PPTX.';
+          error = file.type.startsWith('video/')
+            ? 'Para estudiar un video, adjuntá sus subtítulos .srt o .vtt; la IA gratis no transcribe audio.'
+            : 'Solo se pueden adjuntar PNG, JPG, WebP, PDF, TXT, SRT/VTT o PPTX.';
           continue;
         }
         const limit = attachmentLimitError(current, kind);

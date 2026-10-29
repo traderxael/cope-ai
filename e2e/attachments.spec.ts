@@ -306,4 +306,20 @@ test.describe('adjuntos', () => {
       'Solo se pueden adjuntar',
     );
   });
+
+  test('explica cómo estudiar un video sin transcribir audio', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page
+      .getByLabel('Seleccionar archivo para adjuntar')
+      .setInputFiles({
+        name: 'clase.mp4',
+        mimeType: 'video/mp4',
+        buffer: Buffer.from('video'),
+      });
+    await expect(page.getByRole('alert')).toContainText(
+      'adjuntá sus subtítulos .srt o .vtt',
+    );
+  });
 });
