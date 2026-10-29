@@ -80,6 +80,22 @@ test.describe('suite de estudio', () => {
     );
   });
 
+  test('inicia un simulacro de 10 preguntas con tiempo', async ({ page }) => {
+    await openTutor(page);
+
+    const quizRequest = page.waitForRequest(
+      (request) =>
+        request.url().includes('/api/quiz') && request.method() === 'POST',
+    );
+    await page.getByRole('button', { name: /Simulacro/ }).click();
+    expect((await quizRequest).postDataJSON()).toMatchObject({
+      count: 10,
+    });
+
+    await expect(page.locator('.quizCard')).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole('timer')).toBeVisible();
+  });
+
   test('envía el estilo del tutor elegido', async ({ page }) => {
     const panel = await openTutor(page);
     await panel.getByRole('button', { name: 'Solver' }).click();

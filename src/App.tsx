@@ -527,6 +527,13 @@ export default function App() {
                     onOpenPlan={openStudyPlan}
                     onOpenOralExam={openOralExam}
                     onOpenPodcast={openPodcast}
+                    onSimulacro={() =>
+                      handlePractice({
+                        count: 10,
+                        difficulty: 'medium',
+                        timed: true,
+                      })
+                    }
                     practiceLoading={chat.practiceLoading}
                     vision={chat.vision}
                     userName={profile?.name}

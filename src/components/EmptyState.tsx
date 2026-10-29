@@ -150,6 +150,7 @@ interface EmptyStateProps {
   onOpenPlan: () => void;
   onOpenOralExam: () => void;
   onOpenPodcast: () => void;
+  onSimulacro: () => void;
   practiceLoading: boolean;
   disabled: boolean;
   vision?: boolean | null;
@@ -165,6 +166,7 @@ export function EmptyState({
   onOpenPlan,
   onOpenOralExam,
   onOpenPodcast,
+  onSimulacro,
   practiceLoading,
   disabled,
   vision = true,
@@ -284,6 +286,18 @@ export function EmptyState({
               <span>
                 <strong>Podcast</strong>
                 <small>Un repaso para escuchar.</small>
+              </span>
+            </button>
+            <button
+              type="button"
+              className="modeCard"
+              onClick={onSimulacro}
+              disabled={disabled}
+            >
+              <Icon name="timer" size={19} />
+              <span>
+                <strong>Simulacro</strong>
+                <small>10 preguntas con tiempo.</small>
               </span>
             </button>
           </div>
