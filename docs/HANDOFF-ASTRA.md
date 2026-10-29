@@ -132,8 +132,9 @@ nube gratuita (Pollinations) la espera es visible de entrada; con fixtures
    longitud del prompt.
 3. **Meta diaria por minuto de chat.** Hoy la meta suma prácticas y sesiones de
    enfoque; se podría sumar también el tiempo activo con el tutor abierto.
-4. **Capturas actualizadas.** `docs/*.png` sigue mostrando el tema claro
-   anterior; conviene regenerarlas con el tema oscuro por defecto.
+4. **Capturas de `docs/`.** Ya se regeneraron con el tema nuevo durante esta
+   tanda (las produce la suite E2E en `test-results/screenshots/`). Si se vuelve
+   a tocar el diseño hay que copiarlas de nuevo a `docs/`.
 5. **Insignias de hitos de práctica.** La grilla actual es solo por racha.
    `src/lib/progress.ts` ya tiene `achievements()` con logros por práctica
    (precisión, cantidad); se puede sumar una segunda grilla "Misiones" en el
@@ -143,6 +144,21 @@ nube gratuita (Pollinations) la espera es visible de entrada; con fixtures
    `aria-live` en `MessageList.tsx` dice "Cope está respondiendo."). La suite
    E2E de accesibilidad (`e2e/accessibility.spec.ts`) cubre los diálogos, pero
    no el panel de insignias nuevo.
+
+## Cambios que hicieron falta por el tema oscuro por defecto
+
+Cambiar el tema inicial a oscuro rompió dos supuestos de los tests E2E, que
+asumían que la app arrancaba en claro. Se corrigieron:
+
+- `e2e/visual.spec.ts`: ahora captura primero el tema oscuro por defecto y
+  después alterna a claro con el botón, en vez de buscar un botón que solo
+  existe en modo claro.
+- `e2e/assistant.spec.ts`: recorre el ciclo completo oscuro → claro → oscuro.
+
+Además, `storeTheme('system')` borraba la clave de `localStorage`; con el
+nuevo tema por defecto eso hacía que "system" se perdiera al recargar y
+volviera a oscuro. Ahora `system` se guarda explícitamente y hay un test
+nuevo, `src/lib/theme.test.ts`, que lo fija.
 
 ## Riesgo conocido
 
