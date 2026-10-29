@@ -4593,6 +4593,71 @@ img {
   color: #f5c451;
 }
 
+.onboardingProgress {
+  height: 4px;
+  margin: -2px 0 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 248, 224, 0.12);
+}
+
+.onboardingProgress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #f5c451;
+  transition: width 0.25s ease;
+}
+
+.onboardingFacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 2px 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.onboardingFacts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 248, 224, 0.16);
+  border-radius: 999px;
+  color: rgba(246, 241, 231, 0.72);
+  font-size: 0.72rem;
+}
+
+.onboardingSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 6px 0;
+  padding: 12px;
+  border: 1px solid rgba(255, 248, 224, 0.16);
+  border-radius: 12px;
+  background: rgba(255, 248, 224, 0.06);
+}
+
+.onboardingSummary div {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 0.8rem;
+}
+
+.onboardingSummary dt {
+  flex: none;
+  color: rgba(246, 241, 231, 0.55);
+}
+
+.onboardingSummary dd {
+  margin: 0;
+  color: #f6f1e7;
+  text-align: right;
+}
+
 .onboardingCard h1 {
   margin: 0;
   color: #f6f1e7;

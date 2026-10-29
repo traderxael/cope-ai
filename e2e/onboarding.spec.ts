@@ -23,8 +23,9 @@ test.describe('onboarding', () => {
     await expect(
       page.getByRole('heading', { name: 'Aprender puede ser más simple.' }),
     ).toBeVisible();
-    await expect(page.getByText('IA gratis', { exact: true })).toBeVisible();
+    await expect(page.locator('.onboardingBadge')).toHaveText('IA gratis');
 
+    await page.getByRole('button', { name: 'Empezar gratis' }).click();
     await page.getByLabel('¿Cómo te llamás?').fill('Ana');
     await page.getByRole('button', { name: 'Continuar' }).click();
     await page.getByLabel('Nivel').selectOption('universidad');
@@ -33,6 +34,11 @@ test.describe('onboarding', () => {
       .toISOString()
       .slice(0, 10);
     await page.getByLabel('Fecha de examen').fill(examDate);
+    await page.getByRole('button', { name: 'Continuar' }).click();
+
+    await expect(
+      page.getByRole('heading', { name: 'Todo listo, Ana.' }),
+    ).toBeVisible();
     await page.getByRole('button', { name: 'Entrar a Cope' }).click();
 
     await expect(
