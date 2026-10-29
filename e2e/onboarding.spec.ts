@@ -114,5 +114,18 @@ test.describe('onboarding', () => {
     await expect(
       page.getByRole('heading', { name: 'Aprender puede ser más simple.' }),
     ).toBeVisible();
+
+    await page.getByRole('button', { name: 'Empezar gratis' }).click();
+    await page.getByLabel('¿Cómo te llamás?').fill('Luis');
+    await page.getByRole('button', { name: 'Continuar' }).click();
+    await page.getByLabel('Nivel').selectOption('primaria');
+    await page.getByRole('button', { name: 'Continuar' }).click();
+    await page.getByRole('button', { name: 'Continuar' }).click();
+    await page.getByRole('button', { name: 'Entrar a Cope' }).click();
+
+    await expect(page.getByText('Hola, Luis. Resolvamos juntos')).toBeVisible();
+    await expect(
+      page.locator('.tutorAside').getByLabel('Nivel'),
+    ).toHaveValue('primaria');
   });
 });

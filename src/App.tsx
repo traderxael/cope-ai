@@ -174,10 +174,11 @@ export default function App() {
   );
 
   const restartOnboarding = useCallback(() => {
+    chat.actions.newChat();
     clearProfile();
     setProfile(null);
     setSettingsOpen(false);
-  }, []);
+  }, [chat.actions]);
 
   const handleNewChat = useCallback(() => {
     chat.actions.newChat();
