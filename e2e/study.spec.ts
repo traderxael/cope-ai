@@ -66,6 +66,9 @@ test.describe('suite de estudio', () => {
     const dialog = page.locator('dialog[open]');
     await expect(dialog.getByRole('heading', { name: 'Progreso' })).toBeVisible();
     await expect(
+      dialog.getByRole('heading', { name: 'Puntos a reforzar' }),
+    ).toBeVisible();
+    await expect(
       dialog.locator('.progressMetric').filter({ hasText: 'Preguntas' }),
     ).toContainText('10');
     await expect(dialog.locator('.progressRecent li')).toHaveCount(1);
