@@ -51,6 +51,32 @@ test.describe('accesibilidad', () => {
     await checkDialog();
   });
 
+  test('el modo enfoque no tiene violaciones graves', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page
+      .locator('.desktopSidebar')
+      .getByRole('button', { name: 'Enfoque' })
+      .click();
+    const dialog = page.locator('dialog[open]');
+    await expect(
+      dialog.getByRole('heading', { name: 'Modo enfoque' }),
+    ).toBeVisible();
+
+    const check = async () => {
+      const results = await new AxeBuilder({ page }).analyze();
+      const serious = results.violations.filter(
+        (violation) =>
+          violation.impact === 'serious' || violation.impact === 'critical',
+      );
+      expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
+    };
+
+    await check();
+    await dialog.getByRole('button', { name: 'Iniciar', exact: true }).click();
+    await check();
+  });
+
   test('el onboarding no tiene violaciones graves', async ({ page }) => {
     await page.route('**/api/health', (route) =>
       route.fulfill({
