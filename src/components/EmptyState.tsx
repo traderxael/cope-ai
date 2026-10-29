@@ -212,8 +212,8 @@ export function EmptyState({
         {mode === 'tutor'
           ? `${greeting}Resolvamos juntos: Cope te guía con preguntas, ejemplos y práctica. Elegí una materia en el panel y empezá cuando quieras.`
           : vision === false
-            ? `${greeting}Preguntá, redactá o convertí una idea en un plan. También podés adjuntar un PDF o TXT para trabajar sobre tu material; la IA actual no analiza imágenes.`
-            : `${greeting}Preguntá, redactá o convertí una idea en un plan. También podés adjuntar una imagen, un PDF o TXT para trabajar sobre tu material.`}
+            ? `${greeting}Preguntá, redactá o convertí una idea en un plan. También podés adjuntar un PDF, TXT o PPTX para trabajar sobre tu material; la IA actual no analiza imágenes.`
+            : `${greeting}Preguntá, redactá o convertí una idea en un plan. También podés adjuntar una imagen, un PDF, TXT o PPTX para trabajar sobre tu material.`}
       </p>
 
       {mode === 'tutor' && goal ? (
@@ -370,7 +370,7 @@ export function EmptyState({
       ) : (
         <p className="emptyNote">
           <Icon name="paperclip" size={15} />
-          Podés adjuntar imágenes, un PDF o TXT desde el compositor.
+          Podés adjuntar imágenes, un PDF, TXT o PPTX desde el compositor.
         </p>
       )}
     </div>

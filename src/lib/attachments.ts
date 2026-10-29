@@ -2,6 +2,7 @@ import { LIMITS } from '../../shared/limits';
 import { AttachmentError } from './errors';
 import { prepareImage } from './image';
 import { extractPdf } from './pdf';
+import { extractPptx } from './pptx';
 import { newId, type StoredAttachment } from './storage';
 
 export { AttachmentError };
@@ -35,10 +36,14 @@ export async function prepareAttachment(file: File): Promise<StoredAttachment> {
     file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
   const isText =
     file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt');
+  const isPptx =
+    file.type ===
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+    file.name.toLowerCase().endsWith('.pptx');
 
-  if (!isImage && !isPdf && !isText) {
+  if (!isImage && !isPdf && !isText && !isPptx) {
     throw new AttachmentError(
-      'Solo se pueden adjuntar imágenes PNG, JPG, WebP, un PDF o un TXT.',
+      'Solo se pueden adjuntar imágenes PNG, JPG, WebP, un PDF, un TXT o una presentación PPTX.',
     );
   }
 
@@ -68,6 +73,19 @@ export async function prepareAttachment(file: File): Promise<StoredAttachment> {
       size: file.size,
       text: content.slice(0, LIMITS.maxSourceTextChars),
       ...(truncated ? { truncated: true } : {}),
+    };
+  }
+
+  if (isPptx) {
+    const slides = await extractPptx(file);
+    return {
+      id: newId(),
+      kind: 'text',
+      name: file.name || 'presentacion.pptx',
+      mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      size: file.size,
+      text: slides.text,
+      ...(slides.truncated ? { truncated: true } : {}),
     };
   }
 

@@ -47,6 +47,8 @@ export const LIMITS = {
   maxPdfPages: 20,
   maxPdfChars: 20_000,
   maxPdfBytes: 15_000_000,
+  maxPptxBytes: 15_000_000,
+  maxPptxSlides: 40,
   maxImageInputBytes: 8_000_000,
   maxImageEdge: 1_280,
   imageJpegQuality: 0.82,
