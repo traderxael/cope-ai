@@ -1,4 +1,9 @@
 import { useState } from 'react';
+import {
+  CURRICULUM_COUNTRIES,
+  CURRICULUM_COUNTRY_LABELS,
+  type CurriculumCountry,
+} from '../../shared/curriculum';
 import { SUBJECTS } from '../../shared/schemas/common';
 import { formatDateOnlyEs, todayDateOnlyLocal } from '../../shared/date';
 import {
@@ -10,6 +15,10 @@ import {
 import { Logo } from './Logo';
 import { Icon } from './Icon';
 import type { UserProfile } from '../lib/profile';
+import {
+  loadCurriculumCountry,
+  saveCurriculumCountry,
+} from '../lib/curriculum';
 import { loadVoiceSettings, saveVoiceSettings } from '../lib/voice';
 import {
   speakText,
@@ -39,6 +48,8 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   const [name, setName] = useState('');
   const [level, setLevel] = useState<Level>('secundaria');
   const [subjects, setSubjects] = useState<Subject[]>(['math']);
+  const [country, setCountry] =
+    useState<CurriculumCountry>(loadCurriculumCountry);
   const [examDate, setExamDate] = useState('');
   const [voiceProfile, setVoiceProfile] = useState<VoiceProfile>(
     () => loadVoiceSettings().profile,
@@ -71,6 +82,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   };
 
   const finish = () => {
+    saveCurriculumCountry(country);
     saveVoiceSettings({
       ...loadVoiceSettings(),
       profile: voiceProfile,
@@ -231,6 +243,35 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               <Icon name="chevronDown" size={16} className="selectChevron" />
             </div>
 
+            <label className="fieldLabel" htmlFor="onboarding-country">
+              País de referencia
+            </label>
+            <div className="selectWrap">
+              <select
+                id="onboarding-country"
+                className="selectInput"
+                value={country}
+                onChange={(event) =>
+                  setCountry(
+                    saveCurriculumCountry(
+                      event.target.value as CurriculumCountry,
+                    ),
+                  )
+                }
+              >
+                {CURRICULUM_COUNTRIES.map((code) => (
+                  <option key={code} value={code}>
+                    {CURRICULUM_COUNTRY_LABELS[code]}
+                  </option>
+                ))}
+              </select>
+              <Icon name="chevronDown" size={16} className="selectChevron" />
+            </div>
+            <span className="fieldHint">
+              Alinea ejemplos y temas al currículo del país. Elegí “General” si
+              no aplica.
+            </span>
+
             <span className="fieldLabel">Materias</span>
             <div className="onboardingSubjects" role="group" aria-label="Materias">
               {SUBJECTS.filter((subject) => subject !== 'general').map(
@@ -365,6 +406,10 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               <div>
                 <dt>Examen</dt>
                 <dd>{examDate ? formatDateOnlyEs(examDate) : 'Sin fecha'}</dd>
+              </div>
+              <div>
+                <dt>País</dt>
+                <dd>{CURRICULUM_COUNTRY_LABELS[country]}</dd>
               </div>
               <div>
                 <dt>Voz</dt>

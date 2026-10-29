@@ -134,9 +134,9 @@ Variables opcionales:
 
 ## Funciones
 
-- **Bienvenida local:** onboarding join-ready con nombre, nivel, 14 materias y
-  fecha de examen. No hay cuenta ni botones de OAuth falsos; el perfil se guarda
-  en el dispositivo.
+- **Bienvenida local:** onboarding join-ready con nombre, nivel, 14 materias,
+  fecha de examen, país de referencia y voz. No hay cuenta ni botones de OAuth
+  falsos; el perfil se guarda en el dispositivo.
 - **14 materias:** matemáticas, física, química, biología, español, inglés,
   alemán, francés, historia, geografía, economía, informática, filosofía y
   psicología, además de General.

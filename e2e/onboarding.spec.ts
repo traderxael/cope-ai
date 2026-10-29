@@ -29,6 +29,7 @@ test.describe('onboarding', () => {
     await page.getByLabel('¿Cómo te llamás?').fill('Ana');
     await page.getByRole('button', { name: 'Continuar' }).click();
     await page.getByLabel('Nivel').selectOption('universidad');
+    await page.getByLabel('País de referencia').selectOption('mx');
     await page.getByRole('button', { name: 'Biología' }).click();
     const examDate = new Date(Date.now() + 30 * 86_400_000)
       .toISOString()
@@ -47,6 +48,11 @@ test.describe('onboarding', () => {
       page.getByRole('heading', { name: 'Aprender paso a paso, sin atajos.' }),
     ).toBeVisible();
     await expect(page.getByText('Hola, Ana. Resolvamos juntos')).toBeVisible();
+    expect(
+      await page.evaluate(() =>
+        localStorage.getItem('cope-curriculum-v1'),
+      ),
+    ).toBe('mx');
     expect(
       await page.evaluate(() => {
         try {
