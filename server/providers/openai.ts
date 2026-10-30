@@ -314,6 +314,9 @@ export async function completeJson(
   if (options.config.jsonMode) {
     body.response_format = { type: 'json_object' };
   }
+  if (options.config.jsonReasoningEffort) {
+    body.reasoning_effort = options.config.jsonReasoningEffort;
+  }
 
   try {
     const response = await fetch(endpointFor(options.config.baseUrl), {

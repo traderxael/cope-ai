@@ -9,6 +9,7 @@ export interface ServerConfig {
   model: string | null;
   demo: boolean;
   jsonMode: boolean;
+  jsonReasoningEffort: 'low' | null;
   visionEnabled: boolean;
   tokenParam: 'max_tokens' | 'max_completion_tokens';
   rateLimitPerMinute: number;
@@ -123,6 +124,7 @@ export function readServerConfig(
     model,
     demo: provider === 'fixtures',
     jsonMode: provider !== 'pollinations' && env.OPENAI_JSON_MODE === '1',
+    jsonReasoningEffort: provider === 'pollinations' ? 'low' : null,
     visionEnabled:
       provider === 'pollinations'
         ? false

@@ -15,6 +15,7 @@ describe('readServerConfig', () => {
       LIMITS.freeCloudJsonAttemptTimeoutMs,
     );
     expect(config.jsonRouteBudgetMs).toBe(LIMITS.freeCloudJsonRouteBudgetMs);
+    expect(config.jsonReasoningEffort).toBe('low');
   });
 
   it('mantiene fixtures solo para pruebas explícitas', () => {
