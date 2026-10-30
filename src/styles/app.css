@@ -5100,3 +5100,57 @@ img {
     grid-template-columns: 1fr;
   }
 }
+
+/* Conversación con el profesor ------------------------------------------- */
+
+.oralConversationDialog {
+  max-width: min(780px, calc(100vw - 28px));
+}
+
+.oralConversationSetup {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profesorComment {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.oralConversationRunner {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.oralConversationRunner .oralPrompt h3 {
+  margin: 4px 0 12px;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 550;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.oralConversationResults {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.oralConversationResults .oralResultHeader h3 {
+  margin: 4px 0 6px;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 550;
+  letter-spacing: -0.02em;
+}

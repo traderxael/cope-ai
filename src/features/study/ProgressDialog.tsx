@@ -19,9 +19,14 @@ import {
 interface ProgressDialogProps {
   open: boolean;
   onClose: () => void;
+  onOpenBadges?: () => void;
 }
 
-export function ProgressDialog({ open, onClose }: ProgressDialogProps) {
+export function ProgressDialog({
+  open,
+  onClose,
+  onOpenBadges,
+}: ProgressDialogProps) {
   const [results, setResults] = useState<PracticeResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -156,7 +161,19 @@ export function ProgressDialog({ open, onClose }: ProgressDialogProps) {
             className="progressSection"
             aria-labelledby="progress-achievements"
           >
-            <h3 id="progress-achievements">Logros</h3>
+            <div className="prepHeader">
+              <h3 id="progress-achievements">Logros</h3>
+              {onOpenBadges ? (
+                <button
+                  type="button"
+                  className="textButton"
+                  onClick={onOpenBadges}
+                >
+                  <Icon name="sparkles" size={15} />
+                  Ver insignias
+                </button>
+              ) : null}
+            </div>
             <ul className="achievements">
               {badges.map((badge) => (
                 <li

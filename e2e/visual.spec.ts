@@ -10,26 +10,34 @@ test.describe('capturas de referencia', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
     await expect(page.locator('.demoBanner')).toBeVisible();
+
+    // El tema por defecto es el oscuro de marca.
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await page.screenshot({
-      path: 'test-results/screenshots/desktop-light.png',
+      path: 'test-results/screenshots/desktop-dark.png',
       animations: 'disabled',
     });
 
     await page
       .locator('.desktopSidebar')
-      .getByRole('button', { name: 'Cambiar a tema oscuro' })
+      .getByRole('button', { name: 'Cambiar a tema claro' })
       .click();
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
     await page.screenshot({
-      path: 'test-results/screenshots/desktop-dark.png',
+      path: 'test-results/screenshots/desktop-light.png',
       animations: 'disabled',
     });
   });
 
   test('mobile claro', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
+    // Se fija el tema claro para capturar esa variante en móvil.
+    await page.addInitScript(() => {
+      window.localStorage.setItem('cope-theme', 'light');
+    });
     await page.goto('/');
     await expect(page.locator('.demoBanner')).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
     await page.screenshot({
       path: 'test-results/screenshots/mobile-light.png',
       animations: 'disabled',
