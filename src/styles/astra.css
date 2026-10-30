@@ -405,6 +405,107 @@
   font-size: 0.74rem;
 }
 
+/* Onboarding ------------------------------------------------------------- */
+/* La pantalla de bienvenida es oscura en los dos temas: se le cambia la
+   paleta cálida original por la Astra sin tocar app.css. */
+
+.onboardingScreen {
+  background:
+    radial-gradient(
+      circle at 18% 18%,
+      color-mix(in srgb, var(--astra-indigo) 26%, transparent),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 82% 82%,
+      color-mix(in srgb, var(--astra-violet) 20%, transparent),
+      transparent 32%
+    ),
+    var(--onb-bg);
+  color: var(--onb-ink);
+}
+
+.onboardingStars {
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 1px, transparent 1.4px),
+    radial-gradient(circle, rgba(190, 215, 255, 0.4) 0 1px, transparent 1.4px);
+}
+
+.onboardingBrand .brandName {
+  color: var(--onb-ink);
+}
+
+.onboardingBadge {
+  border-color: color-mix(in srgb, var(--onb-accent) 42%, transparent);
+  color: var(--onb-accent);
+}
+
+.onboardingCard .eyebrow {
+  color: var(--onb-accent);
+}
+
+.onboardingProgress {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.onboardingProgress > span {
+  background: var(--astra-grad);
+}
+
+.onboardingFacts li {
+  border-color: var(--onb-line);
+  color: var(--onb-soft);
+}
+
+.onboardingSummary dt {
+  color: var(--onb-faint);
+}
+
+.onboardingSummary dd {
+  color: var(--onb-ink);
+}
+
+.onboardingCard h1 {
+  color: var(--onb-ink);
+  font-weight: 800;
+}
+
+.onboardingLead,
+.onboardingCard .fieldLabel {
+  color: var(--onb-soft);
+}
+
+.onboardingCard .textInput,
+.onboardingCard .selectInput {
+  border-color: var(--onb-line);
+  background: var(--onb-field);
+  color: var(--onb-ink);
+}
+
+.onboardingCard .textInput::placeholder {
+  color: rgba(232, 237, 251, 0.4);
+}
+
+.onboardingCard .selectChevron {
+  color: var(--onb-faint);
+}
+
+.onboardingCard .subjectChip {
+  border-color: var(--onb-line);
+  background: var(--onb-field);
+  color: var(--onb-soft);
+}
+
+.onboardingCard .subjectChip.isActive {
+  border-color: transparent;
+  background: var(--astra-grad);
+  color: #fff;
+}
+
+.onboardingPrivacy {
+  color: rgba(232, 237, 251, 0.45);
+}
+
 /* Achievements panel ----------------------------------------------------- */
 
 .badgeDialog {

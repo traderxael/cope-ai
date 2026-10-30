@@ -66,6 +66,15 @@
   --ring-2: #a06bff;
   --ring-3: #4fd8ff;
 
+  /* Onboarding: pantalla oscura propia, igual en los dos temas ----------- */
+  --onb-bg: #070a15;
+  --onb-ink: #e8edfb;
+  --onb-soft: rgba(232, 237, 251, 0.72);
+  --onb-faint: rgba(232, 237, 251, 0.5);
+  --onb-accent: #4fd8ff;
+  --onb-line: rgba(160, 180, 255, 0.2);
+  --onb-field: rgba(255, 255, 255, 0.07);
+
   --radius-xs: 8px;
   --radius-sm: 12px;
   --radius-md: 18px;
