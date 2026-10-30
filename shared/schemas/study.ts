@@ -63,16 +63,26 @@ export const planTaskTypeSchema = z.enum([
   'rest',
 ]);
 
-export const planTaskContentSchema = z.object({
-  title: z.string().trim().min(3).max(120),
-  description: z.string().trim().min(1).max(400).optional(),
-  minutes: z
-    .number()
-    .int()
-    .min(LIMITS.minPlanTaskMinutes)
-    .max(LIMITS.maxPlanTaskMinutes),
-  type: planTaskTypeSchema,
-});
+export const planTaskContentSchema = z
+  .object({
+    title: z.string().trim().min(3).max(120),
+    description: z.string().trim().min(1).max(400).optional(),
+    minutes: z
+      .number()
+      .int()
+      .min(LIMITS.minPlanRestMinutes)
+      .max(LIMITS.maxPlanTaskMinutes),
+    type: planTaskTypeSchema,
+  })
+  .superRefine((task, ctx) => {
+    if (task.type !== 'rest' && task.minutes < LIMITS.minPlanTaskMinutes) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['minutes'],
+        message: `La tarea debe durar al menos ${LIMITS.minPlanTaskMinutes} minutos.`,
+      });
+    }
+  });
 
 export const planDayContentSchema = z.object({
   day: z.number().int().min(1).max(LIMITS.maxPlanDays),

@@ -25,7 +25,7 @@ Días disponibles: ${request.days}
 
 Armá un plan realista de exactamente ${request.days} días, numerados 1 a ${request.days}.
 Reglas:
-- 1 a 3 tareas por día, de 20 a 90 minutos cada una.
+- 1 a 3 tareas por día, de 20 a 90 minutos cada una; los descansos pueden durar de 5 a 20 minutos.
 - Combiná estudio, práctica y repaso; incluí descansos cuando ayuden.
 - No prometas resultados ni inventes contenidos que no correspondan al nivel.
 - No incluyas fechas ni ids; solo números de día.

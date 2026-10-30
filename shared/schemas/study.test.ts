@@ -230,6 +230,19 @@ describe('studyPlanContentSchema', () => {
     long.days[0]!.tasks[0]!.minutes = LIMITS.maxPlanTaskMinutes + 1;
     expect(studyPlanContentSchema.safeParse(long).success).toBe(false);
 
+    const rest = {
+      ...planContent(3),
+      days: planContent(3).days.map((day, index) =>
+        index === 0
+          ? {
+              ...day,
+              tasks: [{ ...day.tasks[0]!, type: 'rest', minutes: 15 }],
+            }
+          : day,
+      ),
+    };
+    expect(studyPlanContentSchema.safeParse(rest).success).toBe(true);
+
     const empty = planContent(3);
     empty.days[0]!.tasks = [];
     expect(studyPlanContentSchema.safeParse(empty).success).toBe(false);

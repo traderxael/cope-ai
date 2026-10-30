@@ -28,6 +28,7 @@ export const LIMITS = {
   maxPlanTopics: 8,
   maxPlanTasksPerDay: 3,
   minPlanTaskMinutes: 20,
+  minPlanRestMinutes: 5,
   maxPlanTaskMinutes: 90,
   maxQuizOutputTokens: 5_000,
   maxFlashcardOutputTokens: 2_500,
