@@ -29,7 +29,7 @@ export const oralQuestionSchema = z.object({
   expectedPoints: z
     .array(z.string().trim().min(1).max(300))
     .min(2)
-    .max(5),
+    .max(8),
   rubric: z.string().trim().min(1).max(800),
 });
 
