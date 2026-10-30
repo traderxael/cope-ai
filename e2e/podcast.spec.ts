@@ -19,7 +19,7 @@ test('genera un podcast de estudio con guion', async ({ page }) => {
     page.getByRole('heading', { name: 'Aprender paso a paso, sin atajos.' }),
   ).toBeVisible();
 
-  await page.getByRole('button', { name: /Podcast/ }).click();
+  await page.locator('.modeCard').filter({ hasText: 'Podcast' }).click();
   const dialog = page.locator('dialog[open]');
   await expect(
     dialog.getByRole('heading', { name: 'Podcast de estudio' }),
