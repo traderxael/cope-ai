@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   CURRICULUM_COUNTRIES,
   CURRICULUM_COUNTRY_PROFILES,
+  CURRICULUM_OFFICIAL_SOURCES,
 } from '../../shared/curriculum';
 import { buildCurriculumFragment } from './curriculum';
 
@@ -26,6 +27,9 @@ describe('buildCurriculumFragment', () => {
       expect(profile.stages.length).toBeGreaterThan(5);
       expect(profile.exam.length).toBeGreaterThan(10);
       expect(profile.framework.length).toBeGreaterThan(5);
+      const source = CURRICULUM_OFFICIAL_SOURCES[code];
+      expect(source.label.length).toBeGreaterThan(3);
+      expect(source.url).toMatch(/^https:\/\//);
     }
   });
 });

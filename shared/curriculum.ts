@@ -22,6 +22,42 @@ export interface CurriculumProfile {
   framework: string;
 }
 
+export const CURRICULUM_OFFICIAL_SOURCES: Record<
+  Exclude<CurriculumCountry, 'general'>,
+  { label: string; url: string }
+> = {
+  ar: {
+    label: 'Ministerio de Educación',
+    url: 'https://www.argentina.gob.ar/educacion',
+  },
+  bo: { label: 'Ministerio de Educación', url: 'https://www.minedu.gob.bo/' },
+  cl: { label: 'DEMRE · PAES', url: 'https://demre.cl/' },
+  co: { label: 'ICFES · Saber 11', url: 'https://www.icfes.gov.co/' },
+  do: {
+    label: 'Ministerio de Educación',
+    url: 'https://www.ministeriodeeducacion.gob.do/',
+  },
+  ec: {
+    label: 'Ministerio de Educación',
+    url: 'https://www.educacion.gob.ec/',
+  },
+  es: {
+    label: 'Ministerio de Educación · EBAU',
+    url: 'https://www.educacionyfp.gob.es/',
+  },
+  mx: { label: 'Ceneval', url: 'https://www.ceneval.edu.mx/' },
+  pe: { label: 'Ministerio de Educación', url: 'https://www.gob.pe/minedu' },
+  py: {
+    label: 'Ministerio de Educación y Ciencias',
+    url: 'https://www.mec.gov.py/',
+  },
+  uy: { label: 'ANEP', url: 'https://www.anep.edu.uy/' },
+  ve: {
+    label: 'Ministerio de Educación',
+    url: 'https://www.mppe.gob.ve/',
+  },
+};
+
 export const CURRICULUM_COUNTRY_PROFILES: Record<
   Exclude<CurriculumCountry, 'general'>,
   CurriculumProfile

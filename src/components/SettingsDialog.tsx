@@ -3,6 +3,7 @@ import {
   CURRICULUM_COUNTRIES,
   CURRICULUM_COUNTRY_LABELS,
   CURRICULUM_COUNTRY_PROFILES,
+  CURRICULUM_OFFICIAL_SOURCES,
   type CurriculumCountry,
 } from '../../shared/curriculum';
 import {
@@ -208,10 +209,23 @@ export function SettingsDialog({
           currículo específico.
         </p>
         {country !== 'general' ? (
-          <p className="settingsHint">
-            Examen de referencia: {CURRICULUM_COUNTRY_PROFILES[country].exam}.
-            Es una referencia general, no contenido oficial.
-          </p>
+          <>
+            <p className="settingsHint">
+              Examen de referencia: {CURRICULUM_COUNTRY_PROFILES[country].exam}.
+              Es una referencia general, no contenido oficial.
+            </p>
+            <p className="settingsHint">
+              <a
+                className="settingsExternalLink"
+                href={CURRICULUM_OFFICIAL_SOURCES[country].url}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                Sitio oficial: {CURRICULUM_OFFICIAL_SOURCES[country].label}
+              </a>{' '}
+              · No alojamos exámenes; adjuntá el PDF y practicá desde el material.
+            </p>
+          </>
         ) : null}
       </div>
 

@@ -156,7 +156,8 @@ Variables opcionales:
   guarda solo en este dispositivo.
 - **Currículo por país:** 12 países + General con etapas, examen de referencia
   (PAES, EBAU, Saber 11, admisión, etc.) y marco curricular. La IA alinea temas
-  y terminología; son referencias generales, no contenido oficial.
+  y terminología; son referencias generales, no contenido oficial. En Ajustes se
+  enlaza el sitio oficial del examen para consultar fechas y bases.
 - **Tutor:** materia, nivel y dos estilos. **Socrático** da pistas y preguntas
   para que resuelvas vos; **Solver** muestra el procedimiento completo y la
   comprobación. El objetivo elegido en el onboarding se muestra como primer paso
