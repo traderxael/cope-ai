@@ -306,4 +306,41 @@ test.describe('suite de estudio', () => {
       examFormat: 'paes',
     });
   });
+
+  test('genera práctica a partir del material adjunto', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+
+    await page
+      .getByLabel('Seleccionar archivo para adjuntar')
+      .setInputFiles({
+        name: 'resumen.txt',
+        mimeType: 'text/plain',
+        buffer: Buffer.from(
+          'La fotosíntesis convierte la luz en energía química.',
+        ),
+      });
+    await page.getByLabel('Mensaje para Cope').fill('Guardá este material');
+    await page.getByRole('button', { name: 'Enviar mensaje' }).click();
+    await expect(
+      page.locator('.assistantRow').last(),
+    ).toBeVisible({ timeout: 20_000 });
+
+    await page.getByRole('button', { name: 'Tutor' }).click();
+    const panel = page.locator('.tutorAside');
+    await panel
+      .locator('.switchRow')
+      .filter({ hasText: 'Usar el último material' })
+      .click();
+
+    const quizRequest = page.waitForRequest(
+      (request) =>
+        request.url().includes('/api/quiz') && request.method() === 'POST',
+    );
+    await panel.getByRole('button', { name: 'Practicar' }).click();
+
+    expect((await quizRequest).postDataJSON()).toMatchObject({
+      sourceText: 'La fotosíntesis convierte la luz en energía química.',
+    });
+  });
 });

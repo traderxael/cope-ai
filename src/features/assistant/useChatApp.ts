@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { LIMITS } from '../../../shared/limits';
 import { chatRequestSchema } from '../../../shared/schemas/chat';
 import {
   DEFAULT_TUTOR,
@@ -870,6 +871,9 @@ export function useChatApp(): ChatAppState {
       const cleaned: PracticeSettings = {
         ...settings,
         topic: settings.topic?.trim() || undefined,
+        sourceText: settings.sourceText
+          ?.slice(0, LIMITS.maxSourceTextChars)
+          .trim() || undefined,
       };
       const generation = quizGenerationRef.current + 1;
       quizGenerationRef.current = generation;
@@ -888,6 +892,7 @@ export function useChatApp(): ChatAppState {
             difficulty: cleaned.difficulty,
             country: curriculumCountryForRequest(),
             language: personality.language,
+            sourceText: cleaned.sourceText,
             examFormat: cleaned.examFormat,
           },
           controller.signal,

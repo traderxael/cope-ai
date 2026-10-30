@@ -10,6 +10,7 @@ export interface PracticeSettings {
   count: 5 | 10;
   difficulty: Difficulty;
   topic?: string;
+  sourceText?: string;
   timed: boolean;
   examFormat: ExamFormat;
 }

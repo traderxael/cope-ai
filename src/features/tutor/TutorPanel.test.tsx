@@ -77,6 +77,24 @@ describe('TutorPanel', () => {
     });
   });
 
+  it('adjunta el material de la conversación a la práctica', async () => {
+    const user = userEvent.setup();
+    const { onPractice } = renderPanel({
+      latestMaterial: 'La célula es la unidad de la vida.',
+    });
+
+    await user.click(
+      screen.getByRole('checkbox', { name: /Usar el último material/ }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Practicar' }));
+
+    expect(onPractice).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceText: 'La célula es la unidad de la vida.',
+      }),
+    );
+  });
+
   it('deshabilita la práctica sin conexión o mientras genera', () => {
     const { unmount } = renderPanel({ online: false });
     expect(screen.getByRole('button', { name: 'Practicar' })).toBeDisabled();

@@ -168,6 +168,23 @@ describe('prompts', () => {
     expect(buildStudyPlanUserPrompt(request)).toContain('5 días');
   });
 
+  it('usa el material de referencia en la práctica', () => {
+    const request = {
+      subject: 'biology' as const,
+      level: 'secundaria' as const,
+      count: 5 as const,
+      difficulty: 'medium' as const,
+      examFormat: 'general' as const,
+      sourceText: 'La célula es la unidad de la vida.',
+    };
+    expect(buildQuizSystemPrompt(request)).toContain(
+      'material de referencia',
+    );
+    const prompt = buildQuizUserPrompt(request);
+    expect(prompt).toContain('<material>');
+    expect(prompt).toContain('La célula es la unidad de la vida.');
+  });
+
   it('aplica el idioma elegido a práctica, tarjetas, plan y podcast', () => {
     expect(
       buildQuizSystemPrompt({

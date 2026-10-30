@@ -53,6 +53,12 @@ export const quizRequestSchema = z.object({
   difficulty: difficultySchema.default('medium'),
   country: z.enum(CURRICULUM_COUNTRIES).optional(),
   language: responseLanguageSchema.optional(),
+  sourceText: z
+    .string()
+    .trim()
+    .max(LIMITS.maxSourceTextChars)
+    .transform((value) => (value ? value : undefined))
+    .optional(),
   examFormat: z.enum(EXAM_FORMATS).default('general'),
 });
 

@@ -681,6 +681,7 @@ export default function App() {
                   onChange={chat.actions.updateTutor}
                   online={online}
                   onPractice={handlePractice}
+                  latestMaterial={latestPdfText}
                   practiceLoading={chat.practiceLoading}
                   disabled={
                     chat.streaming ||
@@ -727,6 +728,7 @@ export default function App() {
             onChange={chat.actions.updateTutor}
             online={online}
             onPractice={handlePractice}
+            latestMaterial={latestPdfText}
             practiceLoading={chat.practiceLoading}
             disabled={
               chat.streaming || chat.practiceLoading || Boolean(chat.quiz)

@@ -49,6 +49,7 @@ interface TutorPanelProps {
   onChange: (partial: Partial<TutorConfig>) => void;
   online: boolean;
   onPractice: (settings: PracticeSettings) => void;
+  latestMaterial?: string;
   practiceLoading: boolean;
   disabled?: boolean;
   onOpenFlashcards: () => void;
@@ -62,6 +63,7 @@ export function TutorPanel({
   onChange,
   online,
   onPractice,
+  latestMaterial,
   practiceLoading,
   disabled = false,
   onOpenFlashcards,
@@ -77,6 +79,7 @@ export function TutorPanel({
   const [count, setCount] = useState<5 | 10>(5);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [timed, setTimed] = useState(false);
+  const [useMaterial, setUseMaterial] = useState(false);
   const countryFormat = suggestedExamFormat(loadCurriculumCountry());
   const [examFormat, setExamFormat] = useState<ExamFormat>(countryFormat);
   const examFormatId = useId();
@@ -286,6 +289,25 @@ export function TutorPanel({
         />
       </div>
 
+      {latestMaterial ? (
+        <label className="switchRow">
+          <span>
+            <span className="fieldLabel">Usar el último material</span>
+            <span className="fieldHint">
+              PDF, TXT o subtítulos de esta conversación
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            className="switchInput"
+            checked={useMaterial}
+            onChange={(event) => setUseMaterial(event.target.checked)}
+            disabled={disabled}
+          />
+          <span className="switchVisual" aria-hidden="true" />
+        </label>
+      ) : null}
+
       <button
         type="button"
         className="button primary practiceButton"
@@ -296,6 +318,9 @@ export function TutorPanel({
             timed,
             examFormat,
             topic: topic.trim() || undefined,
+            ...(useMaterial && latestMaterial
+              ? { sourceText: latestMaterial }
+              : {}),
           })
         }
         disabled={practiceDisabled}
