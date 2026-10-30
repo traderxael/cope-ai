@@ -108,7 +108,7 @@ export default function App() {
   const [renameTarget, setRenameTarget] = useState<Conversation | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Conversation | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [toast, setToast] = useState<ToastMessage | null>(null);
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [updateReady, setUpdateReady] = useState(false);
   const toastIdRef = useRef(0);
 
@@ -119,17 +119,21 @@ export default function App() {
       action?: ToastMessage['action'],
     ) => {
       toastIdRef.current += 1;
-      setToast({
+      const next: ToastMessage = {
         id: toastIdRef.current,
         message,
         tone,
         ...(action ? { action } : {}),
-      });
+      };
+      setToasts((previous) => [...previous, next].slice(-3));
     },
     [],
   );
 
-  const dismissToast = useCallback(() => setToast(null), []);
+  const dismissToast = useCallback(
+    () => setToasts((previous) => previous.slice(1)),
+    [],
+  );
 
   const changeTheme = useCallback((next: Theme) => {
     setTheme(next);
@@ -776,10 +780,6 @@ export default function App() {
           onNotify={(message) => notify(message, 'success')}
           onSessionComplete={(minutes) => {
             logStudyMinutes(minutes);
-            notify(
-              `Sesión de enfoque guardada: ${minutes} min para tu meta diaria.`,
-              'success',
-            );
           }}
         />
 
@@ -851,7 +851,7 @@ export default function App() {
           onClose={() => setDeleteTarget(null)}
         />
 
-        <Toast toast={toast} onDismiss={dismissToast} />
+        <Toast toast={toasts[0] ?? null} onDismiss={dismissToast} />
       </div>
     </>
   );
