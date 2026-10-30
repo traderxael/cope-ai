@@ -77,6 +77,27 @@ test.describe('accesibilidad', () => {
     await check();
   });
 
+  test('el panel de insignias no tiene violaciones graves', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page
+      .locator('.desktopSidebar')
+      .getByRole('button', { name: 'Insignias' })
+      .click();
+    await expect(
+      page.locator('dialog[open]').getByRole('heading', { name: 'Insignias' }),
+    ).toBeVisible();
+
+    const results = await new AxeBuilder({ page }).analyze();
+    const serious = results.violations.filter(
+      (violation) =>
+        violation.impact === 'serious' || violation.impact === 'critical',
+    );
+    expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
+  });
+
   test('el onboarding no tiene violaciones graves', async ({ page }) => {
     await page.route('**/api/health', (route) =>
       route.fulfill({
