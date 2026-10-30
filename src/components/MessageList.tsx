@@ -3,7 +3,10 @@ import {
   useRef,
   type ReactNode,
 } from 'react';
+import type { AiProvider } from '../lib/api';
+import type { GenerationStatus } from '../lib/generationProgress';
 import type { StoredAttachment, StoredMessage } from '../lib/storage';
+import { GenerationProgress } from './GenerationProgress';
 import { Icon } from './Icon';
 import { LazyMarkdown } from './LazyMarkdown';
 import { Logo } from './Logo';
@@ -14,6 +17,8 @@ interface MessageListProps {
   streamingId: string | null;
   streaming: boolean;
   assistantName?: string;
+  generation?: GenerationStatus | null;
+  provider?: AiProvider | null;
   onRetry: () => void;
   onCopy: (text: string) => void;
   children?: ReactNode;
@@ -89,6 +94,8 @@ export function MessageList({
   streamingId,
   streaming,
   assistantName = 'Cope',
+  generation = null,
+  provider = null,
   onRetry,
   onCopy,
   children,
@@ -187,10 +194,17 @@ export function MessageList({
                     {isStreamingThis ? (
                       <span className="typingLabel">
                         <span className="typingDot" aria-hidden="true" />
-                        Escribiendo…
+                        {generation?.firstTokenAt ? 'Escribiendo…' : 'Preparando…'}
                       </span>
                     ) : null}
                   </div>
+
+                  {isStreamingThis ? (
+                    <GenerationProgress
+                      generation={generation}
+                      provider={provider}
+                    />
+                  ) : null}
 
                   {message.error ? (
                     <div className="messageError" role="alert">
@@ -214,7 +228,7 @@ export function MessageList({
                     </div>
                   ) : message.content ? (
                     <LazyMarkdown content={message.content} />
-                  ) : (
+                  ) : generation ? null : (
                     <div
                       className="typingIndicator"
                       role="status"

@@ -16,6 +16,7 @@ interface MobileSidebarProps {
   onDelete: (conversation: Conversation) => void;
   onSettings: () => void;
   onProgress: () => void;
+  onBadges: () => void;
   onFocus: () => void;
   onToggleTheme: () => void;
 }
@@ -34,6 +35,7 @@ export function MobileSidebar({
   onDelete,
   onSettings,
   onProgress,
+  onBadges,
   onFocus,
   onToggleTheme,
 }: MobileSidebarProps) {
@@ -74,6 +76,10 @@ export function MobileSidebar({
         onProgress={() => {
           onClose();
           onProgress();
+        }}
+        onBadges={() => {
+          onClose();
+          onBadges();
         }}
         onFocus={() => {
           onClose();

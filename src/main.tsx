@@ -4,6 +4,7 @@ import '@fontsource-variable/fraunces';
 import '@fontsource-variable/public-sans';
 import './styles/tokens.css';
 import './styles/app.css';
+import './styles/astra.css';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 

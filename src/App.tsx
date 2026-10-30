@@ -22,6 +22,7 @@ import { Toast, type ToastMessage, type ToastTone } from './components/Toast';
 import { TopBar } from './components/TopBar';
 import { QuizCard } from './features/quiz/QuizCard';
 import { TutorPanel } from './features/tutor/TutorPanel';
+import { BadgeDialog } from './features/achievements/BadgeDialog';
 import { useChatApp } from './features/assistant/useChatApp';
 import {
   DEFAULT_PRACTICE_SETTINGS,
@@ -43,6 +44,7 @@ import {
   type UserProfile,
 } from './lib/profile';
 import type { Conversation, PracticeResult } from './lib/storage';
+import { logStudyMinutes } from './lib/studyLog';
 import {
   applyTheme,
   getStoredTheme,
@@ -51,6 +53,34 @@ import {
   type Theme,
 } from './lib/theme';
 import { useOnlineStatus } from './lib/useOnlineStatus';
+
+function BootProgress() {
+  const [percent, setPercent] = useState(10);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setPercent((current) => {
+        const next = current + (92 - current) * 0.22;
+        return Math.min(92, next);
+      });
+    }, 180);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const rounded = Math.round(percent);
+  return (
+    <div
+      className="bootTrack"
+      role="progressbar"
+      aria-label="Preparando tu espacio"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={rounded}
+    >
+      <div className="bootFill" style={{ width: `${rounded}%` }} />
+    </div>
+  );
+}
 
 export default function App() {
   const chat = useChatApp();
@@ -65,6 +95,7 @@ export default function App() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [tutorOpen, setTutorOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
+  const [badgesOpen, setBadgesOpen] = useState(false);
   const [flashcardsOpen, setFlashcardsOpen] = useState(false);
   const [studyPlanOpen, setStudyPlanOpen] = useState(false);
   const [oralExamOpen, setOralExamOpen] = useState(false);
@@ -282,7 +313,13 @@ export default function App() {
         ...result,
         ...(conversationId ? { conversationId } : {}),
       });
-      if (saved) notify('Práctica guardada en tu progreso.', 'success');
+      if (saved) {
+        logStudyMinutes(
+          Math.max(0.5, result.durationSeconds / 60),
+          result.completedAt,
+        );
+        notify('Práctica guardada en tu progreso.', 'success');
+      }
       return saved;
     },
     [chat.actions, chat.active?.id, notify],
@@ -323,6 +360,11 @@ export default function App() {
     setProgressOpen(true);
   }, []);
 
+  const openBadges = useCallback(() => {
+    setTutorOpen(false);
+    setBadgesOpen(true);
+  }, []);
+
   const openSettingsFromOral = useCallback(() => {
     setOralExamOpen(false);
     setSettingsOpen(true);
@@ -351,7 +393,7 @@ export default function App() {
       <main className="bootScreen">
         <h1 className="srOnly">Cope AI</h1>
         <Logo withWordmark size={46} />
-        <span className="spinner" aria-hidden="true" />
+        <BootProgress />
         <p role="status">Preparando tu espacio…</p>
       </main>
     );
@@ -406,6 +448,7 @@ export default function App() {
             onDelete={setDeleteTarget}
             onSettings={() => setSettingsOpen(true)}
             onProgress={openProgress}
+            onBadges={openBadges}
             onFocus={openFocus}
             onToggleTheme={toggleTheme}
           />
@@ -578,6 +621,8 @@ export default function App() {
                   streamingId={chat.streamingId}
                   streaming={chat.streaming}
                   assistantName={chat.personality.name}
+                  generation={chat.generationStatus}
+                  provider={chat.provider}
                   onRetry={chat.actions.retryLast}
                   onCopy={(text) => void copy(text)}
                 >
@@ -657,6 +702,7 @@ export default function App() {
           onDelete={setDeleteTarget}
           onSettings={() => setSettingsOpen(true)}
           onProgress={openProgress}
+          onBadges={openBadges}
           onFocus={openFocus}
           onToggleTheme={toggleTheme}
         />
@@ -686,6 +732,12 @@ export default function App() {
         <ProgressDialog
           open={progressOpen}
           onClose={() => setProgressOpen(false)}
+          onOpenBadges={openBadges}
+        />
+
+        <BadgeDialog
+          open={badgesOpen}
+          onClose={() => setBadgesOpen(false)}
         />
 
         <FlashcardsDialog
@@ -708,6 +760,13 @@ export default function App() {
           open={focusOpen}
           onClose={() => setFocusOpen(false)}
           onNotify={(message) => notify(message, 'success')}
+          onSessionComplete={(minutes) => {
+            logStudyMinutes(minutes);
+            notify(
+              `Sesión de enfoque guardada: ${minutes} min para tu meta diaria.`,
+              'success',
+            );
+          }}
         />
 
         <PodcastDialog
