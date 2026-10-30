@@ -12,6 +12,10 @@ import {
   type Subject,
   type TutorConfig,
 } from '../../../shared/types';
+import {
+  CURRICULUM_COUNTRY_PROFILES,
+  CURRICULUM_OFFICIAL_SOURCES,
+} from '../../../shared/curriculum';
 import { Icon, type IconName } from '../../components/Icon';
 import type { PracticeSettings } from '../study/practice';
 import {
@@ -82,7 +86,12 @@ export function TutorPanel({
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [timed, setTimed] = useState(false);
   const [useMaterial, setUseMaterial] = useState(false);
-  const countryFormat = suggestedExamFormat(loadCurriculumCountry());
+  const country = loadCurriculumCountry();
+  const countryFormat = suggestedExamFormat(country);
+  const officialExam =
+    country !== 'general' ? CURRICULUM_COUNTRY_PROFILES[country].exam : null;
+  const officialSource =
+    country !== 'general' ? CURRICULUM_OFFICIAL_SOURCES[country] : null;
   const [examFormat, setExamFormat] = useState<ExamFormat>(countryFormat);
   const examFormatId = useId();
 
@@ -256,6 +265,19 @@ export function TutorPanel({
         ) : null}
         {examFormat !== 'general' ? (
           <span className="fieldHint">{EXAM_FORMAT_NOTES[examFormat]}</span>
+        ) : null}
+        {officialExam && officialSource ? (
+          <span className="fieldHint">
+            Examen de referencia: {officialExam}.{' '}
+            <a
+              className="settingsExternalLink"
+              href={officialSource.url}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {officialSource.label}
+            </a>
+          </span>
         ) : null}
       </div>
 

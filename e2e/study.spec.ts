@@ -265,6 +265,12 @@ test.describe('suite de estudio', () => {
     await expect(
       panel.getByText('Sugerido para tu país: PAES (Chile).'),
     ).toBeVisible();
+    await expect(
+      panel.getByText(/Examen de referencia: PAES \(DEMRE\)/),
+    ).toBeVisible();
+    await expect(
+      panel.getByRole('link', { name: 'DEMRE · PAES' }),
+    ).toHaveAttribute('href', 'https://demre.cl/');
   });
 
   test('envía el idioma de respuestas a la práctica', async ({ page }) => {
