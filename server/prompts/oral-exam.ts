@@ -98,9 +98,10 @@ export function buildOralGradeUserPrompt(
     rubric: question.rubric,
     answer: answerById.get(question.id) ?? '',
   }));
+  const ids = questions.map((question) => question.id).join(', ');
   return `Evaluá este examen oral:
 <respuestas>
 ${JSON.stringify(payload, null, 2)}
 </respuestas>
-Devolvé únicamente el JSON solicitado.`;
+Devolvé exactamente ${questions.length} resultados, uno por cada questionId (${ids}), y no omitas summary ni nextSteps (1 a 4 pasos). Devolvé únicamente el JSON solicitado.`;
 }

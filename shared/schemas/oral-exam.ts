@@ -69,7 +69,7 @@ export const oralGradeContentSchema = z.object({
     .min(1)
     .max(LIMITS.maxOralExamQuestions),
   summary: z.string().trim().min(1).max(1_200),
-  nextSteps: z.array(z.string().trim().min(1).max(300)).min(1).max(4),
+  nextSteps: z.array(z.string().trim().min(1).max(300)).max(4).default([]),
 });
 
 export const oralGradeResponseSchema = oralGradeContentSchema.extend({

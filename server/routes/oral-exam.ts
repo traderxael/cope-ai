@@ -184,6 +184,10 @@ export async function prepareOralExam(
     );
     const grade: OralGradeResponse = {
       ...content,
+      nextSteps:
+        content.nextSteps.length > 0
+          ? content.nextSteps
+          : ['Repasá las mejoras señaladas y practicá de nuevo.'],
       overallScore,
       zone: oralZoneForScore(overallScore),
       demo: false,

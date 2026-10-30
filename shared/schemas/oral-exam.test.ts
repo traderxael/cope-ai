@@ -142,6 +142,10 @@ describe('oral question and grade schemas', () => {
     };
     expect(oralGradeContentSchema.safeParse(content).success).toBe(true);
     expect(
+      oralGradeContentSchema.parse({ ...content, nextSteps: undefined })
+        .nextSteps,
+    ).toEqual([]);
+    expect(
       oralGradeResponseSchema.safeParse({
         ...content,
         overallScore: 80,
