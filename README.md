@@ -207,7 +207,8 @@ Variables opcionales:
   mensaje (texto extraído localmente, sin OCR). Los subtítulos permiten estudiar
   una clase en video sin subir el video.
 - **Historial local:** conversaciones, prácticas, decks, planes y exámenes orales
-  en IndexedDB; el servidor no los guarda.
+  en IndexedDB; el servidor no los guarda. La barra lateral filtra por título,
+  materia, nivel o nombre del archivo, sin distinguir acentos ni mayúsculas.
 - **Streaming real:** SSE desde el proxy, con botón de detener, respuesta parcial
   conservada y reintento.
 - **Barra de carga con tiempo estimado:** mientras la IA responde, una barra

@@ -530,6 +530,42 @@ img {
   opacity: 0.55;
 }
 
+.sidebarSearch {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  color: var(--muted);
+}
+
+.sidebarSearch:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  background: var(--surface-raised);
+}
+
+.sidebarSearch input {
+  min-width: 0;
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.82rem;
+  outline: none;
+}
+
+.sidebarSearch input::placeholder {
+  color: var(--muted);
+}
+
+.sidebarSearch input::-webkit-search-cancel-button {
+  display: none;
+}
+
 .conversationNav {
   min-height: 0;
   flex: 1;

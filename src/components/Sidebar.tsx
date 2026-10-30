@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import {
   LEVEL_LABELS,
   SUBJECT_LABELS,
@@ -22,6 +23,26 @@ interface SidebarProps {
   onFocus: () => void;
   onToggleTheme: () => void;
   onClose?: () => void;
+}
+
+function normalize(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function searchHaystack(conversation: Conversation): string {
+  const labels =
+    conversation.mode === 'tutor'
+      ? `${SUBJECT_LABELS[conversation.tutor.subject]} ${LEVEL_LABELS[conversation.tutor.level]} tutor`
+      : 'asistente';
+  const attachmentNames = conversation.messages.flatMap(
+    (message) => message.attachments?.map((attachment) => attachment.name) ?? [],
+  );
+  return normalize(
+    [conversation.title, labels, ...attachmentNames].join(' '),
+  );
 }
 
 function relativeDate(timestamp: number): string {
@@ -63,6 +84,18 @@ export function Sidebar({
   onToggleTheme,
   onClose,
 }: SidebarProps) {
+  const [query, setQuery] = useState('');
+  const needle = normalize(query.trim());
+  const filtered = useMemo(
+    () =>
+      needle
+        ? conversations.filter((conversation) =>
+            searchHaystack(conversation).includes(needle),
+          )
+        : conversations,
+    [conversations, needle],
+  );
+
   return (
     <div className="sidebarInner">
       <div className="sidebarBrandRow">
@@ -87,19 +120,47 @@ export function Sidebar({
         <kbd>N</kbd>
       </button>
 
+      <div className="sidebarSearch" role="search">
+        <Icon name="search" size={15} />
+        <input
+          type="search"
+          value={query}
+          placeholder="Buscar conversaciones"
+          aria-label="Buscar conversaciones"
+          onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') setQuery('');
+          }}
+        />
+        {query ? (
+          <button
+            type="button"
+            className="iconButton tiny"
+            aria-label="Limpiar búsqueda"
+            onClick={() => setQuery('')}
+          >
+            <Icon name="close" size={13} />
+          </button>
+        ) : null}
+      </div>
+
       <nav className="conversationNav" aria-label="Conversaciones">
         <div className="sidebarSectionLabel">
-          <span>Recientes</span>
-          <span>{conversations.length}</span>
+          <span>{needle ? 'Resultados' : 'Recientes'}</span>
+          <span>{filtered.length}</span>
         </div>
 
         {conversations.length === 0 ? (
           <p className="sidebarEmpty">
             Tus conversaciones van a aparecer acá. Empezá con una pregunta.
           </p>
+        ) : filtered.length === 0 ? (
+          <p className="sidebarEmpty" role="status">
+            No encontramos conversaciones con “{query.trim()}”.
+          </p>
         ) : (
           <ul className="conversationList">
-            {conversations.map((conversation) => {
+            {filtered.map((conversation) => {
               const active = conversation.id === activeId;
               const tutorLabel =
                 conversation.mode === 'tutor'
