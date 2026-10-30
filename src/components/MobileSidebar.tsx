@@ -14,6 +14,7 @@ interface MobileSidebarProps {
   onNew: () => void;
   onRename: (conversation: Conversation) => void;
   onDelete: (conversation: Conversation) => void;
+  onExport: (conversation: Conversation) => void;
   onSettings: () => void;
   onProgress: () => void;
   onBadges: () => void;
@@ -33,6 +34,7 @@ export function MobileSidebar({
   onNew,
   onRename,
   onDelete,
+  onExport,
   onSettings,
   onProgress,
   onBadges,
@@ -68,6 +70,10 @@ export function MobileSidebar({
         onDelete={(conversation) => {
           onClose();
           onDelete(conversation);
+        }}
+        onExport={(conversation) => {
+          onClose();
+          onExport(conversation);
         }}
         onSettings={() => {
           onClose();

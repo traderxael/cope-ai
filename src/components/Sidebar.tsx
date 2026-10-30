@@ -17,6 +17,7 @@ interface SidebarProps {
   onNew: () => void;
   onRename: (conversation: Conversation) => void;
   onDelete: (conversation: Conversation) => void;
+  onExport: (conversation: Conversation) => void;
   onSettings: () => void;
   onProgress: () => void;
   onBadges: () => void;
@@ -84,6 +85,7 @@ export function Sidebar({
   onNew,
   onRename,
   onDelete,
+  onExport,
   onSettings,
   onProgress,
   onBadges,
@@ -210,6 +212,14 @@ export function Sidebar({
                     </span>
                   </button>
                   <span className="conversationActions">
+                    <button
+                      type="button"
+                      className="iconButton tiny"
+                      aria-label={`Descargar ${conversation.title}`}
+                      onClick={() => onExport(conversation)}
+                    >
+                      <Icon name="download" size={14} />
+                    </button>
                     <button
                       type="button"
                       className="iconButton tiny"

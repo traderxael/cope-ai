@@ -31,6 +31,7 @@ function renderSidebar(conversations: Conversation[]) {
       onNew={vi.fn()}
       onRename={vi.fn()}
       onDelete={vi.fn()}
+      onExport={vi.fn()}
       onSettings={vi.fn()}
       onProgress={vi.fn()}
       onBadges={vi.fn()}

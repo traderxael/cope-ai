@@ -45,6 +45,7 @@ import {
   type LearningGoal,
   type UserProfile,
 } from './lib/profile';
+import { downloadConversation } from './lib/exportConversation';
 import type { Conversation, PracticeResult } from './lib/storage';
 import { logStudyMinutes } from './lib/studyLog';
 import {
@@ -236,6 +237,14 @@ export default function App() {
     setMobileNavOpen(false);
     setTutorOpen(false);
   }, [chat.actions]);
+
+  const handleExportConversation = useCallback(
+    (conversation: Conversation) => {
+      downloadConversation(conversation);
+      notify('Conversación descargada en Markdown.', 'success');
+    },
+    [notify],
+  );
 
   const newChatRef = useRef(handleNewChat);
   const draftRef = useRef(draft);
@@ -452,6 +461,7 @@ export default function App() {
             onNew={handleNewChat}
             onRename={setRenameTarget}
             onDelete={setDeleteTarget}
+            onExport={handleExportConversation}
             onSettings={() => setSettingsOpen(true)}
             onProgress={openProgress}
             onBadges={openBadges}
@@ -715,6 +725,7 @@ export default function App() {
           onNew={handleNewChat}
           onRename={setRenameTarget}
           onDelete={setDeleteTarget}
+          onExport={handleExportConversation}
           onSettings={() => setSettingsOpen(true)}
           onProgress={openProgress}
           onBadges={openBadges}
