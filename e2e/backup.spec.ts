@@ -39,6 +39,25 @@ test('descarga un respaldo con el historial local', async ({ page }) => {
   await expect(dialog.getByText('Respaldo descargado.')).toBeVisible();
 });
 
+test('el botón de restaurar abre el selector con teclado', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await page
+    .locator('.desktopSidebar')
+    .getByRole('button', { name: 'Ajustes' })
+    .click();
+
+  const button = page
+    .locator('dialog[open]')
+    .getByRole('button', { name: 'Restaurar respaldo' });
+  await button.focus();
+  const chooser = page.waitForEvent('filechooser');
+  await button.press('Enter');
+  await chooser;
+});
+
 test('restaura el respaldo después de borrar el historial', async ({
   page,
 }) => {
