@@ -311,6 +311,9 @@ test.describe('adjuntos', () => {
     page,
   }) => {
     await page.goto('/');
+    await expect(
+      page.getByLabel('Seleccionar archivo para adjuntar'),
+    ).toHaveAttribute('accept', /video\/mp4/);
     await page
       .getByLabel('Seleccionar archivo para adjuntar')
       .setInputFiles({

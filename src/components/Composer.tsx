@@ -21,7 +21,7 @@ interface ComposerProps {
 }
 
 const ACCEPTED_FILES =
-  'image/png,image/jpeg,image/webp,application/pdf,text/plain,text/vtt,application/x-subrip,application/vnd.openxmlformats-officedocument.presentationml.presentation,.pdf,.txt,.srt,.vtt,.pptx';
+  'image/png,image/jpeg,image/webp,application/pdf,text/plain,text/vtt,application/x-subrip,video/mp4,video/webm,video/quicktime,application/vnd.openxmlformats-officedocument.presentationml.presentation,.pdf,.txt,.srt,.vtt,.mp4,.webm,.mov,.pptx';
 
 export function Composer({
   value,
