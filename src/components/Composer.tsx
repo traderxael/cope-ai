@@ -212,6 +212,7 @@ export function Composer({
           <textarea
             ref={textareaRef}
             className="composerTextarea"
+            dir="auto"
             value={value}
             onChange={(event) => onChange(event.target.value)}
             onKeyDown={(event) => {
