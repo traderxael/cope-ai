@@ -13,6 +13,7 @@ import {
 } from '../../shared/types';
 import type { AiProvider, VoiceCapabilities } from '../lib/api';
 import { formatBytes } from '../lib/attachments';
+import { downloadBackup } from '../lib/backup';
 import {
   loadCurriculumCountry,
   saveCurriculumCountry,
@@ -77,6 +78,9 @@ export function SettingsDialog({
   const [storageLoading, setStorageLoading] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [backupState, setBackupState] = useState<
+    'idle' | 'working' | 'done' | 'error'
+  >('idle');
   const [country, setCountry] =
     useState<CurriculumCountry>(loadCurriculumCountry);
 
@@ -107,6 +111,16 @@ export function SettingsDialog({
     setClearing(false);
     setConfirmClear(false);
     onClose();
+  };
+
+  const saveBackup = async () => {
+    setBackupState('working');
+    try {
+      await downloadBackup();
+      setBackupState('done');
+    } catch {
+      setBackupState('error');
+    }
   };
 
   return (
@@ -354,6 +368,36 @@ export function SettingsDialog({
             Borrar todo el historial y progreso
           </button>
         )}
+      </div>
+
+      <div className="settingsSection">
+        <h3>Respaldo</h3>
+        <p className="settingsHint">
+          Descargá un archivo JSON con tus conversaciones, prácticas, mazos,
+          planes y exámenes orales. Tus datos siguen guardados en este
+          dispositivo.
+        </p>
+        <button
+          type="button"
+          className="button ghost small"
+          onClick={() => void saveBackup()}
+          disabled={backupState === 'working'}
+        >
+          <Icon name="download" size={16} />
+          {backupState === 'working'
+            ? 'Preparando…'
+            : 'Descargar respaldo'}
+        </button>
+        {backupState === 'done' ? (
+          <p className="settingsHint" role="status">
+            Respaldo descargado.
+          </p>
+        ) : null}
+        {backupState === 'error' ? (
+          <p className="settingsHint" role="alert">
+            No se pudo generar el respaldo.
+          </p>
+        ) : null}
       </div>
 
       <div className="settingsSection aboutSection">

@@ -209,7 +209,8 @@ Variables opcionales:
 - **Historial local:** conversaciones, prácticas, decks, planes y exámenes orales
   en IndexedDB; el servidor no los guarda. La barra lateral busca en el título,
   la materia, el nivel, el nombre del archivo y el texto de los mensajes, sin
-  distinguir acentos ni mayúsculas.
+  distinguir acentos ni mayúsculas. Desde Ajustes podés descargar un respaldo
+  JSON con todo el historial y el progreso.
 - **Streaming real:** SSE desde el proxy, con botón de detener, respuesta parcial
   conservada y reintento.
 - **Barra de carga con tiempo estimado:** mientras la IA responde, una barra
