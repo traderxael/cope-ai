@@ -308,6 +308,7 @@ export async function completeJson(
       })),
     ],
     stream: false,
+    temperature: 0.2,
   };
   body[options.config.tokenParam] =
     options.maxTokens ?? LIMITS.maxOutputTokens * 2;
