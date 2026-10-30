@@ -98,11 +98,87 @@ npm run test:e2e      # Playwright (opcional, tarda)
 ```
 
 Tests agregados: `src/lib/achievements.test.ts`,
-`src/lib/studyLog.test.ts`, `src/lib/generationProgress.test.ts`.
+`src/lib/studyLog.test.ts`, `src/lib/generationProgress.test.ts`,
+`src/lib/theme.test.ts`, `src/lib/toastQueue.test.ts`.
 
 Para ver la barra de carga hace falta una respuesta que tarde: con la IA de
 nube gratuita (Pollinations) la espera es visible de entrada; con fixtures
 (`COPE_DEMO=1`) es demasiado rápida.
+
+## Segunda tanda: arranque en oscuro y pantalla de bienvenida
+
+Después del merge del rediseño quedaron sueltos dos detalles del tema:
+
+- `public/theme-init.js` resolvía el tema por la preferencia del sistema, así
+  que la app **pintaba en claro antes de montar React** y después saltaba al
+  oscuro. Ahora coincide con `getStoredTheme()`: sin preferencia guardada
+  arranca en oscuro, y "system" se respeta explícitamente.
+- `index.html`, `vite.config.ts` (manifest de la PWA) y `twa/twa-manifest.json`
+  seguían con la paleta crema/terracota original. Ya usan la paleta Astra.
+- La pantalla de bienvenida (`.onboardingScreen`) conservaba el look cálido.
+  Ahora usa tokens propios (`--onb-*` en `tokens.css`), porque es oscura en los
+  dos temas, y la capa `astra.css` la repinta: fondo espacial con estrellas,
+  tarjeta de cristal, botón gradiente y acentos cian.
+
+## Tercera tanda: dos bugs reales de la capa oscura y de los avisos
+
+Con el tema oscuro como predeterminado aparecieron dos defectos que no eran
+solo de tests. Los dos quedaron corregidos y con guarda de regresión.
+
+### 1. El toast quedaba fuera de pantalla en tema oscuro
+
+`astra.css` tenía esta regla para que el fondo con estrellas quedara detrás
+del contenido:
+
+```css
+[data-theme='dark'] .appShell > * {
+  position: relative;   /* ← pisaba el position: fixed del toast */
+  z-index: 1;
+}
+```
+
+El `.toast` es hijo directo de `.appShell`, así que en oscuro perdía su
+`position: fixed` y, al ser `.appShell` un flex container, quedaba en
+`left: 50%` de una caja de 1440 px pero desplazado: se medía en `x=1662,
+y=-92` en un viewport de 1440×900. El aviso seguía en el DOM, pero el usuario
+no lo veía.
+
+**Arreglo** (en `src/styles/astra.css`): no tocar `position` de los hijos. Las
+estrellas pasan a `z-index: -1` y `.appShell` gana `isolation: isolate`, que
+crea un contexto de apilamiento propio: así quedan por encima del fondo del
+shell y por debajo del contenido, sin forzar el posicionamiento de nadie.
+
+```css
+.appShell { isolation: isolate; }
+[data-theme='dark'] .appShell::before { z-index: -1; }
+```
+
+### 2. Un aviso tapaba y perdía al anterior
+
+El sistema de avisos guardaba **un solo mensaje**. Cuando la PWA terminaba de
+instalarse (`onOfflineReady`) y avisaba "Cope AI está listo para usarse sin
+conexión", ese mensaje **reemplazaba** al "Enfoque completado" de una sesión
+de enfoque, que se perdía. La carrera depende del service worker, así que
+aparecía de forma intermitente.
+
+**Arreglo**: los avisos ahora se **encolan** (`src/lib/toastQueue.ts`, con
+`src/lib/toastQueue.test.ts`). El que está en pantalla es el primero de la
+cola; cuando se descarta, pasa el siguiente. `Toast.tsx` ahora recibe
+`onDismiss(id)` para poder sacar solo el aviso que corresponde.
+
+### Guardas de regresión
+
+- `e2e/focus.spec.ts` comprueba que el toast **caiga dentro del viewport**
+  (bbox contenida en el tamaño de pantalla), que es exactamente lo que fallaba
+  con el bug de `position`.
+- `src/lib/toastQueue.test.ts` fija que un aviso nuevo **no** pise al que está
+  en pantalla.
+
+> Cómo se debugueó: el fallo se reproducía de forma determinista con
+> `npx playwright test e2e/focus.spec.ts --repeat-each=3` (3 de 3 fallos) y
+> **no** con una corrida simple. Esa diferencia fue la pista: en las
+> repeticiones el service worker ya está en caché y su aviso de "listo sin
+> conexión" llega antes, tapando el del modo enfoque.
 
 ## Decisiones de diseño a respetar
 
@@ -167,3 +243,7 @@ bloque "Study suite" (por ejemplo `#f5c451` en las tarjetas de repaso SRS y
 `#1f6f5c` en un badge de conexión). Sobre el tema oscuro nuevo se ven
 ligeramente desalineados. Se pueden neutralizar desde `astra.css` sin tocar el
 archivo base; es el ajuste visual pendiente más visible.
+
+> Nota: la parte más visible de eso (la pantalla de bienvenida) ya se corrigió
+> en la segunda tanda. Lo que queda son acentos puntuales del bloque de repaso
+> SRS y el verde del toast de éxito, que son semánticos y no rompen nada.

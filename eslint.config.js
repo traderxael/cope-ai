@@ -47,8 +47,10 @@ export default tseslint.config(
         console: 'readonly',
         URL: 'readonly',
         process: 'readonly',
-        // Se usa dentro de page.addInitScript, que corre en el navegador.
+        // Se usa dentro de page.addInitScript y page.evaluate, que corren en
+        // el navegador.
         localStorage: 'readonly',
+        document: 'readonly',
       },
     },
   },
