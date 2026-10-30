@@ -10,7 +10,10 @@ import {
   buildStudyPlanUserPrompt,
 } from './study-plan';
 import { buildTutorSystemPrompt } from './tutor';
-import { buildPodcastSystemPrompt } from './podcast';
+import {
+  buildPodcastSystemPrompt,
+  buildPodcastUserPrompt,
+} from './podcast';
 import {
   buildOralExamSystemPrompt,
   buildOralExamUserPrompt,
@@ -190,6 +193,20 @@ describe('prompts', () => {
       'material de referencia',
     );
     const prompt = buildQuizUserPrompt(request);
+    expect(prompt).toContain('<material>');
+    expect(prompt).toContain('La célula es la unidad de la vida.');
+  });
+
+  it('usa el material de referencia en el podcast', () => {
+    const request = {
+      subject: 'biology' as const,
+      level: 'secundaria' as const,
+      sourceText: 'La célula es la unidad de la vida.',
+    };
+    expect(buildPodcastSystemPrompt(request)).toContain(
+      'material de referencia',
+    );
+    const prompt = buildPodcastUserPrompt(request);
     expect(prompt).toContain('<material>');
     expect(prompt).toContain('La célula es la unidad de la vida.');
   });

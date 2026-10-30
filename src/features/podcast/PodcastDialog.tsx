@@ -23,6 +23,7 @@ interface PodcastDialogProps {
   onClose: () => void;
   tutor: TutorConfig;
   online: boolean;
+  latestMaterial?: string;
 }
 
 export function PodcastDialog({
@@ -30,8 +31,10 @@ export function PodcastDialog({
   onClose,
   tutor,
   online,
+  latestMaterial,
 }: PodcastDialogProps) {
   const [topic, setTopic] = useState('');
+  const [useMaterial, setUseMaterial] = useState(false);
   const [podcast, setPodcast] = useState<PodcastResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -45,6 +48,7 @@ export function PodcastDialog({
       stopSpeaking();
       setPlaying(false);
       setLoading(false);
+      setUseMaterial(false);
     }
     return () => {
       stopSpeaking();
@@ -69,6 +73,14 @@ export function PodcastDialog({
           country: curriculumCountryForRequest(),
           language: loadPersonality().language,
           ...(topic.trim() ? { topic: topic.trim() } : {}),
+          ...(useMaterial && latestMaterial
+            ? {
+                sourceText: latestMaterial.slice(
+                  0,
+                  LIMITS.maxSourceTextChars,
+                ),
+              }
+            : {}),
         },
         controller.signal,
       );
@@ -139,6 +151,24 @@ export function PodcastDialog({
         <p className="fieldHint">
           {SUBJECT_LABELS[tutor.subject]} · {LEVEL_LABELS[tutor.level]}
         </p>
+        {latestMaterial ? (
+          <label className="switchRow">
+            <span>
+              <span className="fieldLabel">Usar el último material</span>
+              <span className="fieldHint">
+                PDF, TXT o subtítulos de esta conversación
+              </span>
+            </span>
+            <input
+              type="checkbox"
+              className="switchInput"
+              checked={useMaterial}
+              onChange={(event) => setUseMaterial(event.target.checked)}
+              disabled={loading}
+            />
+            <span className="switchVisual" aria-hidden="true" />
+          </label>
+        ) : null}
         <button
           type="button"
           className="button primary"

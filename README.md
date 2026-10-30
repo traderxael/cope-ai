@@ -190,7 +190,8 @@ Variables opcionales:
   avance automático, rúbrica por pregunta y resultado final de 0 a 100 con
   próximos pasos.
 - **Podcast:** guion breve por materia o tema, con reproducción por la voz del
-  navegador y texto para seguir la explicación.
+  navegador y texto para seguir la explicación. También puede basarse en el
+  último PDF, TXT o subtítulos de la conversación.
 - **Modo enfoque:** temporizador Pomodoro de 25 minutos de estudio y 5 de
   descanso, con pausa, reinicio, progreso, sesiones completadas y aviso al
   terminar cada fase; sigue corriendo aunque cierres el panel.

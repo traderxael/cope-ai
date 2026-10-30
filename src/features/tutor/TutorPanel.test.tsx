@@ -18,6 +18,7 @@ function renderPanel(overrides: Partial<Parameters<typeof TutorPanel>[0]> = {}) 
   const onOpenFlashcards = vi.fn();
   const onOpenPlan = vi.fn();
   const onOpenOralExam = vi.fn();
+  const onOpenPodcast = vi.fn();
   const onOpenProgress = vi.fn();
   const props = {
     tutor,
@@ -28,6 +29,7 @@ function renderPanel(overrides: Partial<Parameters<typeof TutorPanel>[0]> = {}) 
     onOpenFlashcards,
     onOpenPlan,
     onOpenOralExam,
+    onOpenPodcast,
     onOpenProgress,
     ...overrides,
   };
@@ -39,6 +41,7 @@ function renderPanel(overrides: Partial<Parameters<typeof TutorPanel>[0]> = {}) 
     onOpenFlashcards,
     onOpenPlan,
     onOpenOralExam,
+    onOpenPodcast,
     onOpenProgress,
   };
 }

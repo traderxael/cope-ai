@@ -691,6 +691,7 @@ export default function App() {
                   onOpenFlashcards={openFlashcards}
                   onOpenPlan={openStudyPlan}
                   onOpenOralExam={openOralExam}
+                  onOpenPodcast={openPodcast}
                   onOpenProgress={openProgress}
                 />
               </aside>
@@ -736,6 +737,7 @@ export default function App() {
             onOpenFlashcards={openFlashcards}
             onOpenPlan={openStudyPlan}
             onOpenOralExam={openOralExam}
+            onOpenPodcast={openPodcast}
             onOpenProgress={openProgress}
           />
         </Dialog>
@@ -786,6 +788,7 @@ export default function App() {
           onClose={() => setPodcastOpen(false)}
           tutor={tutor}
           online={online}
+          latestMaterial={latestPdfText}
         />
 
         <OralExamDialog
