@@ -179,6 +179,26 @@ describe('openChatStream', () => {
     ).rejects.toMatchObject({ status: 429, code: 'provider_rate_limited' });
   });
 
+  it('incluye los segundos de espera del límite gratuito', async () => {
+    upstream = await startFakeUpstream((_record, response) => {
+      response.statusCode = 402;
+      response.end('{"error":{"message":"Retry after 12s"}}');
+    });
+
+    await expect(
+      openChatStream({
+        config: config(upstream.baseUrl),
+        messages: userMessage,
+        systemPrompt: 'Sistema',
+        hasImages: false,
+      }),
+    ).rejects.toMatchObject({
+      status: 429,
+      code: 'free_ai_limit',
+      message: expect.stringContaining('12 s'),
+    });
+  });
+
   it('corta por timeout', async () => {
     upstream = await startFakeUpstream((_record, response) => {
       openSse(response);
