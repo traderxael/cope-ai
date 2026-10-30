@@ -11,6 +11,10 @@ import {
 } from './study-plan';
 import { buildTutorSystemPrompt } from './tutor';
 import { buildPodcastSystemPrompt } from './podcast';
+import {
+  buildOralExamSystemPrompt,
+  buildOralExamUserPrompt,
+} from './oral-exam';
 
 describe('prompts', () => {
   it('el tutor incluye materia, nivel y reglas de seguridad', () => {
@@ -188,6 +192,23 @@ describe('prompts', () => {
     const prompt = buildQuizUserPrompt(request);
     expect(prompt).toContain('<material>');
     expect(prompt).toContain('La célula es la unidad de la vida.');
+  });
+
+  it('usa el material de referencia en el examen oral', () => {
+    const config = {
+      subject: 'chemistry' as const,
+      level: 'secundaria' as const,
+      difficulty: 'medium' as const,
+      topics: [],
+      count: 3 as const,
+      sourceText: 'Unidad 4: equilibrio químico y ácidos.',
+    };
+    expect(buildOralExamSystemPrompt(config)).toContain(
+      'material de referencia',
+    );
+    const prompt = buildOralExamUserPrompt(config);
+    expect(prompt).toContain('<material>');
+    expect(prompt).toContain('Unidad 4: equilibrio químico y ácidos.');
   });
 
   it('aplica el idioma elegido a práctica, tarjetas, plan y podcast', () => {

@@ -183,8 +183,9 @@ Variables opcionales:
   subtítulos de la conversación.
 - **Examen oral:** preguntas abiertas con rúbrica, respuesta por texto o
   micrófono, corrección con puntajes y zonas de desempeño, respuesta modelo e
-  historial local. La voz del navegador está siempre disponible y sigue el
-  idioma de respuesta elegido en Personalidad.
+  historial local. Puede basarse en el último PDF, TXT o subtítulos. La voz del
+  navegador está siempre disponible y sigue el idioma de respuesta elegido en
+  Personalidad.
 - **Conversación con el profesor:** preguntas encadenadas por voz o texto, con
   avance automático, rúbrica por pregunta y resultado final de 0 a 100 con
   próximos pasos.

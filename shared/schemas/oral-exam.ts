@@ -18,6 +18,12 @@ export const oralExamConfigSchema = z.object({
     .max(LIMITS.maxOralTopics)
     .default([])
     .transform((topics) => [...new Set(topics)]),
+  sourceText: z
+    .string()
+    .trim()
+    .max(LIMITS.maxSourceTextChars)
+    .transform((value) => (value ? value : undefined))
+    .optional(),
   count: z
     .union([z.literal(3), z.literal(5), z.literal(8)])
     .default(LIMITS.defaultOralExamQuestions),

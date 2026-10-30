@@ -796,6 +796,7 @@ export default function App() {
           voice={chat.voice}
           online={online}
           onOpenSettings={openSettingsFromOral}
+          latestMaterial={latestPdfText}
         />
 
         <OralConversationDialog

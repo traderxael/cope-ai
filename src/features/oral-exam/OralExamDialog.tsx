@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { LIMITS } from '../../../shared/limits';
 import {
   DIFFICULTIES,
   LEVELS,
@@ -63,6 +64,7 @@ interface OralExamDialogProps {
   voice: VoiceCapabilities;
   online: boolean;
   onOpenSettings: () => void;
+  latestMaterial?: string;
 }
 
 type Count = (typeof ORAL_COUNT_OPTIONS)[number];
@@ -105,6 +107,7 @@ export function OralExamDialog({
   voice,
   online,
   onOpenSettings,
+  latestMaterial,
 }: OralExamDialogProps) {
   const [view, setView] = useState<View>('list');
   const [exams, setExams] = useState<OralExamSession[]>([]);
@@ -126,6 +129,7 @@ export function OralExamDialog({
     useState<Difficulty>('medium');
   const [setupTopics, setSetupTopics] = useState('');
   const [setupCount, setSetupCount] = useState<Count>(5);
+  const [useMaterial, setUseMaterial] = useState(false);
   const dictationRef = useRef<Dictation | null>(null);
 
   useEffect(() => {
@@ -146,6 +150,7 @@ export function OralExamDialog({
     setSetupDifficulty('medium');
     setSetupTopics('');
     setSetupCount(5);
+    setUseMaterial(false);
     setVoiceSettings(loadVoiceSettings());
     setLoading(true);
     void listOralExams()
@@ -226,6 +231,7 @@ export function OralExamDialog({
     setSetupDifficulty(active?.config.difficulty ?? 'medium');
     setSetupTopics(active?.config.topics.join(', ') ?? '');
     setSetupCount(active?.config.count ?? 5);
+    setUseMaterial(false);
     setView('setup');
   };
 
@@ -238,6 +244,14 @@ export function OralExamDialog({
       country: curriculumCountryForRequest(),
       topics: parseTopics(setupTopics),
       count: setupCount,
+      ...(useMaterial && latestMaterial
+        ? {
+            sourceText: latestMaterial.slice(
+              0,
+              LIMITS.maxSourceTextChars,
+            ),
+          }
+        : {}),
     };
     setBusy(true);
     setError(null);
@@ -683,6 +697,25 @@ export function OralExamDialog({
               disabled={busy}
             />
           </div>
+
+          {latestMaterial ? (
+            <label className="switchRow">
+              <span>
+                <span className="fieldLabel">Usar el último material</span>
+                <span className="fieldHint">
+                  PDF, TXT o subtítulos de esta conversación
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                className="switchInput"
+                checked={useMaterial}
+                onChange={(event) => setUseMaterial(event.target.checked)}
+                disabled={busy}
+              />
+              <span className="switchVisual" aria-hidden="true" />
+            </label>
+          ) : null}
 
           <div className="oralPersonalityRow">
             <span>
