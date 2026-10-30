@@ -32,17 +32,24 @@ function normalize(value: string): string {
     .toLowerCase();
 }
 
+const haystackCache = new WeakMap<Conversation, string>();
+
 function searchHaystack(conversation: Conversation): string {
+  const cached = haystackCache.get(conversation);
+  if (cached !== undefined) return cached;
   const labels =
     conversation.mode === 'tutor'
       ? `${SUBJECT_LABELS[conversation.tutor.subject]} ${LEVEL_LABELS[conversation.tutor.level]} tutor`
       : 'asistente';
+  const messageText = conversation.messages.map((message) => message.content);
   const attachmentNames = conversation.messages.flatMap(
     (message) => message.attachments?.map((attachment) => attachment.name) ?? [],
   );
-  return normalize(
-    [conversation.title, labels, ...attachmentNames].join(' '),
+  const haystack = normalize(
+    [conversation.title, labels, ...messageText, ...attachmentNames].join(' '),
   );
+  haystackCache.set(conversation, haystack);
+  return haystack;
 }
 
 function relativeDate(timestamp: number): string {

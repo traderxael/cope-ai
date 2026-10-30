@@ -58,6 +58,33 @@ describe('Sidebar', () => {
     expect(screen.getByText('Resultados')).toBeInTheDocument();
   });
 
+  it('encuentra coincidencias dentro de los mensajes', async () => {
+    const user = userEvent.setup();
+    renderSidebar([
+      conversation(),
+      conversation({
+        id: 'c3',
+        title: 'Resumen de clase',
+        messages: [
+          {
+            id: 'm1',
+            role: 'assistant',
+            content: 'Los cloroplastos captan la luz del sol.',
+            createdAt: Date.now(),
+          },
+        ],
+      }),
+    ]);
+
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Buscar conversaciones' }),
+      'cloroplastos',
+    );
+
+    expect(screen.getByText('Resumen de clase')).toBeInTheDocument();
+    expect(screen.queryByText('Fotosíntesis')).not.toBeInTheDocument();
+  });
+
   it('muestra el vacío de búsqueda y permite limpiarla', async () => {
     const user = userEvent.setup();
     renderSidebar([conversation()]);
