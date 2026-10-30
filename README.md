@@ -179,6 +179,9 @@ Variables opcionales:
   micrófono, corrección con puntajes y zonas de desempeño, respuesta modelo e
   historial local. La voz del navegador está siempre disponible y sigue el
   idioma de respuesta elegido en Personalidad.
+- **Conversación con el profesor:** preguntas encadenadas por voz o texto, con
+  avance automático, rúbrica por pregunta y resultado final de 0 a 100 con
+  próximos pasos.
 - **Podcast:** guion breve por materia o tema, con reproducción por la voz del
   navegador y texto para seguir la explicación.
 - **Modo enfoque:** temporizador Pomodoro de 25 minutos de estudio y 5 de
