@@ -33,6 +33,7 @@ import { StudyPlanDialog } from './features/study/StudyPlanDialog';
 import { PodcastDialog } from './features/podcast/PodcastDialog';
 import { FocusDialog } from './components/FocusDialog';
 import { OralExamDialog } from './features/oral-exam/OralExamDialog';
+import { OralConversationDialog } from './features/oral-exam/OralConversationDialog';
 import { applyPwaUpdate, setupPwa } from './lib/pwa';
 import {
   clearProfile,
@@ -67,6 +68,7 @@ export default function App() {
   const [flashcardsOpen, setFlashcardsOpen] = useState(false);
   const [studyPlanOpen, setStudyPlanOpen] = useState(false);
   const [oralExamOpen, setOralExamOpen] = useState(false);
+  const [oralConversationOpen, setOralConversationOpen] = useState(false);
   const [podcastOpen, setPodcastOpen] = useState(false);
   const [focusOpen, setFocusOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -299,6 +301,11 @@ export default function App() {
   const openOralExam = useCallback(() => {
     setTutorOpen(false);
     setOralExamOpen(true);
+  }, []);
+
+  const openOralConversation = useCallback(() => {
+    setTutorOpen(false);
+    setOralConversationOpen(true);
   }, []);
 
   const openPodcast = useCallback(() => {
@@ -542,6 +549,7 @@ export default function App() {
                     }
                     onOpenPlan={openStudyPlan}
                     onOpenOralExam={openOralExam}
+                    onOpenOralConversation={openOralConversation}
                     onOpenPodcast={openPodcast}
                     onSimulacro={() =>
                       handlePractice({
@@ -712,6 +720,16 @@ export default function App() {
         <OralExamDialog
           open={oralExamOpen}
           onClose={() => setOralExamOpen(false)}
+          tutor={tutor}
+          personality={chat.personality}
+          voice={chat.voice}
+          online={online}
+          onOpenSettings={openSettingsFromOral}
+        />
+
+        <OralConversationDialog
+          open={oralConversationOpen}
+          onClose={() => setOralConversationOpen(false)}
           tutor={tutor}
           personality={chat.personality}
           voice={chat.voice}
