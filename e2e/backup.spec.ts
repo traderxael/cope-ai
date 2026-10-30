@@ -11,7 +11,8 @@ test('descarga un respaldo con el historial local', async ({ page }) => {
     page
       .locator('.assistantRow')
       .last()
-      .getByRole('button', { name: 'Copiar' }),
+      .locator('.messageAction')
+      .filter({ hasText: 'Copiar' }),
   ).toBeVisible({ timeout: 20_000 });
 
   await page
@@ -50,7 +51,8 @@ test('restaura el respaldo después de borrar el historial', async ({
     page
       .locator('.assistantRow')
       .last()
-      .getByRole('button', { name: 'Copiar' }),
+      .locator('.messageAction')
+      .filter({ hasText: 'Copiar' }),
   ).toBeVisible({ timeout: 20_000 });
 
   await page

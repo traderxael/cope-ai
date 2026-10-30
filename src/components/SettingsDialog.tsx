@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   CURRICULUM_COUNTRIES,
   CURRICULUM_COUNTRY_LABELS,
@@ -82,6 +82,7 @@ export function SettingsDialog({
     'idle' | 'working' | 'done' | 'error'
   >('idle');
   const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
+  const restoreInputRef = useRef<HTMLInputElement>(null);
   const [country, setCountry] =
     useState<CurriculumCountry>(loadCurriculumCountry);
 
@@ -419,19 +420,25 @@ export function SettingsDialog({
             No se pudo generar el respaldo.
           </p>
         ) : null}
-        <label className="button ghost small">
+        <button
+          type="button"
+          className="button ghost small"
+          onClick={() => restoreInputRef.current?.click()}
+          disabled={backupState === 'working'}
+        >
           Restaurar respaldo
-          <input
-            type="file"
-            accept="application/json,.json"
-            hidden
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              event.target.value = '';
-              if (file) void restoreFile(file);
-            }}
-          />
-        </label>
+        </button>
+        <input
+          ref={restoreInputRef}
+          type="file"
+          accept="application/json,.json"
+          hidden
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            event.target.value = '';
+            if (file) void restoreFile(file);
+          }}
+        />
         <p className="settingsHint">
           Suma conversaciones, prácticas, mazos, planes y exámenes del archivo
           sin borrar los que ya tenés.

@@ -13,7 +13,8 @@ test('descarga una conversación en Markdown', async ({ page }) => {
     page
       .locator('.assistantRow')
       .last()
-      .getByRole('button', { name: 'Copiar' }),
+      .locator('.messageAction')
+      .filter({ hasText: 'Copiar' }),
   ).toBeVisible({ timeout: 20_000 });
 
   const item = page.locator('.desktopSidebar .conversationItem').first();
