@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { LIMITS } from '../../../shared/limits';
 import {
   DIFFICULTIES,
   LEVELS,
@@ -55,6 +56,7 @@ interface OralConversationDialogProps {
   voice: { tts: boolean; clone: boolean };
   online: boolean;
   onOpenSettings: () => void;
+  latestMaterial?: string;
 }
 
 type Count = (typeof ORAL_COUNT_OPTIONS)[number];
@@ -103,6 +105,7 @@ export function OralConversationDialog({
   voice,
   online,
   onOpenSettings,
+  latestMaterial,
 }: OralConversationDialogProps) {
   const [view, setView] = useState<View>('setup');
   const [busy, setBusy] = useState(false);
@@ -126,6 +129,7 @@ export function OralConversationDialog({
     useState<Difficulty>('medium');
   const [setupTopics, setSetupTopics] = useState('');
   const [setupCount, setSetupCount] = useState<Count>(5);
+  const [useMaterial, setUseMaterial] = useState(false);
   const dictationRef = useRef<Dictation | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -155,6 +159,7 @@ export function OralConversationDialog({
     setSetupDifficulty('medium');
     setSetupTopics('');
     setSetupCount(5);
+    setUseMaterial(false);
     setVoiceSettings(loadVoiceSettings());
     const controller = abortControllerRef.current;
     return () => {
@@ -208,6 +213,14 @@ export function OralConversationDialog({
       country: curriculumCountryForRequest(),
       topics: parseTopics(setupTopics),
       count: setupCount,
+      ...(useMaterial && latestMaterial
+        ? {
+            sourceText: latestMaterial.slice(
+              0,
+              LIMITS.maxSourceTextChars,
+            ),
+          }
+        : {}),
     };
     setBusy(true);
     setError(null);
@@ -579,6 +592,25 @@ export function OralConversationDialog({
                 </div>
               </div>
             </div>
+
+            {latestMaterial ? (
+              <label className="switchRow">
+                <span>
+                  <span className="fieldLabel">Usar el último material</span>
+                  <span className="fieldHint">
+                    PDF, TXT o subtítulos de esta conversación
+                  </span>
+                </span>
+                <input
+                  type="checkbox"
+                  className="switchInput"
+                  checked={useMaterial}
+                  onChange={(event) => setUseMaterial(event.target.checked)}
+                  disabled={busy}
+                />
+                <span className="switchVisual" aria-hidden="true" />
+              </label>
+            ) : null}
 
             <div className="fieldGroup">
               <span className="fieldLabel">Preguntas</span>
