@@ -210,7 +210,8 @@ Variables opcionales:
   en IndexedDB; el servidor no los guarda. La barra lateral busca en el título,
   la materia, el nivel, el nombre del archivo y el texto de los mensajes, sin
   distinguir acentos ni mayúsculas. Cada conversación se descarga en Markdown
-  desde el historial, y Ajustes ofrece un respaldo JSON con todo el progreso.
+  desde el historial, y Ajustes ofrece un respaldo JSON con todo el progreso y
+  la restauración de conversaciones.
 - **Streaming real:** SSE desde el proxy, con botón de detener, respuesta parcial
   conservada y reintento.
 - **Barra de carga con tiempo estimado:** mientras la IA responde, una barra

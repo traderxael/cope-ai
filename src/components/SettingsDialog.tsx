@@ -13,7 +13,7 @@ import {
 } from '../../shared/types';
 import type { AiProvider, VoiceCapabilities } from '../lib/api';
 import { formatBytes } from '../lib/attachments';
-import { downloadBackup } from '../lib/backup';
+import { downloadBackup, restoreConversations } from '../lib/backup';
 import {
   loadCurriculumCountry,
   saveCurriculumCountry,
@@ -81,6 +81,7 @@ export function SettingsDialog({
   const [backupState, setBackupState] = useState<
     'idle' | 'working' | 'done' | 'error'
   >('idle');
+  const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
   const [country, setCountry] =
     useState<CurriculumCountry>(loadCurriculumCountry);
 
@@ -120,6 +121,26 @@ export function SettingsDialog({
       setBackupState('done');
     } catch {
       setBackupState('error');
+    }
+  };
+
+  const restoreFile = async (file: File) => {
+    setRestoreMessage(null);
+    if (file.size > 10 * 1024 * 1024) {
+      setRestoreMessage('El archivo supera los 10 MB.');
+      return;
+    }
+    setBackupState('working');
+    try {
+      await restoreConversations(await file.text());
+      window.location.reload();
+    } catch (error) {
+      setBackupState('error');
+      setRestoreMessage(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo restaurar el respaldo.',
+      );
     }
   };
 
@@ -393,9 +414,30 @@ export function SettingsDialog({
             Respaldo descargado.
           </p>
         ) : null}
-        {backupState === 'error' ? (
+        {backupState === 'error' && !restoreMessage ? (
           <p className="settingsHint" role="alert">
             No se pudo generar el respaldo.
+          </p>
+        ) : null}
+        <label className="button ghost small">
+          Restaurar conversaciones
+          <input
+            type="file"
+            accept="application/json,.json"
+            hidden
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = '';
+              if (file) void restoreFile(file);
+            }}
+          />
+        </label>
+        <p className="settingsHint">
+          Suma las conversaciones del archivo sin borrar las que ya tenés.
+        </p>
+        {restoreMessage ? (
+          <p className="settingsHint" role="alert">
+            {restoreMessage}
           </p>
         ) : null}
       </div>
