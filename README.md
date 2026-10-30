@@ -179,7 +179,8 @@ Variables opcionales:
   repaso con repetición espaciada y decks persistentes. “Todo al día” no
   reprograma tarjetas sin vencer.
 - **Plan de examen:** 3 a 14 días, fecha y temas; tareas de estudio, práctica,
-  repaso y descanso con avance marcable.
+  repaso y descanso con avance marcable. Puede basarse en el último PDF, TXT o
+  subtítulos de la conversación.
 - **Examen oral:** preguntas abiertas con rúbrica, respuesta por texto o
   micrófono, corrección con puntajes y zonas de desempeño, respuesta modelo e
   historial local. La voz del navegador está siempre disponible y sigue el

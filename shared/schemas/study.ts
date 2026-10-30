@@ -127,6 +127,12 @@ export const studyPlanRequestSchema = z.object({
   difficulty: difficultySchema.default('medium'),
   country: z.enum(CURRICULUM_COUNTRIES).optional(),
   language: responseLanguageSchema.optional(),
+  sourceText: z
+    .string()
+    .trim()
+    .max(LIMITS.maxSourceTextChars)
+    .transform((value) => (value ? value : undefined))
+    .optional(),
   examDate: z
     .string()
     .trim()

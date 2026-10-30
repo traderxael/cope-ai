@@ -765,6 +765,7 @@ export default function App() {
           tutor={tutor}
           online={online}
           suggestedExamDate={profile?.examDate}
+          latestMaterial={latestPdfText}
         />
 
         <FocusDialog

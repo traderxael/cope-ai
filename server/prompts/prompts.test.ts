@@ -155,6 +155,7 @@ describe('prompts', () => {
       examDate: '2026-12-15',
       topics: ['equilibrio', 'ácidos'],
       days: 5,
+      sourceText: 'Capítulo 4: equilibrio químico y ácidos.',
     };
     const system = buildStudyPlanSystemPrompt(request);
     expect(system).toContain('Química');
@@ -164,8 +165,12 @@ describe('prompts', () => {
     expect(system).toContain('exactamente 5 días');
     expect(system).toContain('study, practice, review o rest');
     expect(system).toContain('No incluyas fechas ni ids');
+    expect(system).toContain('material de referencia');
 
-    expect(buildStudyPlanUserPrompt(request)).toContain('5 días');
+    const user = buildStudyPlanUserPrompt(request);
+    expect(user).toContain('5 días');
+    expect(user).toContain('<material>');
+    expect(user).toContain('Capítulo 4: equilibrio químico y ácidos.');
   });
 
   it('usa el material de referencia en la práctica', () => {

@@ -343,4 +343,45 @@ test.describe('suite de estudio', () => {
       sourceText: 'La fotosíntesis convierte la luz en energía química.',
     });
   });
+
+  test('genera el plan a partir del material adjunto', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+
+    await page
+      .getByLabel('Seleccionar archivo para adjuntar')
+      .setInputFiles({
+        name: 'plan.txt',
+        mimeType: 'text/plain',
+        buffer: Buffer.from('Unidad 4: equilibrio químico y ácidos.'),
+      });
+    await page.getByLabel('Mensaje para Cope').fill('Guardá este material');
+    await page.getByRole('button', { name: 'Enviar mensaje' }).click();
+    await expect(
+      page.locator('.assistantRow').last(),
+    ).toBeVisible({ timeout: 20_000 });
+
+    await page.getByRole('button', { name: 'Tutor' }).click();
+    await page
+      .locator('.tutorAside')
+      .getByRole('button', { name: 'Plan de examen' })
+      .click();
+    const dialog = page.locator('dialog[open]');
+    await dialog.getByRole('button', { name: 'Nuevo plan' }).click();
+    await dialog
+      .locator('.switchRow')
+      .filter({ hasText: 'Usar el último material' })
+      .click();
+
+    const planRequest = page.waitForRequest(
+      (request) =>
+        request.url().includes('/api/study-plan') &&
+        request.method() === 'POST',
+    );
+    await dialog.getByRole('button', { name: 'Generar plan' }).click();
+
+    expect((await planRequest).postDataJSON()).toMatchObject({
+      sourceText: 'Unidad 4: equilibrio químico y ácidos.',
+    });
+  });
 });
