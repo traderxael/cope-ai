@@ -44,7 +44,8 @@ export async function prepareAttachment(file: File): Promise<StoredAttachment> {
     name.endsWith('.vtt') ||
     name.endsWith('.sbv') ||
     name.endsWith('.ass') ||
-    name.endsWith('.ssa');
+    name.endsWith('.ssa') ||
+    name.endsWith('.sub');
   const isPptx =
     file.type ===
       'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
@@ -52,7 +53,7 @@ export async function prepareAttachment(file: File): Promise<StoredAttachment> {
 
   if (!isImage && !isPdf && !isText && !isSubtitle && !isPptx) {
     throw new AttachmentError(
-      'Solo se pueden adjuntar imágenes PNG, JPG, WebP, un PDF, un TXT, subtítulos (SRT, VTT, SBV, ASS) o una presentación PPTX.',
+      'Solo se pueden adjuntar imágenes PNG, JPG, WebP, un PDF, un TXT, subtítulos (SRT, VTT, SBV, ASS, SUB) o una presentación PPTX.',
     );
   }
 

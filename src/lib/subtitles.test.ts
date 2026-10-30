@@ -77,6 +77,17 @@ describe('extractSubtitleText', () => {
     );
   });
 
+  it('extrae subtítulos MicroDVD .sub con varias líneas', () => {
+    const sub = [
+      '{0}{25}La energía se conserva,',
+      '{26}{50}{Y:i}aunque|puede transformarse.',
+    ].join('\n');
+
+    expect(extractSubtitleText(sub)).toBe(
+      ['La energía se conserva,', 'aunque puede transformarse.'].join('\n'),
+    );
+  });
+
   it('descarta bloques sin marcas de tiempo', () => {
     expect(extractSubtitleText('WEBVTT\n\nSTYLE\n::cue { color: red }')).toBe(
       '',

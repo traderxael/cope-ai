@@ -813,14 +813,14 @@ export function useChatApp(): ChatAppState {
                 file.type === 'text/vtt' ||
                 file.type === 'application/x-subrip' ||
                 file.type === 'text/x-ssa' ||
-                /\.(txt|srt|vtt|sbv|ass|ssa|pptx)$/i.test(file.name) ||
+                /\.(txt|srt|vtt|sbv|ass|ssa|sub|pptx)$/i.test(file.name) ||
                 file.type ===
                   'application/vnd.openxmlformats-officedocument.presentationml.presentation'
               ? 'text'
               : null;
         if (!kind) {
           error = file.type.startsWith('video/')
-            ? 'Para estudiar un video, adjuntá sus subtítulos .srt, .vtt, .sbv o .ass; la IA gratis no transcribe audio.'
+            ? 'Para estudiar un video, adjuntá sus subtítulos .srt, .vtt, .sbv, .ass o .sub; la IA gratis no transcribe audio.'
             : 'Solo se pueden adjuntar PNG, JPG, WebP, PDF, TXT, subtítulos o PPTX.';
           continue;
         }

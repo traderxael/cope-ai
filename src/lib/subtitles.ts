@@ -95,11 +95,29 @@ function extractAss(normalized: string): string {
   return output.join('\n');
 }
 
+function extractMicroDvd(normalized: string): string {
+  const output: string[] = [];
+  for (const line of normalized.split('\n')) {
+    const cue = line.match(/^\{\d+\}\{\d+\}(.*)$/);
+    if (!cue) continue;
+    const text = cleanCueLine(
+      cue[1]!
+        .replace(/\{[^}]*\}/g, '')
+        .replace(/\|/g, ' '),
+    );
+    pushText(output, text);
+  }
+  return output.join('\n');
+}
+
 export function extractSubtitleText(content: string): string {
   const normalized = content.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
 
   if (/^\s*\[Script Info\]/im.test(normalized) || /^\s*Dialogue:/im.test(normalized)) {
     return extractAss(normalized);
+  }
+  if (/^\{\d+\}\{\d+\}/m.test(normalized)) {
+    return extractMicroDvd(normalized);
   }
   if (normalized.includes('-->')) {
     return extractTimedBlocks(normalized);
