@@ -5132,6 +5132,11 @@ img {
   gap: 16px;
 }
 
+.oralConversationRunner .quizProgress {
+  width: 100%;
+  flex: none;
+}
+
 .oralConversationRunner .oralPrompt h3 {
   margin: 4px 0 12px;
   font-family: var(--font-display);

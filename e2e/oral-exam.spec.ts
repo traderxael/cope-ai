@@ -112,4 +112,24 @@ test.describe('examen oral', () => {
     await expect(dialog.getByLabel('Voz')).toHaveValue('cercana');
     await expect(dialog.getByLabel('Voz')).toBeEnabled();
   });
+
+  test('inicia una conversación guiada con el profesor', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Tutor' }).click();
+    await page
+      .getByRole('button', { name: /Conversar con el profesor/ })
+      .click();
+
+    const dialog = page.locator('dialog[open]');
+    await dialog
+      .getByRole('button', { name: 'Empezar conversación' })
+      .click();
+
+    await expect(
+      dialog.getByRole('progressbar', { name: 'Preguntas de la conversación' }),
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(dialog.getByText(/Pregunta 1 de 5/)).toBeVisible();
+    await expect(dialog.locator('.oralPrompt')).toContainText('Pregunta 1');
+  });
 });
