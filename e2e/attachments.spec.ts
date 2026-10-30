@@ -322,7 +322,7 @@ test.describe('adjuntos', () => {
         buffer: Buffer.from('video'),
       });
     await expect(page.getByRole('alert')).toContainText(
-      'adjuntá sus subtítulos .srt o .vtt',
+      'adjuntá sus subtítulos',
     );
   });
 });

@@ -20,11 +20,12 @@ function cleanCueLine(line: string): string {
     .trim();
 }
 
-export function extractSubtitleText(content: string): string {
-  const blocks = content
-    .replace(/^\uFEFF/, '')
-    .replace(/\r\n?/g, '\n')
-    .split(/\n{2,}/);
+function pushText(output: string[], text: string): void {
+  if (text && output[output.length - 1] !== text) output.push(text);
+}
+
+function extractTimedBlocks(normalized: string): string {
+  const blocks = normalized.split(/\n{2,}/);
   const output: string[] = [];
 
   for (const block of blocks) {
@@ -40,11 +41,75 @@ export function extractSubtitleText(content: string): string {
     if (timestamp === -1) continue;
 
     for (const line of lines.slice(timestamp + 1)) {
-      const text = cleanCueLine(line);
-      if (!text) continue;
-      if (output[output.length - 1] !== text) output.push(text);
+      pushText(output, cleanCueLine(line));
     }
   }
 
   return output.join('\n');
+}
+
+function extractSbv(normalized: string): string {
+  const timestampPattern =
+    /^\d+:\d{2}:\d{2}[.,]\d{3}\s*,\s*\d+:\d{2}:\d{2}[.,]\d{3}$/;
+  const blocks = normalized.split(/\n{2,}/);
+  const output: string[] = [];
+
+  for (const block of blocks) {
+    const lines = block
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
+    if (!lines.length) continue;
+    if (!timestampPattern.test(lines[0] ?? '')) continue;
+
+    pushText(
+      output,
+      cleanCueLine(
+        lines
+          .slice(1)
+          .join(' ')
+          .replace(/\[[^\]]*\]/g, ''),
+      ),
+    );
+  }
+
+  return output.join('\n');
+}
+
+function extractAss(normalized: string): string {
+  const output: string[] = [];
+  for (const line of normalized.split('\n')) {
+    const dialogue = line.match(/^\s*Dialogue:\s*(.*)$/i);
+    if (!dialogue) continue;
+    const fields = dialogue[1]!.split(',');
+    if (fields.length < 10) continue;
+    const text = cleanCueLine(
+      fields
+        .slice(9)
+        .join(',')
+        .replace(/\{[^}]*\}/g, '')
+        .replace(/\\[Nn]/g, ' '),
+    );
+    pushText(output, text);
+  }
+  return output.join('\n');
+}
+
+export function extractSubtitleText(content: string): string {
+  const normalized = content.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
+
+  if (/^\s*\[Script Info\]/im.test(normalized) || /^\s*Dialogue:/im.test(normalized)) {
+    return extractAss(normalized);
+  }
+  if (normalized.includes('-->')) {
+    return extractTimedBlocks(normalized);
+  }
+  if (
+    /\d+:\d{2}:\d{2}[.,]\d{3}\s*,\s*\d+:\d{2}:\d{2}[.,]\d{3}/.test(
+      normalized,
+    )
+  ) {
+    return extractSbv(normalized);
+  }
+  return '';
 }

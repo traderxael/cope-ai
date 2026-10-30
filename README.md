@@ -199,7 +199,8 @@ Variables opcionales:
   propietario, y no guarda el audio en el servidor.
 - **Asistente:** chat general con markdown, tablas, código y matemáticas KaTeX.
 - **Adjuntos:** hasta 2 imágenes por conversación (redimensionadas a JPEG), foto
-  de tarea con la cámara trasera y un PDF, TXT, subtítulos SRT/VTT o PPTX por
+  de tarea con la cámara trasera y un PDF, TXT, subtítulos (SRT, VTT, SBV o
+  ASS) o PPTX por
   mensaje (texto extraído localmente, sin OCR). Los subtítulos permiten estudiar
   una clase en video sin subir el video.
 - **Historial local:** conversaciones, prácticas, decks, planes y exámenes orales
@@ -302,7 +303,7 @@ El detalle de la última tanda de cambios, con lo que quedó pendiente, está en
   enviados por el cliente.
 - Topes: 3 MB por body, 24 mensajes, 24.000 caracteres por mensaje, 32.000 en
   total, 2 imágenes de hasta 1,2 MB como data URL, 1 PDF (20 páginas y 20.000
-  caracteres extraídos), TXT o subtítulos SRT/VTT (2 MB y 8.000 caracteres) o
+  caracteres extraídos), TXT o subtítulos (2 MB y 8.000 caracteres) o
   PPTX (15 MB y 40 diapositivas) por mensaje, 1.200 tokens de salida por
   respuesta de chat.
   Práctica: 5 o 10 preguntas y 5.000 tokens. Flashcards: 6 a 10 tarjetas,
@@ -389,7 +390,7 @@ suite automática porque dependen de tu clave y tu cuenta.
 - La personalidad y la preferencia de voz se guardan en almacenamiento local; el
   código de propietario vive solo en `sessionStorage`.
 - El PDF original no se sube desde el dispositivo: solo viaja el texto extraído.
-  El TXT, los subtítulos SRT/VTT y el texto de las diapositivas PPTX se leen
+  El TXT, los subtítulos SRT/VTT/SBV/ASS y el texto de las diapositivas PPTX se leen
   localmente y también viajan solo como texto.
 - Las imágenes (incluidas las fotos de tarea) y los mensajes sí se envían al
   proveedor configurado cuando usás IA real.

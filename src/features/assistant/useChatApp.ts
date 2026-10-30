@@ -812,15 +812,16 @@ export function useChatApp(): ChatAppState {
             : file.type === 'text/plain' ||
                 file.type === 'text/vtt' ||
                 file.type === 'application/x-subrip' ||
-                /\.(txt|srt|vtt|pptx)$/i.test(file.name) ||
+                file.type === 'text/x-ssa' ||
+                /\.(txt|srt|vtt|sbv|ass|ssa|pptx)$/i.test(file.name) ||
                 file.type ===
                   'application/vnd.openxmlformats-officedocument.presentationml.presentation'
               ? 'text'
               : null;
         if (!kind) {
           error = file.type.startsWith('video/')
-            ? 'Para estudiar un video, adjuntá sus subtítulos .srt o .vtt; la IA gratis no transcribe audio.'
-            : 'Solo se pueden adjuntar PNG, JPG, WebP, PDF, TXT, SRT/VTT o PPTX.';
+            ? 'Para estudiar un video, adjuntá sus subtítulos .srt, .vtt, .sbv o .ass; la IA gratis no transcribe audio.'
+            : 'Solo se pueden adjuntar PNG, JPG, WebP, PDF, TXT, subtítulos o PPTX.';
           continue;
         }
         const limit = attachmentLimitError(current, kind);
