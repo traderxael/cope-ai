@@ -42,6 +42,14 @@ describe('parseOralGradeJson', () => {
     expect(parseOralGradeJson(raw)?.results).toHaveLength(3);
   });
 
+  it('repara comillas dobles internas del modelo', () => {
+    const raw =
+      '{"results":[{"questionId":"q1","score":3,"strengths":["Bien "claro" y preciso"],"improvements":["Falta "ejemplo""],"modelAnswer":"Una "fracción" equivalente."}],"summary":"Buen "trabajo" general.","nextSteps":["Practicar "ejemplos""]}';
+    const parsed = parseOralGradeJson(raw);
+    expect(parsed?.results[0]?.strengths[0]).toBe('Bien "claro" y preciso');
+    expect(parsed?.summary).toBe('Buen "trabajo" general.');
+  });
+
   it('rechaza puntajes fuera de escala', () => {
     expect(
       parseOralGradeJson(
