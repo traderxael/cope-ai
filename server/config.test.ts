@@ -24,6 +24,15 @@ describe('readServerConfig', () => {
     expect(config.demo).toBe(true);
   });
 
+  it('ignora el modo demo en producción de Vercel', () => {
+    const config = readServerConfig({
+      COPE_DEMO: '1',
+      VERCEL_ENV: 'production',
+    });
+    expect(config.provider).toBe('pollinations');
+    expect(config.demo).toBe(false);
+  });
+
   it('elige Ollama local con COPE_AI_PROVIDER=ollama', () => {
     const config = readServerConfig({
       COPE_AI_PROVIDER: 'ollama',

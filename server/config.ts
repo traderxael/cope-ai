@@ -67,7 +67,8 @@ export function readServerConfig(
 ): ServerConfig {
   const openAiKey = env.OPENAI_API_KEY?.trim() || null;
   const openAiModel = env.OPENAI_MODEL?.trim() || null;
-  const forcedDemo = env.COPE_DEMO === '1';
+  const forcedDemo =
+    env.COPE_DEMO === '1' && env.VERCEL_ENV !== 'production';
   const requested = (env.COPE_AI_PROVIDER?.trim().toLowerCase() || 'auto') as
     | 'auto'
     | AiProvider;

@@ -127,7 +127,7 @@ Variables opcionales:
 | `OLLAMA_VISION=1` | Permite imágenes si el modelo local tiene visión |
 | `POLLINATIONS_MODEL` | Modelo de la nube gratuita (default `openai`) |
 | `POLLINATIONS_API_KEY` | Clave opcional de Pollinations para más cuota |
-| `COPE_DEMO=1` | Fixtures deterministas solo para tests internos |
+| `COPE_DEMO=1` | Fixtures deterministas solo para tests internos; se ignora en producción de Vercel |
 | `COPE_DEMO_DELAY_MS` | Ritmo del streaming de fixtures (default 15) |
 | `COPE_RATE_LIMIT_PER_MINUTE` | Límite por IP para chat (default 10) |
 | `COPE_QUIZ_RATE_LIMIT_PER_MINUTE` | Límite por IP para práctica (default 5) |
