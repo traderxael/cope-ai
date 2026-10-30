@@ -286,4 +286,24 @@ test.describe('suite de estudio', () => {
       language: 'en',
     });
   });
+
+  test('el simulacro usa el formato sugerido del país', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('cope-curriculum-v1', 'cl');
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Tutor' }).click();
+
+    const quizRequest = page.waitForRequest(
+      (request) =>
+        request.url().includes('/api/quiz') && request.method() === 'POST',
+    );
+    await page.getByRole('button', { name: /Simulacro/ }).click();
+
+    expect((await quizRequest).postDataJSON()).toMatchObject({
+      count: 10,
+      examFormat: 'paes',
+    });
+  });
 });

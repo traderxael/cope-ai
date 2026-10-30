@@ -34,6 +34,8 @@ import { PodcastDialog } from './features/podcast/PodcastDialog';
 import { FocusDialog } from './components/FocusDialog';
 import { OralExamDialog } from './features/oral-exam/OralExamDialog';
 import { applyPwaUpdate, setupPwa } from './lib/pwa';
+import { loadCurriculumCountry } from './lib/curriculum';
+import { suggestedExamFormat } from '../shared/exams';
 import {
   clearProfile,
   loadProfile,
@@ -535,7 +537,12 @@ export default function App() {
                       submit(prompt);
                     }}
                     onPractice={() =>
-                      handlePractice(DEFAULT_PRACTICE_SETTINGS)
+                      handlePractice({
+                        ...DEFAULT_PRACTICE_SETTINGS,
+                        examFormat: suggestedExamFormat(
+                          loadCurriculumCountry(),
+                        ),
+                      })
                     }
                     onStyleChange={(style) =>
                       chat.actions.updateTutor({ style })
@@ -548,7 +555,9 @@ export default function App() {
                         count: 10,
                         difficulty: 'medium',
                         timed: true,
-                        examFormat: 'general',
+                        examFormat: suggestedExamFormat(
+                          loadCurriculumCountry(),
+                        ),
                       })
                     }
                     practiceLoading={chat.practiceLoading}
