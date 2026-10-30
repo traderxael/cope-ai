@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { LIMITS } from '../../../shared/limits';
 import { SUBJECTS } from '../../../shared/schemas/common';
 import {
@@ -94,6 +94,16 @@ export function TutorPanel({
     country !== 'general' ? CURRICULUM_OFFICIAL_SOURCES[country] : null;
   const [examFormat, setExamFormat] = useState<ExamFormat>(countryFormat);
   const examFormatId = useId();
+  const suggestedRef = useRef(countryFormat);
+
+  useEffect(() => {
+    if (suggestedRef.current === countryFormat) return;
+    const previous = suggestedRef.current;
+    suggestedRef.current = countryFormat;
+    setExamFormat((current) =>
+      current === previous ? countryFormat : current,
+    );
+  }, [countryFormat]);
 
   const practiceDisabled = disabled || practiceLoading || !online;
 

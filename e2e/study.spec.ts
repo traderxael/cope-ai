@@ -273,6 +273,35 @@ test.describe('suite de estudio', () => {
     ).toHaveAttribute('href', 'https://demre.cl/');
   });
 
+  test('actualiza el formato al cambiar el país en ajustes', async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('cope-curriculum-v1', 'cl');
+    });
+    const panel = await openTutor(page);
+    await expect(panel.getByLabel('Formato de examen')).toHaveValue('paes');
+
+    await page
+      .locator('.desktopSidebar')
+      .getByRole('button', { name: 'Ajustes' })
+      .click();
+    const dialog = page.locator('dialog[open]');
+    await dialog.getByLabel('País de referencia').selectOption('mx');
+    await dialog.getByRole('button', { name: 'Cerrar' }).click();
+
+    await expect(panel.getByLabel('Formato de examen')).toHaveValue(
+      'admision',
+    );
+    await expect(
+      panel.getByText('Sugerido para tu país: Admisión (México).'),
+    ).toBeVisible();
+    await expect(panel.getByRole('link', { name: 'Ceneval' })).toHaveAttribute(
+      'href',
+      'https://www.ceneval.edu.mx/',
+    );
+  });
+
   test('envía el idioma de respuestas a la práctica', async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem(
