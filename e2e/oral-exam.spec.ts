@@ -131,5 +131,25 @@ test.describe('examen oral', () => {
     ).toBeVisible({ timeout: 20_000 });
     await expect(dialog.getByText(/Pregunta 1 de 5/)).toBeVisible();
     await expect(dialog.locator('.oralPrompt')).toContainText('Pregunta 1');
+
+    await dialog.getByLabel('Tu respuesta').fill('x = 6');
+    await dialog.getByRole('button', { name: 'Siguiente pregunta' }).click();
+    await expect(dialog.getByText(/Pregunta 2 de 5/)).toBeVisible({
+      timeout: 30_000,
+    });
+
+    for (let question = 3; question <= 5; question += 1) {
+      await dialog.getByRole('button', { name: 'Omitir' }).click();
+      await expect(
+        dialog.getByText(new RegExp(`Pregunta ${question} de 5`)),
+      ).toBeVisible({ timeout: 30_000 });
+    }
+
+    await dialog
+      .getByRole('button', { name: 'Terminar y calificar' })
+      .click();
+    await expect(
+      dialog.getByText('Resultado de la conversación'),
+    ).toBeVisible({ timeout: 30_000 });
   });
 });

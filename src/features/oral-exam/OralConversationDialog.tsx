@@ -9,6 +9,7 @@ import type {
   Level,
   OralExamConfig,
   OralGradeResponse,
+  OralQuestion,
   PersonalityConfig,
   Subject,
   TutorConfig,
@@ -110,9 +111,7 @@ export function OralConversationDialog({
   const [voiceSettings, setVoiceSettings] =
     useState<VoiceSettingsValue>(loadVoiceSettings);
   const [index, setIndex] = useState(0);
-  const [questions, setQuestions] = useState<
-    Array<{ id: string; prompt: string }>
-  >([]);
+  const [questions, setQuestions] = useState<OralQuestion[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [conversationGrade, setConversationGrade] =
     useState<OralGradeResponse | null>(null);
@@ -214,12 +213,7 @@ export function OralConversationDialog({
     setError(null);
     try {
       const exam = await requestOralExam(config, personality);
-      setQuestions(
-        exam.questions.map((question) => ({
-          id: question.id,
-          prompt: question.prompt,
-        })),
-      );
+      setQuestions(exam.questions);
       conversationStartTime = Date.now();
       setIndex(0);
       setDraftAnswer('');
@@ -392,8 +386,8 @@ export function OralConversationDialog({
       const questionsFull = questions.map((q) => ({
         id: q.id,
         prompt: q.prompt,
-        expectedPoints: [],
-        rubric: 'Respuesta abierta evaluada por el tutor.',
+        expectedPoints: q.expectedPoints,
+        rubric: q.rubric,
       }));
       const grade = await requestOralGrade(
         config,
