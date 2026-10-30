@@ -13,7 +13,7 @@ import {
 } from '../../shared/types';
 import type { AiProvider, VoiceCapabilities } from '../lib/api';
 import { formatBytes } from '../lib/attachments';
-import { downloadBackup, restoreConversations } from '../lib/backup';
+import { downloadBackup, restoreBackup } from '../lib/backup';
 import {
   loadCurriculumCountry,
   saveCurriculumCountry,
@@ -132,7 +132,7 @@ export function SettingsDialog({
     }
     setBackupState('working');
     try {
-      await restoreConversations(await file.text());
+      await restoreBackup(await file.text());
       window.location.reload();
     } catch (error) {
       setBackupState('error');
@@ -420,7 +420,7 @@ export function SettingsDialog({
           </p>
         ) : null}
         <label className="button ghost small">
-          Restaurar conversaciones
+          Restaurar respaldo
           <input
             type="file"
             accept="application/json,.json"
@@ -433,7 +433,8 @@ export function SettingsDialog({
           />
         </label>
         <p className="settingsHint">
-          Suma las conversaciones del archivo sin borrar las que ya tenés.
+          Suma conversaciones, prácticas, mazos, planes y exámenes del archivo
+          sin borrar los que ya tenés.
         </p>
         {restoreMessage ? (
           <p className="settingsHint" role="alert">

@@ -5,6 +5,10 @@ import {
   listPracticeResults,
   listStudyPlans,
   saveConversation,
+  saveFlashcardDeck,
+  saveOralExam,
+  savePracticeResult,
+  saveStudyPlan,
   type Conversation,
   type FlashcardDeck,
   type OralExamSession,
@@ -52,7 +56,11 @@ export function backupFileName(date = new Date()): string {
 }
 
 export interface RestoreResult {
-  restored: number;
+  conversations: number;
+  practices: number;
+  decks: number;
+  plans: number;
+  oralExams: number;
   skipped: number;
 }
 
@@ -107,9 +115,93 @@ function isConversation(value: unknown): value is Conversation {
   );
 }
 
-export async function restoreConversations(
-  raw: string,
-): Promise<RestoreResult> {
+function isPractice(value: unknown): value is PracticeResult {
+  return (
+    isRecord(value) &&
+    typeof value.id === 'string' &&
+    typeof value.subject === 'string' &&
+    typeof value.level === 'string' &&
+    typeof value.difficulty === 'string' &&
+    typeof value.questionCount === 'number' &&
+    typeof value.timed === 'boolean' &&
+    typeof value.durationSeconds === 'number' &&
+    typeof value.startedAt === 'number' &&
+    typeof value.completedAt === 'number' &&
+    typeof value.score === 'number' &&
+    Array.isArray(value.questions) &&
+    Array.isArray(value.answers)
+  );
+}
+
+function isDeck(value: unknown): value is FlashcardDeck {
+  return (
+    isRecord(value) &&
+    typeof value.id === 'string' &&
+    typeof value.title === 'string' &&
+    typeof value.subject === 'string' &&
+    typeof value.level === 'string' &&
+    Array.isArray(value.cards) &&
+    typeof value.createdAt === 'number' &&
+    typeof value.updatedAt === 'number'
+  );
+}
+
+function isPlan(value: unknown): value is StudyPlan {
+  return (
+    isRecord(value) &&
+    typeof value.id === 'string' &&
+    typeof value.title === 'string' &&
+    typeof value.subject === 'string' &&
+    typeof value.level === 'string' &&
+    typeof value.examDate === 'string' &&
+    Array.isArray(value.topics) &&
+    Array.isArray(value.days) &&
+    typeof value.createdAt === 'number' &&
+    typeof value.updatedAt === 'number'
+  );
+}
+
+function isOralExam(value: unknown): value is OralExamSession {
+  return (
+    isRecord(value) &&
+    typeof value.id === 'string' &&
+    isRecord(value.config) &&
+    isRecord(value.personality) &&
+    Array.isArray(value.questions) &&
+    isRecord(value.answers) &&
+    (value.status === 'in_progress' || value.status === 'graded') &&
+    typeof value.startedAt === 'number' &&
+    typeof value.updatedAt === 'number'
+  );
+}
+
+function asArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+async function restoreCollection<T>(
+  items: unknown[],
+  isValid: (value: unknown) => value is T,
+  save: (value: T) => Promise<void>,
+): Promise<{ restored: number; skipped: number }> {
+  let restored = 0;
+  let skipped = 0;
+  for (const item of items) {
+    if (!isValid(item)) {
+      skipped += 1;
+      continue;
+    }
+    try {
+      await save(item);
+      restored += 1;
+    } catch {
+      skipped += 1;
+    }
+  }
+  return { restored, skipped };
+}
+
+export async function restoreBackup(raw: string): Promise<RestoreResult> {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
@@ -119,30 +211,60 @@ export async function restoreConversations(
   if (
     !isRecord(parsed) ||
     parsed.app !== BACKUP_APP ||
-    parsed.version !== BACKUP_VERSION ||
-    !Array.isArray(parsed.conversations)
+    parsed.version !== BACKUP_VERSION
   ) {
     throw new Error('El archivo no es un respaldo válido de Cope AI.');
   }
 
-  let restored = 0;
-  let skipped = 0;
-  for (const item of parsed.conversations) {
-    if (!isConversation(item)) {
-      skipped += 1;
-      continue;
-    }
-    try {
-      await saveConversation(item);
-      restored += 1;
-    } catch {
-      skipped += 1;
-    }
+  const conversations = await restoreCollection(
+    asArray(parsed.conversations),
+    isConversation,
+    saveConversation,
+  );
+  const practices = await restoreCollection(
+    asArray(parsed.practices),
+    isPractice,
+    savePracticeResult,
+  );
+  const decks = await restoreCollection(
+    asArray(parsed.decks),
+    isDeck,
+    saveFlashcardDeck,
+  );
+  const plans = await restoreCollection(
+    asArray(parsed.plans),
+    isPlan,
+    saveStudyPlan,
+  );
+  const oralExams = await restoreCollection(
+    asArray(parsed.oralExams),
+    isOralExam,
+    saveOralExam,
+  );
+
+  const result: RestoreResult = {
+    conversations: conversations.restored,
+    practices: practices.restored,
+    decks: decks.restored,
+    plans: plans.restored,
+    oralExams: oralExams.restored,
+    skipped:
+      conversations.skipped +
+      practices.skipped +
+      decks.skipped +
+      plans.skipped +
+      oralExams.skipped,
+  };
+  const restored =
+    result.conversations +
+    result.practices +
+    result.decks +
+    result.plans +
+    result.oralExams;
+  if (restored === 0 && result.skipped > 0) {
+    throw new Error('El respaldo no tiene datos válidos.');
   }
-  if (restored === 0 && skipped > 0) {
-    throw new Error('El respaldo no tiene conversaciones válidas.');
-  }
-  return { restored, skipped };
+  return result;
 }
 
 export async function downloadBackup(): Promise<void> {
