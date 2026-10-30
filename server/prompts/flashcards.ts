@@ -21,6 +21,7 @@ Reglas:
 - La explicación es opcional, de hasta 500 caracteres.
 - No repitas tarjetas ni uses datos inventados.
 - Alineá el vocabulario al nivel indicado.
+- No uses comillas dobles dentro de los textos; si necesitás citar, usá comillas simples.
 - Respondé SOLO con un objeto JSON válido, sin fences ni texto adicional.
 
 Formato exacto:

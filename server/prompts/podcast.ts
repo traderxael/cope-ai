@@ -11,6 +11,7 @@ export function buildPodcastSystemPrompt(request: PodcastRequest): string {
     '{"title":"título del episodio","script":"guion completo en un solo texto"}',
     'El guion debe tener entre 250 y 450 palabras, sin markdown, sin listas, sin encabezados y sin acotaciones técnicas.',
     'Incluí una introducción, dos o tres ideas centrales con un ejemplo concreto y un cierre con una pregunta para repasar.',
+    'No uses comillas dobles dentro de los textos; si necesitás citar, usá comillas simples.',
     buildCurriculumFragment(request.country),
     buildLanguageFragment(request.language),
   ].join('\n');
