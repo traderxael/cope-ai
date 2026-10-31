@@ -62,7 +62,20 @@ test('al terminar el enfoque pasa al descanso y cuenta la sesión', async ({
   await expect(
     dialog.getByText('1 sesión de enfoque completada.'),
   ).toBeVisible();
-  await expect(
-    page.getByRole('status').getByText('Enfoque completado. Tomate un descanso.'),
-  ).toBeVisible();
+  // El aviso del fin de sesión. Se busca por fragmento porque el texto
+  // incluye los minutos guardados.
+  const aviso = page.getByRole('status').getByText(/Enfoque completado/);
+  await expect(aviso).toBeVisible();
+
+  // El aviso tiene que caer dentro del viewport. Si algún ancestro fuerza
+  // `position` y lo saca de pantalla, el toast queda invisible para el usuario
+  // aunque siga en el DOM (fue lo que pasó con la capa de tema oscuro).
+  const toastBox = await aviso.boundingBox();
+  const viewport = page.viewportSize();
+  expect(toastBox).not.toBeNull();
+  expect(viewport).not.toBeNull();
+  expect(toastBox!.x).toBeGreaterThanOrEqual(0);
+  expect(toastBox!.y).toBeGreaterThanOrEqual(0);
+  expect(toastBox!.x + toastBox!.width).toBeLessThanOrEqual(viewport!.width);
+  expect(toastBox!.y + toastBox!.height).toBeLessThanOrEqual(viewport!.height);
 });

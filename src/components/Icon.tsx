@@ -37,6 +37,7 @@ export type IconName =
   | 'timer'
   | 'target'
   | 'mic'
+  | 'waveform'
   | 'volume'
   | 'search';
 
@@ -258,6 +259,15 @@ const PATHS: Record<IconName, ReactNode> = {
       <path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z" />
       <path d="M5 11a7 7 0 0 0 14 0" />
       <path d="M12 18v3M8 21h8" />
+    </>
+  ),
+  waveform: (
+    <>
+      <path d="M4 10v4" />
+      <path d="M8 7v10" />
+      <path d="M12 4v16" />
+      <path d="M16 8v8" />
+      <path d="M20 11v2" />
     </>
   ),
   volume: (

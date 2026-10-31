@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { parseOralExamJson, parseOralGradeJson } from './oral-exam-json';
+import {
+  parseOralExamJson,
+  parseOralGradeJson,
+  parseOralReplyJson,
+} from './oral-exam-json';
 
 const questions = Array.from({ length: 3 }, (_, index) => ({
   prompt: `Pregunta oral número ${index + 1} sobre el tema.`,
@@ -23,6 +27,30 @@ describe('parseOralExamJson', () => {
         JSON.stringify({ title: 'Corto', questions: questions.slice(0, 2) }),
       ),
     ).toBeNull();
+  });
+});
+
+describe('parseOralReplyJson', () => {
+  it('extrae feedback y repregunta', () => {
+    const parsed = parseOralReplyJson(
+      '{"reply":"Bien dicho, falta justificar.","followUp":"¿Podés dar un ejemplo?"}',
+    );
+    expect(parsed).toEqual({
+      reply: 'Bien dicho, falta justificar.',
+      followUp: '¿Podés dar un ejemplo?',
+    });
+  });
+
+  it('acepta followUp nulo o ausente', () => {
+    expect(
+      parseOralReplyJson('{"reply":"Bien.","followUp":null}')?.followUp,
+    ).toBe('');
+    expect(parseOralReplyJson('{"reply":"Bien."}')?.followUp).toBe('');
+  });
+
+  it('rechaza respuestas vacías', () => {
+    expect(parseOralReplyJson('{"reply":"   "}')).toBeNull();
+    expect(parseOralReplyJson('sin json')).toBeNull();
   });
 });
 

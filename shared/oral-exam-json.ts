@@ -2,8 +2,10 @@ import { extractJsonObject } from './quiz-json.js';
 import {
   oralExamContentSchema,
   oralGradeContentSchema,
+  oralReplyContentSchema,
   type OralExamContent,
   type OralGradeContent,
+  type OralReplyContent,
 } from './schemas/oral-exam.js';
 
 export function parseOralExamJson(raw: string): OralExamContent | null {
@@ -17,5 +19,12 @@ export function parseOralGradeJson(raw: string): OralGradeContent | null {
   const json = extractJsonObject(raw);
   if (!json) return null;
   const parsed = oralGradeContentSchema.safeParse(json);
+  return parsed.success ? parsed.data : null;
+}
+
+export function parseOralReplyJson(raw: string): OralReplyContent | null {
+  const json = extractJsonObject(raw);
+  if (!json) return null;
+  const parsed = oralReplyContentSchema.safeParse(json);
   return parsed.success ? parsed.data : null;
 }
