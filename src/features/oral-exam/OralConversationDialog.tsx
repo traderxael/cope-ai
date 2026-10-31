@@ -11,6 +11,7 @@ import type {
   OralExamConfig,
   OralGradeResponse,
   OralQuestion,
+  OralReplyStage,
   PersonalityConfig,
   Subject,
   TutorConfig,
@@ -24,7 +25,13 @@ import {
 } from '../../../shared/types';
 import { Dialog } from '../../components/Dialog';
 import { Icon } from '../../components/Icon';
-import { ApiError, requestOralExam, requestOralGrade } from '../../lib/api';
+import {
+  ApiError,
+  isAbortError,
+  requestOralExam,
+  requestOralGrade,
+  requestOralReply,
+} from '../../lib/api';
 import { curriculumCountryForRequest } from '../../lib/curriculum';
 import {
   speakExternal,
@@ -47,6 +54,7 @@ import {
 } from '../../lib/speech/stt';
 
 type View = 'setup' | 'conversation' | 'results';
+type AnswerStage = Extract<OralReplyStage, 'initial' | 'followup'>;
 
 interface OralConversationDialogProps {
   open: boolean;
@@ -87,6 +95,10 @@ function parseTopics(value: string): string[] {
   ].slice(0, 6);
 }
 
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
 function formatElapsed(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
   const rest = seconds % 60;
@@ -123,6 +135,12 @@ export function OralConversationDialog({
   const [listening, setListening] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [profesorComment, setProfesorComment] = useState<string | null>(null);
+  const [profesorFollowUp, setProfesorFollowUp] = useState<string | null>(null);
+  const [replyStage, setReplyStage] = useState<AnswerStage>('initial');
+  const [profesorBusy, setProfesorBusy] = useState(false);
+  const [handsFree, setHandsFree] = useState(() =>
+    speechRecognitionSupported(),
+  );
   const [setupSubject, setSetupSubject] = useState<Subject>(tutor.subject);
   const [setupLevel, setSetupLevel] = useState<Level>(tutor.level);
   const [setupDifficulty, setSetupDifficulty] =
@@ -132,18 +150,45 @@ export function OralConversationDialog({
   const [useMaterial, setUseMaterial] = useState(false);
   const dictationRef = useRef<Dictation | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const replyAbortRef = useRef<AbortController | null>(null);
+  const activeRef = useRef(open);
+  const viewRef = useRef<View>('setup');
+  const indexRef = useRef(0);
+  const questionsRef = useRef<OralQuestion[]>([]);
+  const answersRef = useRef<Record<string, string>>({});
+  const stageRef = useRef<AnswerStage>('initial');
+  const handsFreeRef = useRef(handsFree);
+  const listeningRef = useRef(false);
+  const followUpRef = useRef('');
 
   const current = questions[index];
+
+  useEffect(() => {
+    activeRef.current = open;
+  }, [open]);
+
+  useEffect(() => {
+    handsFreeRef.current = handsFree;
+  }, [handsFree]);
 
   useEffect(() => {
     if (!open) {
       stopSpeaking();
       dictationRef.current?.abort();
       dictationRef.current = null;
+      listeningRef.current = false;
       setListening(false);
       abortControllerRef.current?.abort();
+      replyAbortRef.current?.abort();
       return;
     }
+    viewRef.current = 'setup';
+    indexRef.current = 0;
+    questionsRef.current = [];
+    answersRef.current = {};
+    stageRef.current = 'initial';
+    followUpRef.current = '';
+    listeningRef.current = false;
     setView('setup');
     setError(null);
     setVoiceError(null);
@@ -154,6 +199,9 @@ export function OralConversationDialog({
     setInterim('');
     setListening(false);
     setProfesorComment(null);
+    setProfesorFollowUp(null);
+    setReplyStage('initial');
+    setProfesorBusy(false);
     setSetupSubject(tutor.subject);
     setSetupLevel(tutor.level);
     setSetupDifficulty('medium');
@@ -166,7 +214,9 @@ export function OralConversationDialog({
       stopSpeaking();
       dictationRef.current?.abort();
       dictationRef.current = null;
+      listeningRef.current = false;
       controller?.abort();
+      replyAbortRef.current?.abort();
     };
   }, [open, tutor.subject, tutor.level]);
 
@@ -189,6 +239,7 @@ export function OralConversationDialog({
   const stopDictation = () => {
     dictationRef.current?.abort();
     dictationRef.current = null;
+    listeningRef.current = false;
     setListening(false);
     setInterim('');
   };
@@ -198,42 +249,65 @@ export function OralConversationDialog({
     stopDictation();
   };
 
+  const goToView = (next: View) => {
+    viewRef.current = next;
+    setView(next);
+  };
+
+  const setStage = (next: AnswerStage) => {
+    stageRef.current = next;
+    setReplyStage(next);
+  };
+
+  const commitAnswers = (next: Record<string, string>) => {
+    answersRef.current = next;
+    setAnswers(next);
+  };
+
+  const buildConfig = (): OralExamConfig => ({
+    subject: setupSubject,
+    level: setupLevel,
+    difficulty: setupDifficulty,
+    country: curriculumCountryForRequest(),
+    topics: parseTopics(setupTopics),
+    count: setupCount,
+    ...(useMaterial && latestMaterial
+      ? {
+          sourceText: latestMaterial.slice(0, LIMITS.maxSourceTextChars),
+        }
+      : {}),
+  });
+
   const openSetup = () => {
     stopAllAudio();
+    replyAbortRef.current?.abort();
     setError(null);
-    setView('setup');
+    goToView('setup');
   };
 
   const generate = async () => {
     if (!online || busy) return;
-    const config: OralExamConfig = {
-      subject: setupSubject,
-      level: setupLevel,
-      difficulty: setupDifficulty,
-      country: curriculumCountryForRequest(),
-      topics: parseTopics(setupTopics),
-      count: setupCount,
-      ...(useMaterial && latestMaterial
-        ? {
-            sourceText: latestMaterial.slice(
-              0,
-              LIMITS.maxSourceTextChars,
-            ),
-          }
-        : {}),
-    };
+    const config = buildConfig();
     setBusy(true);
     setError(null);
+    let generated: OralQuestion[] | null = null;
     try {
       const exam = await requestOralExam(config, personality);
-      setQuestions(exam.questions);
+      generated = exam.questions;
+      questionsRef.current = exam.questions;
+      answersRef.current = {};
+      indexRef.current = 0;
       conversationStartTime = Date.now();
+      setQuestions(exam.questions);
       setIndex(0);
       setDraftAnswer('');
       setAnswers({});
       setInterim('');
       setProfesorComment(null);
-      setView('conversation');
+      setProfesorFollowUp(null);
+      followUpRef.current = '';
+      setStage('initial');
+      goToView('conversation');
     } catch (caught) {
       setError(
         caught instanceof ApiError
@@ -243,26 +317,27 @@ export function OralConversationDialog({
     } finally {
       setBusy(false);
     }
+
+    const first = generated?.[0];
+    if (!first || !handsFreeRef.current) return;
+    await speakQuestion(first);
+    await armMic(0, 'initial', 400);
   };
 
-  const speakCurrentQuestion = async () => {
-    if (!current) return;
+  const speakLine = async (text: string): Promise<void> => {
+    const clean = text.trim();
+    if (!clean) return;
     setVoiceError(null);
     const settings = loadVoiceSettings();
     const ownerCode = loadOwnerCode();
-    let usedExternal = false;
-    if (
-      settings.mode !== 'browser' &&
-      voice.tts &&
-      ownerCode.trim()
-    ) {
+    if (settings.mode !== 'browser' && voice.tts && ownerCode.trim()) {
       try {
-        await speakExternal(current.prompt, {
+        await speakExternal(clean, {
           voiceId:
             settings.mode === 'cloned' ? settings.clonedVoiceId : undefined,
           ownerCode,
         });
-        usedExternal = true;
+        return;
       } catch (caught) {
         setVoiceError(
           `${
@@ -271,132 +346,319 @@ export function OralConversationDialog({
         );
       }
     }
-    if (!usedExternal) {
-      try {
-        await speakText(
-          current.prompt,
-          settings.profile,
-          personality.language ?? 'es',
-        );
-      } catch (caught) {
-        setVoiceError(
-          caught instanceof Error
-            ? caught.message
-            : 'No se pudo reproducir la voz.',
-        );
-      }
+    try {
+      await speakText(
+        clean,
+        settings.profile,
+        personality.language ?? 'es',
+      );
+    } catch (caught) {
+      setVoiceError(
+        caught instanceof Error
+          ? caught.message
+          : 'No se pudo reproducir la voz.',
+      );
     }
   };
 
-  const startListening = () => {
+  const speakQuestion = (question: OralQuestion): Promise<void> =>
+    speakLine(question.prompt);
+
+  const speakCurrentQuestion = async () => {
+    if (!current) return;
+    await speakQuestion(current);
+  };
+
+  const askProfessor = async (
+    stage: OralReplyStage,
+    question: OralQuestion,
+    answer: string,
+    followUp = '',
+  ): Promise<{ reply: string; followUp: string } | null> => {
+    if (!answer.trim()) return null;
+    if (!online) {
+      const fallback = pickFeedback();
+      setProfesorComment(fallback);
+      setProfesorFollowUp(null);
+      followUpRef.current = '';
+      return { reply: fallback, followUp: '' };
+    }
+    replyAbortRef.current?.abort();
+    const controller = new AbortController();
+    replyAbortRef.current = controller;
+    setProfesorBusy(true);
+    setVoiceError(null);
+    try {
+      const result = await requestOralReply(
+        buildConfig(),
+        personality,
+        { question, answer, stage, followUp },
+        controller.signal,
+      );
+      if (controller.signal.aborted) return null;
+      const nextFollowUp = stage === 'initial' ? result.followUp.trim() : '';
+      setProfesorComment(result.reply);
+      setProfesorFollowUp(nextFollowUp || null);
+      followUpRef.current = nextFollowUp;
+      return { reply: result.reply, followUp: nextFollowUp };
+    } catch (caught) {
+      if (isAbortError(caught)) return null;
+      const fallback = pickFeedback();
+      setProfesorComment(fallback);
+      setProfesorFollowUp(null);
+      followUpRef.current = '';
+      setVoiceError(
+        caught instanceof ApiError
+          ? `No se pudo consultar al profesor (${caught.message}). Sigo con el guion.`
+          : 'No se pudo consultar al profesor. Sigo con el guion.',
+      );
+      return { reply: fallback, followUp: '' };
+    } finally {
+      // Si otra respuesta ya tomó el control, no apagues su estado de espera.
+      if (replyAbortRef.current === controller) replyAbortRef.current = null;
+    }
+  };
+
+  const runProfessorTurn = async (
+    stage: AnswerStage,
+    question: OralQuestion,
+    answer: string,
+    askedFollowUp: string,
+  ) => {
+    const fromIndex = indexRef.current;
+    try {
+      const result = await askProfessor(
+        stage,
+        question,
+        answer,
+        askedFollowUp,
+      );
+      if (!result) return;
+      if (
+        !activeRef.current ||
+        viewRef.current !== 'conversation' ||
+        indexRef.current !== fromIndex
+      ) {
+        return;
+      }
+      await speakLine(result.reply);
+      if (result.followUp) {
+        await speakLine(result.followUp);
+        if (
+          !activeRef.current ||
+          viewRef.current !== 'conversation' ||
+          indexRef.current !== fromIndex
+        ) {
+          return;
+        }
+        setStage('followup');
+        await armMic(fromIndex, 'followup');
+        return;
+      }
+      await wait(350);
+      if (
+        !activeRef.current ||
+        viewRef.current !== 'conversation' ||
+        indexRef.current !== fromIndex
+      ) {
+        return;
+      }
+      await advanceToNext(fromIndex);
+    } finally {
+      // La espera cubre también la voz y el rearme, para que nadie dispare
+      // otra respuesta mientras el profesor sigue hablando.
+      setProfesorBusy(false);
+    }
+  };
+
+  const handleFinalTranscript = (
+    text: string,
+    question: OralQuestion,
+    stage: AnswerStage,
+  ) => {
+    const clean = text.trim();
+    if (!clean) return;
+    const previous = answersRef.current[question.id] ?? '';
+    const combined = (
+      stage === 'followup' && previous
+        ? `${previous} ${clean}`.trim()
+        : clean
+    ).slice(0, LIMITS.maxOralAnswerChars);
+    const askedFollowUp = followUpRef.current;
+    commitAnswers({ ...answersRef.current, [question.id]: combined });
+    setDraftAnswer(combined);
+    setInterim('');
+    setProfesorComment(null);
+    setProfesorFollowUp(null);
+    followUpRef.current = '';
+    if (handsFreeRef.current) {
+      void runProfessorTurn(stage, question, combined, askedFollowUp);
+    }
+  };
+
+  const startListening = (
+    forIndex = indexRef.current,
+    stage: AnswerStage = stageRef.current,
+  ) => {
+    const question = questionsRef.current[forIndex];
+    if (!question || !activeRef.current) return;
     if (!speechRecognitionSupported()) {
       setVoiceError(
         'Este navegador no admite dictado por voz. Escribí tu respuesta.',
       );
       return;
     }
+    if (listeningRef.current) return;
+    dictationRef.current?.abort();
     setVoiceError(null);
     setInterim('');
+    listeningRef.current = true;
     setListening(true);
     dictationRef.current = startDictation({
-      onInterim: setInterim,
+      onInterim: (text) => {
+        if (listeningRef.current) setInterim(text);
+      },
       onFinal: (text) => {
-        setDraftAnswer((previous) =>
-          `${previous}${previous.trim() ? ' ' : ''}${text.trim()}`,
-        );
-        setAnswers({
-          ...answers,
-          [current?.id ?? '']: draftAnswer
-            ? `${draftAnswer} ${text.trim()}`.trim()
-            : text.trim(),
-        });
-        stopDictation();
+        dictationRef.current?.abort();
+        dictationRef.current = null;
+        listeningRef.current = false;
         setListening(false);
-        setProfesorComment(pickFeedback());
+        handleFinalTranscript(text, question, stage);
       },
       onError: (message) => {
+        dictationRef.current = null;
+        listeningRef.current = false;
         setVoiceError(message);
         setListening(false);
       },
       onEnd: () => {
+        dictationRef.current = null;
+        listeningRef.current = false;
         setListening(false);
         setInterim('');
-        dictationRef.current = null;
       },
     });
   };
 
   const toggleDictation = () => {
-    if (listening) {
+    if (listeningRef.current) {
       stopDictation();
       return;
     }
     startListening();
   };
 
-  const speakProfesorComment = async () => {
-    if (!profesorComment) return;
-    setVoiceError(null);
-    const settings = loadVoiceSettings();
-    try {
-      await speakText(
-        profesorComment,
-        settings.profile,
-        personality.language ?? 'es',
-      );
-    } catch (caught) {
-      setVoiceError(
-        caught instanceof Error ? caught.message : 'No se pudo reproducir la voz.',
-      );
+  const armMic = async (
+    forIndex: number,
+    stage: AnswerStage,
+    delayMs = 350,
+  ) => {
+    await wait(delayMs);
+    if (
+      !activeRef.current ||
+      viewRef.current !== 'conversation' ||
+      indexRef.current !== forIndex ||
+      !handsFreeRef.current
+    ) {
+      return;
     }
+    startListening(forIndex, stage);
   };
 
-  const goToNext = async () => {
-    if (!current) return;
-    // Guardar respuesta actual antes de avanzar.
-    setAnswers({
-      ...answers,
-      [current.id]: draftAnswer.trim(),
-    });
+  const advanceToNext = async (fromIndex: number): Promise<boolean> => {
+    const next = fromIndex + 1;
+    const nextQuestion = questionsRef.current[next];
+    if (!nextQuestion) return false;
+    indexRef.current = next;
+    setIndex(next);
     setDraftAnswer('');
     setInterim('');
     setProfesorComment(null);
-
-    const nextIndex = index + 1;
-    if (nextIndex >= questions.length) {
-      setView('results');
-      return;
+    setProfesorFollowUp(null);
+    followUpRef.current = '';
+    setStage('initial');
+    await speakQuestion(nextQuestion);
+    if (
+      !activeRef.current ||
+      viewRef.current !== 'conversation' ||
+      indexRef.current !== next
+    ) {
+      return true;
     }
-    setIndex(nextIndex);
-    // El profesor habla el comentario y luego la siguiente pregunta.
-    await speakProfesorComment();
-    // Pequeña pausa para que se entienda el comentario antes de la siguiente pregunta.
-    await new Promise((resolve) => window.setTimeout(resolve, 700));
-    await speakCurrentQuestion();
-    startListening();
+    await armMic(next, 'initial', 400);
+    return true;
   };
 
-  const finish = async () => {
-    if (busy) return;
+  const goToNext = async () => {
+    const question = current;
+    if (!question || busy || profesorBusy) return;
+    stopDictation();
+    const answer = draftAnswer.trim();
+    const fromIndex = indexRef.current;
+    const stage = stageRef.current;
+    const askedFollowUp = followUpRef.current;
+    if (answer) {
+      commitAnswers({ ...answersRef.current, [question.id]: answer });
+    }
+    setDraftAnswer(answer);
+    setInterim('');
+    setProfesorComment(null);
+    setProfesorFollowUp(null);
+    followUpRef.current = '';
+    try {
+      const result = answer
+        ? await askProfessor(
+            stage === 'followup' ? 'followup' : 'closing',
+            question,
+            answer,
+            stage === 'followup' ? askedFollowUp : '',
+          )
+        : null;
+      if (!activeRef.current || viewRef.current !== 'conversation') return;
+      if (result) await speakLine(result.reply);
+      await wait(350);
+      if (!activeRef.current || viewRef.current !== 'conversation') return;
+      await advanceToNext(fromIndex);
+    } finally {
+      setProfesorBusy(false);
+    }
+  };
+
+  const skipQuestion = async () => {
+    if (busy || profesorBusy) return;
+    const question = current;
+    const fromIndex = indexRef.current;
+    stopDictation();
+    setDraftAnswer('');
+    setInterim('');
+    setProfesorComment(null);
+    setProfesorFollowUp(null);
+    followUpRef.current = '';
+    setStage('initial');
+    if (question) {
+      commitAnswers({ ...answersRef.current, [question.id]: '' });
+    }
+    if (fromIndex + 1 >= questionsRef.current.length) {
+      await finish('');
+      return;
+    }
+    await advanceToNext(fromIndex);
+  };
+
+  const finish = async (draft = draftAnswer) => {
+    if (busy || profesorBusy) return;
     stopAllAudio();
+    replyAbortRef.current?.abort();
     setBusy(true);
     setError(null);
     try {
-      const committedAnswers = {
-        ...answers,
-        [current?.id ?? '']: draftAnswer.trim(),
-      };
+      const committedAnswers = { ...answersRef.current };
+      if (current) committedAnswers[current.id] = draft.trim();
+      commitAnswers(committedAnswers);
       // Reutilizamos el endpoint de calificación del examen oral para dar
       // una nota final al modo conversación.
-      const config: OralExamConfig = {
-        subject: setupSubject,
-        level: setupLevel,
-        difficulty: setupDifficulty,
-        country: curriculumCountryForRequest(),
-        topics: parseTopics(setupTopics),
-        count: setupCount,
-      };
-      const questionsFull = questions.map((q) => ({
+      const config = buildConfig();
+      const questionsFull = questionsRef.current.map((q) => ({
         id: q.id,
         prompt: q.prompt,
         expectedPoints: q.expectedPoints,
@@ -409,7 +671,7 @@ export function OralConversationDialog({
         personality,
       );
       setConversationGrade(grade);
-      setView('results');
+      goToView('results');
     } catch (caught) {
       setError(
         caught instanceof ApiError
@@ -424,6 +686,7 @@ export function OralConversationDialog({
   const close = () => {
     stopAllAudio();
     abortControllerRef.current?.abort();
+    replyAbortRef.current?.abort();
     onClose();
   };
 
@@ -702,8 +965,9 @@ export function OralConversationDialog({
             ) : null}
 
             <p className="fieldHint">
-              Cómo funciona: el profesor habla la pregunta, vos respondés con el
-              micrófono o escribiendo, y pasan la siguiente.
+              Cómo funciona: el profesor habla la pregunta, escucha tu respuesta,
+              te da feedback y te repregunta. En manos libres el micrófono se
+              rearma solo después de cada respuesta.
             </p>
           </div>
         </>
@@ -713,10 +977,7 @@ export function OralConversationDialog({
             <button
               type="button"
               className="textButton"
-              onClick={() => {
-                stopAllAudio();
-                setView('setup');
-              }}
+              onClick={openSetup}
             >
               Volver
             </button>
@@ -725,6 +986,34 @@ export function OralConversationDialog({
               {formatElapsed(elapsed)}
             </span>
           </div>
+
+          {speechRecognitionSupported() ? (
+            <label className="switchRow handsFreeRow">
+              <span>
+                <span className="fieldLabel">Manos libres</span>
+                <span className="fieldHint">
+                  El micrófono se rearma solo después de cada respuesta.
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                className="switchInput"
+                checked={handsFree}
+                onChange={(event) => {
+                  const next = event.target.checked;
+                  setHandsFree(next);
+                  handsFreeRef.current = next;
+                  if (!next) {
+                    stopDictation();
+                  } else if (!profesorBusy && !busy) {
+                    startListening();
+                  }
+                }}
+                disabled={busy}
+              />
+              <span className="switchVisual" aria-hidden="true" />
+            </label>
+          ) : null}
 
           <div
             className="quizProgress"
@@ -748,7 +1037,9 @@ export function OralConversationDialog({
                 type="button"
                 className="button secondary small"
                 onClick={() => void speakCurrentQuestion()}
-                disabled={!speechSynthesisSupported() || busy}
+                disabled={
+                  !speechSynthesisSupported() || busy || profesorBusy || listening
+                }
               >
                 <Icon name="volume" size={16} />
                 Escuchar de nuevo
@@ -757,22 +1048,43 @@ export function OralConversationDialog({
                 type="button"
                 className="button ghost small"
                 onClick={toggleDictation}
+                disabled={busy || profesorBusy}
               >
                 <Icon name={listening ? 'stop' : 'mic'} size={16} />
                 {listening ? 'Detener micrófono' : 'Responder con micrófono'}
               </button>
             </div>
+            {replyStage === 'followup' ? (
+              <p className="oralFollowUpBadge">
+                Respondé a la repregunta del profesor.
+              </p>
+            ) : null}
             {voiceError ? (
               <p className="inlineError" role="alert">
                 <Icon name="alert" size={15} />
                 <span>{voiceError}</span>
               </p>
             ) : null}
-            {profesorComment ? (
-              <p className="profesorComment" role="status" aria-live="polite">
-                <span className="demoPulse" aria-hidden="true" />
-                {profesorComment}
+            {profesorBusy && !profesorComment ? (
+              <p
+                className="profesorComment isThinking"
+                role="status"
+                aria-live="polite"
+              >
+                <span className="spinner small" aria-hidden="true" />
+                El profesor está pensando…
               </p>
+            ) : null}
+            {profesorComment ? (
+              <div className="profesorReply" role="status" aria-live="polite">
+                <p className="profesorComment">
+                  <span className="demoPulse" aria-hidden="true" />
+                  {profesorComment}
+                </p>
+                {profesorFollowUp ? (
+                  <p className="profesorFollowUp">{profesorFollowUp}</p>
+                ) : null}
+              </div>
             ) : null}
           </article>
 
@@ -787,8 +1099,12 @@ export function OralConversationDialog({
               onChange={(event) => setDraftAnswer(event.target.value)}
               rows={5}
               maxLength={4000}
-              placeholder="Respondé con tus propias palabras…"
-              disabled={busy}
+              placeholder={
+                replyStage === 'followup'
+                  ? 'Respondé a la repregunta…'
+                  : 'Respondé con tus propias palabras…'
+              }
+              disabled={busy || profesorBusy || listening}
             />
             <span className="fieldHint">
               {draftAnswer.length.toLocaleString('es')} / 4.000
@@ -800,6 +1116,12 @@ export function OralConversationDialog({
                 Escuchando… hablá con claridad.
               </p>
             ) : null}
+            {handsFree && !listening && !profesorBusy && !busy ? (
+              <p className="fieldHint">
+                Manos libres activo: el micrófono vuelve solo después de la
+                respuesta del profesor.
+              </p>
+            ) : null}
           </div>
 
           <div className="oralRunnerActions">
@@ -808,9 +1130,14 @@ export function OralConversationDialog({
                 type="button"
                 className="button primary"
                 onClick={() => void goToNext()}
-                disabled={busy || listening}
+                disabled={busy || profesorBusy || listening}
               >
-                {busy ? (
+                {profesorBusy ? (
+                  <>
+                    <span className="spinner small" aria-hidden="true" />
+                    El profesor responde…
+                  </>
+                ) : busy ? (
                   <>
                     <span className="spinner small" aria-hidden="true" />
                     Pasando…
@@ -827,7 +1154,7 @@ export function OralConversationDialog({
                 type="button"
                 className="button primary"
                 onClick={() => void finish()}
-                disabled={busy || !online}
+                disabled={busy || profesorBusy || !online}
               >
                 {busy ? (
                   <>
@@ -845,14 +1172,8 @@ export function OralConversationDialog({
             <button
               type="button"
               className="button ghost"
-              onClick={() => {
-                setAnswers({
-                  ...answers,
-                  [current.id]: draftAnswer.trim(),
-                });
-                void goToNext();
-              }}
-              disabled={busy || listening}
+              onClick={() => void skipQuestion()}
+              disabled={busy || profesorBusy || listening}
             >
               Omitir
             </button>
@@ -864,7 +1185,7 @@ export function OralConversationDialog({
             <button
               type="button"
               className="textButton"
-              onClick={() => setView('setup')}
+              onClick={openSetup}
             >
               Nueva conversación
             </button>
@@ -954,7 +1275,7 @@ export function OralConversationDialog({
             <button
               type="button"
               className="button secondary"
-              onClick={() => setView('setup')}
+              onClick={openSetup}
             >
               <Icon name="refresh" size={16} />
               Otra conversación
@@ -962,7 +1283,7 @@ export function OralConversationDialog({
             <button
               type="button"
               className="button ghost"
-              onClick={() => setView('setup')}
+              onClick={openSetup}
             >
               Cerrar revisión
             </button>

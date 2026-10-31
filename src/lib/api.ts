@@ -12,10 +12,13 @@ import {
 import {
   oralExamResponseSchema,
   oralGradeResponseSchema,
+  oralReplyResponseSchema,
   type OralExamConfig,
   type OralExamResponse,
   type OralGradeResponse,
   type OralQuestion,
+  type OralReplyResponse,
+  type OralReplyStage,
 } from '../../shared/schemas/oral-exam';
 import type {
   ChatRequest,
@@ -445,6 +448,40 @@ export async function deleteVoice(
     },
   );
   if (!response.ok) throw await readError(response);
+}
+
+export async function requestOralReply(
+  config: OralExamConfig,
+  personality: PersonalityConfig,
+  options: {
+    question: OralQuestion;
+    answer: string;
+    stage?: OralReplyStage;
+    followUp?: string;
+  },
+  signal?: AbortSignal,
+): Promise<OralReplyResponse> {
+  const payload = await postOralExam(
+    {
+      action: 'reply',
+      config,
+      personality,
+      question: options.question,
+      answer: options.answer,
+      stage: options.stage ?? 'initial',
+      ...(options.followUp ? { followUp: options.followUp } : {}),
+    },
+    signal,
+  );
+  const parsed = oralReplyResponseSchema.safeParse(payload);
+  if (!parsed.success) {
+    throw new ApiError(
+      502,
+      'invalid_oral_reply',
+      'La respuesta del profesor llegó en un formato inválido.',
+    );
+  }
+  return parsed.data;
 }
 
 export async function requestOralGrade(

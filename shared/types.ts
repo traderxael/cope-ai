@@ -16,6 +16,8 @@ import type {
   OralGradeResponse,
   OralGradeResult,
   OralQuestion,
+  OralReplyResponse,
+  OralReplyStage,
 } from './schemas/oral-exam.js';
 import type {
   ChatMessage,
@@ -59,6 +61,8 @@ export type {
   OralGradeResponse,
   OralGradeResult,
   OralQuestion,
+  OralReplyResponse,
+  OralReplyStage,
   PersonalityConfig,
   PersonalityPreset,
   PlanTaskType,

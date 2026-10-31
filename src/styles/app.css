@@ -1837,6 +1837,45 @@ img {
   opacity: 0.4;
 }
 
+.composerTool.isListening {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.composerTalk {
+  display: inline-flex;
+  height: 42px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 0.8rem;
+  font-weight: 650;
+  white-space: nowrap;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    opacity var(--transition);
+}
+
+.composerTalk:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+}
+
+.composerTalk:disabled {
+  opacity: 0.45;
+}
+
+.composerInterim {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
 .composerTextarea {
   min-width: 0;
   min-height: 42px;
@@ -3012,6 +3051,16 @@ img {
   .composerTool {
     width: 44px;
     height: 44px;
+  }
+
+  .composerTalk {
+    width: 44px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .composerTalkLabel {
+    display: none;
   }
 
   .sendButton {
@@ -5178,6 +5227,41 @@ img {
   display: flex;
   align-items: flex-start;
   gap: 8px;
+}
+
+.profesorComment.isThinking {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.profesorReply {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.profesorFollowUp {
+  margin: 0;
+  padding: 9px 12px;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  background: var(--surface-soft);
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 550;
+}
+
+.oralFollowUpBadge {
+  margin: 8px 0 0;
+  color: var(--accent-text);
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.handsFreeRow {
+  margin: -4px 0 0;
 }
 
 .oralConversationRunner {

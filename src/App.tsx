@@ -686,6 +686,7 @@ export default function App() {
                   chat.actions.dismissAttachmentError();
                   chat.actions.dismissComposerError();
                 }}
+                onOpenVoiceChat={openOralConversation}
                 placeholder={
                   mode === 'tutor'
                     ? 'Escribí tu duda o ejercicio…'
