@@ -115,7 +115,6 @@ export default function App() {
   const [deleting, setDeleting] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [updateReady, setUpdateReady] = useState(false);
-  const toastIdRef = useRef(0);
 
   // Los avisos se encolan: si llega otro mientras hay uno en pantalla, el
   // nuevo espera su turno en lugar de pisar al anterior. Antes un aviso de
@@ -126,10 +125,8 @@ export default function App() {
       tone: ToastTone = 'info',
       action?: ToastMessage['action'],
     ) => {
-      toastIdRef.current += 1;
       setToasts((current) =>
         enqueueToast(current, {
-          id: toastIdRef.current,
           message,
           tone,
           ...(action ? { action } : {}),
@@ -775,11 +772,9 @@ export default function App() {
           onClose={() => setFocusOpen(false)}
           onNotify={(message) => notify(message, 'success')}
           onSessionComplete={(minutes) => {
+            // El aviso lo manda el diálogo (un solo mensaje para el evento);
+            // acá solo se registra el tiempo para la meta y la racha.
             logStudyMinutes(minutes);
-            notify(
-              `Sesión de enfoque guardada: ${minutes} min para tu meta diaria.`,
-              'success',
-            );
           }}
         />
 

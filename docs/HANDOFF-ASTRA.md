@@ -166,6 +166,55 @@ aparecía de forma intermitente.
 cola; cuando se descarta, pasa el siguiente. `Toast.tsx` ahora recibe
 `onDismiss(id)` para poder sacar solo el aviso que corresponde.
 
+### 3. La cola perdía avisos: el `id` se leía tarde
+
+Con la cola, el E2E de enfoque seguía fallando en CI. La causa era el `id`:
+
+```js
+// MAL: el id se lee DENTRO del updater, que React ejecuta más tarde
+toastIdRef.current += 1;
+setToasts((current) => enqueueToast(current, { id: toastIdRef.current, ... }));
+```
+
+Cuando dos avisos se agregan en el mismo ciclo, React puede ejecutar los dos
+updaters **después** de que el contador ya haya subido dos veces: los dos
+avisos quedan con **el mismo id**. Al descartar uno, el `filter` se lleva los
+dos y el segundo nunca llega a mostrarse.
+
+React solo evalúa el primer updater de forma inmediata ("eager state
+computation") si el componente no tiene actualizaciones pendientes, y eso
+depende del navegador y del timing: por eso el test pasaba con Chrome local y
+fallaba con Chromium de Playwright.
+
+**Arreglo**: el `id` lo deriva la propia cola a partir de su contenido
+(`enqueueToast`), sin contadores externos:
+
+```js
+const id = queue.reduce((max, item) => Math.max(max, item.id), 0) + 1;
+return [...queue, { ...toast, id }];
+```
+
+Además, el fin de una sesión de enfoque generaba **dos** avisos para el mismo
+evento ("Sesión de enfoque guardada…" y "Enfoque completado…"), que competían
+entre sí. Ahora el diálogo manda **un solo** aviso que incluye los minutos:
+"Enfoque completado: 25 min para tu meta diaria. Tomate un descanso."
+
+### Cómo reproducir las condiciones del CI en local
+
+El CI corre con Chromium de Playwright (no con Chrome del sistema) y Linux.
+Para reproducirlo en Windows:
+
+```bash
+CI=1 npx playwright test e2e/focus.spec.ts --repeat-each=3
+```
+
+`CI=1` hace que `playwright.config.ts` use el Chromium empaquetado y active
+reintentos, igual que GitHub Actions. Con Chrome del sistema (`channel:
+'chrome'`) el fallo **no** se reproduce.
+
+> `npx playwright install chromium` deja el navegador en
+> `%LOCALAPPDATA%\ms-playwright` (no pide permisos de administrador).
+
 ### Guardas de regresión
 
 - `e2e/focus.spec.ts` comprueba que el toast **caiga dentro del viewport**
