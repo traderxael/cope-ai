@@ -10,6 +10,7 @@
 
 .appShell {
   position: relative;
+  isolation: isolate;
   background:
     radial-gradient(
       120% 90% at 8% -10%,
@@ -33,7 +34,10 @@
   content: '';
   position: absolute;
   inset: 0;
-  z-index: 0;
+  /* Las estrellas van por detrás del contenido. El `isolation: isolate` de
+     .appShell las mantiene por encima de su propio fondo sin necesidad de
+     forzar `position` en los hijos (eso rompía el toast, que es fixed). */
+  z-index: -1;
   pointer-events: none;
   opacity: 0.55;
   background-image:
@@ -43,11 +47,6 @@
     radial-gradient(1.2px 1.2px at 88% 52%, rgba(210, 190, 255, 0.4), transparent),
     radial-gradient(1.4px 1.4px at 8% 78%, rgba(255, 255, 255, 0.28), transparent),
     radial-gradient(1.1px 1.1px at 58% 34%, rgba(160, 220, 255, 0.35), transparent);
-}
-
-[data-theme='dark'] .appShell > * {
-  position: relative;
-  z-index: 1;
 }
 
 /* Glass surfaces ---------------------------------------------------------- */

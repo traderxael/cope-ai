@@ -49,8 +49,13 @@ export function FocusDialog({
           (startedAtRef.current !== null ? Date.now() - startedAtRef.current : 0);
         elapsedRef.current = 0;
         startedAtRef.current = null;
-        onSessionComplete?.(Math.max(1, Math.round(elapsed / 60_000)));
-        onNotify('Enfoque completado. Tomate un descanso.');
+        const minutes = Math.max(1, Math.round(elapsed / 60_000));
+        onSessionComplete?.(minutes);
+        // Un solo aviso para el mismo evento: si se mandan dos, el segundo
+        // queda en cola detrás del primero y tarda en verse.
+        onNotify(
+          `Enfoque completado: ${minutes} min para tu meta diaria. Tomate un descanso.`,
+        );
       } else {
         onNotify('Descanso terminado. Volvamos al enfoque.');
       }
