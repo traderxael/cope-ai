@@ -1104,7 +1104,7 @@ export function OralConversationDialog({
                   ? 'Respondé a la repregunta…'
                   : 'Respondé con tus propias palabras…'
               }
-              disabled={busy || profesorBusy || listening}
+              disabled={busy || profesorBusy}
             />
             <span className="fieldHint">
               {draftAnswer.length.toLocaleString('es')} / 4.000
@@ -1130,7 +1130,7 @@ export function OralConversationDialog({
                 type="button"
                 className="button primary"
                 onClick={() => void goToNext()}
-                disabled={busy || profesorBusy || listening}
+                disabled={busy || profesorBusy}
               >
                 {profesorBusy ? (
                   <>
@@ -1173,7 +1173,7 @@ export function OralConversationDialog({
               type="button"
               className="button ghost"
               onClick={() => void skipQuestion()}
-              disabled={busy || profesorBusy || listening}
+              disabled={busy || profesorBusy}
             >
               Omitir
             </button>

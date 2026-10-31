@@ -212,6 +212,15 @@ test.describe('voz con el profesor', () => {
     expect(spoken).toContain(initialReply.reply);
     expect(spoken).toContain(initialReply.followUp);
     expect(spoken).toContain(followUpReply.reply);
+
+    // Con el micrófono escuchando, la persona puede omitir y avanzar igual.
+    await expect(
+      dialog.getByRole('button', { name: 'Omitir' }),
+    ).toBeEnabled();
+    await dialog.getByRole('button', { name: 'Omitir' }).click();
+    await expect(dialog.getByText(/Pregunta 3 de 5/)).toBeVisible({
+      timeout: 30_000,
+    });
   });
 
   test('el botón de dictado escribe en el mensaje', async ({ page }) => {
