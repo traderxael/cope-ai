@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { disableNativeSpeech } from './helpers/speech';
 
 test.describe('examen oral', () => {
   test('genera, responde, corrige y conserva el historial', async ({ page }) => {
@@ -111,5 +112,90 @@ test.describe('examen oral', () => {
     await dialog.getByRole('button', { name: 'Nuevo examen' }).click();
     await expect(dialog.getByLabel('Voz')).toHaveValue('cercana');
     await expect(dialog.getByLabel('Voz')).toBeEnabled();
+  });
+
+  test('genera un examen oral desde el material adjunto', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+
+    await page
+      .getByLabel('Seleccionar archivo para adjuntar')
+      .setInputFiles({
+        name: 'oral.txt',
+        mimeType: 'text/plain',
+        buffer: Buffer.from('Unidad 4: equilibrio químico y ácidos.'),
+      });
+    await page.getByLabel('Mensaje para Cope').fill('Guardá este material');
+    await page.getByRole('button', { name: 'Enviar mensaje' }).click();
+    await expect(
+      page.locator('.assistantRow').last(),
+    ).toBeVisible({ timeout: 20_000 });
+
+    await page.getByRole('button', { name: 'Tutor' }).click();
+    await page
+      .locator('.tutorAside')
+      .getByRole('button', { name: 'Examen oral' })
+      .click();
+    const dialog = page.locator('dialog[open]');
+    await dialog.getByRole('button', { name: 'Nuevo examen' }).click();
+    await dialog
+      .locator('.switchRow')
+      .filter({ hasText: 'Usar el último material' })
+      .click();
+
+    const examRequest = page.waitForRequest(
+      (request) =>
+        request.url().includes('/api/oral-exam') &&
+        request.method() === 'POST',
+    );
+    await dialog.getByRole('button', { name: 'Generar examen oral' }).click();
+
+    expect((await examRequest).postDataJSON()).toMatchObject({
+      action: 'generate',
+      config: {
+        sourceText: 'Unidad 4: equilibrio químico y ácidos.',
+      },
+    });
+  });
+
+  test('inicia una conversación guiada con el profesor', async ({ page }) => {
+    await disableNativeSpeech(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Tutor' }).click();
+    await page
+      .getByRole('button', { name: /Conversar con el profesor/ })
+      .click();
+
+    const dialog = page.locator('dialog[open]');
+    await dialog
+      .getByRole('button', { name: 'Empezar conversación' })
+      .click();
+
+    await expect(
+      dialog.getByRole('progressbar', { name: 'Preguntas de la conversación' }),
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(dialog.getByText(/Pregunta 1 de 5/)).toBeVisible();
+    await expect(dialog.locator('.oralPrompt')).toContainText('Pregunta 1');
+
+    await dialog.getByLabel('Tu respuesta').fill('x = 6');
+    await dialog.getByRole('button', { name: 'Siguiente pregunta' }).click();
+    await expect(dialog.getByText(/Pregunta 2 de 5/)).toBeVisible({
+      timeout: 30_000,
+    });
+
+    for (let question = 3; question <= 5; question += 1) {
+      await dialog.getByRole('button', { name: 'Omitir' }).click();
+      await expect(
+        dialog.getByText(new RegExp(`Pregunta ${question} de 5`)),
+      ).toBeVisible({ timeout: 30_000 });
+    }
+
+    await dialog
+      .getByRole('button', { name: 'Terminar y calificar' })
+      .click();
+    await expect(
+      dialog.getByText('Resultado de la conversación'),
+    ).toBeVisible({ timeout: 30_000 });
   });
 });

@@ -36,6 +36,8 @@ import { FocusDialog } from './components/FocusDialog';
 import { OralExamDialog } from './features/oral-exam/OralExamDialog';
 import { OralConversationDialog } from './features/oral-exam/OralConversationDialog';
 import { applyPwaUpdate, setupPwa } from './lib/pwa';
+import { loadCurriculumCountry } from './lib/curriculum';
+import { suggestedExamFormat } from '../shared/exams';
 import {
   clearProfile,
   loadProfile,
@@ -43,6 +45,7 @@ import {
   type LearningGoal,
   type UserProfile,
 } from './lib/profile';
+import { downloadConversation } from './lib/exportConversation';
 import type { Conversation, PracticeResult } from './lib/storage';
 import { logStudyMinutes } from './lib/studyLog';
 import {
@@ -241,6 +244,14 @@ export default function App() {
     setMobileNavOpen(false);
     setTutorOpen(false);
   }, [chat.actions]);
+
+  const handleExportConversation = useCallback(
+    (conversation: Conversation) => {
+      downloadConversation(conversation);
+      notify('Conversación descargada en Markdown.', 'success');
+    },
+    [notify],
+  );
 
   const newChatRef = useRef(handleNewChat);
   const draftRef = useRef(draft);
@@ -457,6 +468,7 @@ export default function App() {
             onNew={handleNewChat}
             onRename={setRenameTarget}
             onDelete={setDeleteTarget}
+            onExport={handleExportConversation}
             onSettings={() => setSettingsOpen(true)}
             onProgress={openProgress}
             onBadges={openBadges}
@@ -596,7 +608,12 @@ export default function App() {
                       submit(prompt);
                     }}
                     onPractice={() =>
-                      handlePractice(DEFAULT_PRACTICE_SETTINGS)
+                      handlePractice({
+                        ...DEFAULT_PRACTICE_SETTINGS,
+                        examFormat: suggestedExamFormat(
+                          loadCurriculumCountry(),
+                        ),
+                      })
                     }
                     onStyleChange={(style) =>
                       chat.actions.updateTutor({ style })
@@ -610,7 +627,9 @@ export default function App() {
                         count: 10,
                         difficulty: 'medium',
                         timed: true,
-                        examFormat: 'general',
+                        examFormat: suggestedExamFormat(
+                          loadCurriculumCountry(),
+                        ),
                       })
                     }
                     practiceLoading={chat.practiceLoading}
@@ -668,6 +687,7 @@ export default function App() {
                   chat.actions.dismissAttachmentError();
                   chat.actions.dismissComposerError();
                 }}
+                onOpenVoiceChat={openOralConversation}
                 placeholder={
                   mode === 'tutor'
                     ? 'Escribí tu duda o ejercicio…'
@@ -683,6 +703,7 @@ export default function App() {
                   onChange={chat.actions.updateTutor}
                   online={online}
                   onPractice={handlePractice}
+                  latestMaterial={latestPdfText}
                   practiceLoading={chat.practiceLoading}
                   disabled={
                     chat.streaming ||
@@ -692,6 +713,7 @@ export default function App() {
                   onOpenFlashcards={openFlashcards}
                   onOpenPlan={openStudyPlan}
                   onOpenOralExam={openOralExam}
+                  onOpenPodcast={openPodcast}
                   onOpenProgress={openProgress}
                 />
               </aside>
@@ -711,6 +733,7 @@ export default function App() {
           onNew={handleNewChat}
           onRename={setRenameTarget}
           onDelete={setDeleteTarget}
+          onExport={handleExportConversation}
           onSettings={() => setSettingsOpen(true)}
           onProgress={openProgress}
           onBadges={openBadges}
@@ -729,6 +752,7 @@ export default function App() {
             onChange={chat.actions.updateTutor}
             online={online}
             onPractice={handlePractice}
+            latestMaterial={latestPdfText}
             practiceLoading={chat.practiceLoading}
             disabled={
               chat.streaming || chat.practiceLoading || Boolean(chat.quiz)
@@ -736,6 +760,7 @@ export default function App() {
             onOpenFlashcards={openFlashcards}
             onOpenPlan={openStudyPlan}
             onOpenOralExam={openOralExam}
+            onOpenPodcast={openPodcast}
             onOpenProgress={openProgress}
           />
         </Dialog>
@@ -765,6 +790,7 @@ export default function App() {
           tutor={tutor}
           online={online}
           suggestedExamDate={profile?.examDate}
+          latestMaterial={latestPdfText}
         />
 
         <FocusDialog
@@ -783,6 +809,7 @@ export default function App() {
           onClose={() => setPodcastOpen(false)}
           tutor={tutor}
           online={online}
+          latestMaterial={latestPdfText}
         />
 
         <OralExamDialog
@@ -793,6 +820,7 @@ export default function App() {
           voice={chat.voice}
           online={online}
           onOpenSettings={openSettingsFromOral}
+          latestMaterial={latestPdfText}
         />
 
         <OralConversationDialog
@@ -803,6 +831,7 @@ export default function App() {
           voice={chat.voice}
           online={online}
           onOpenSettings={openSettingsFromOral}
+          latestMaterial={latestPdfText}
         />
 
         <SettingsDialog

@@ -127,12 +127,13 @@ Variables opcionales:
 | `OLLAMA_VISION=1` | Permite imágenes si el modelo local tiene visión |
 | `POLLINATIONS_MODEL` | Modelo de la nube gratuita (default `openai`) |
 | `POLLINATIONS_API_KEY` | Clave opcional de Pollinations para más cuota |
-| `COPE_DEMO=1` | Fixtures deterministas solo para tests internos |
+| `COPE_DEMO=1` | Fixtures deterministas solo para tests internos; se ignora en producción de Vercel |
 | `COPE_DEMO_DELAY_MS` | Ritmo del streaming de fixtures (default 15) |
 | `COPE_RATE_LIMIT_PER_MINUTE` | Límite por IP para chat (default 10) |
 | `COPE_QUIZ_RATE_LIMIT_PER_MINUTE` | Límite por IP para práctica (default 5) |
 | `COPE_STUDY_RATE_LIMIT_PER_MINUTE` | Límite por IP para flashcards y planes (default 5) |
 | `COPE_ORAL_RATE_LIMIT_PER_MINUTE` | Límite por IP para exámenes orales (default 3) |
+| `COPE_ORAL_REPLY_RATE_LIMIT_PER_MINUTE` | Límite por IP para respuestas del profesor en la conversación (default 20) |
 | `ELEVENLABS_API_KEY` | Clave server-side para voz externa y clonación |
 | `ELEVENLABS_VOICE_ID` | Voz predefinida de ElevenLabs (necesaria para la voz externa) |
 | `ELEVENLABS_MODEL_ID` | Modelo de voz (default `eleven_multilingual_v2`) |
@@ -156,14 +157,19 @@ Variables opcionales:
   guarda solo en este dispositivo.
 - **Currículo por país:** 12 países + General con etapas, examen de referencia
   (PAES, EBAU, Saber 11, admisión, etc.) y marco curricular. La IA alinea temas
-  y terminología; son referencias generales, no contenido oficial.
+  y terminología; son referencias generales, no contenido oficial. En Ajustes se
+  enlaza el sitio oficial del examen para consultar fechas y bases.
 - **Tutor:** materia, nivel y dos estilos. **Socrático** da pistas y preguntas
   para que resuelvas vos; **Solver** muestra el procedimiento completo y la
   comprobación. El objetivo elegido en el onboarding se muestra como primer paso
   recomendado.
 - **Práctica:** 5 o 10 preguntas, dificultad, tema opcional y modo con tiempo.
   Corrige al instante, explica cada respuesta y guarda el resultado. El formato
-  de examen se sugiere según el país (PAES, Selectividad, ICFES o admisión).
+  de examen se sugiere según el país (PAES, Selectividad, ICFES o admisión) y
+  podés basar las preguntas en el último PDF, TXT o subtítulos de la conversación.
+- **Material oficial:** si tenés un PDF de un examen oficial, adjuntalo en el
+  chat y activá “Usar el último material” al practicar; las preguntas se generan
+  a partir de ese texto, sin copiar ni redistribuir el examen.
 - **Simulacro:** 10 preguntas con tiempo y formatos orientativos tipo PAES,
   Selectividad, ICFES o admisión. Son preguntas generadas, no oficiales.
 - **Progreso:** nivel de preparación con objetivo 85%, precisión global y por
@@ -174,13 +180,23 @@ Variables opcionales:
   repaso con repetición espaciada y decks persistentes. “Todo al día” no
   reprograma tarjetas sin vencer.
 - **Plan de examen:** 3 a 14 días, fecha y temas; tareas de estudio, práctica,
-  repaso y descanso con avance marcable.
+  repaso y descanso con avance marcable. Puede basarse en el último PDF, TXT o
+  subtítulos de la conversación.
 - **Examen oral:** preguntas abiertas con rúbrica, respuesta por texto o
   micrófono, corrección con puntajes y zonas de desempeño, respuesta modelo e
-  historial local. La voz del navegador está siempre disponible y sigue el
-  idioma de respuesta elegido en Personalidad.
+  historial local. Puede basarse en el último PDF, TXT o subtítulos. La voz del
+  navegador está siempre disponible y sigue el idioma de respuesta elegido en
+  Personalidad.
+- **Conversación con el profesor:** el profesor responde de verdad a cada
+  respuesta (feedback breve + repregunta) y lo dice en voz alta. El modo
+  **manos libres** rearma el micrófono solo después de cada respuesta, sin
+  tocar nada. Entradas visibles: el botón **Hablar con Cope** del compositor
+  abre la conversación y el botón de dictado escribe el mensaje en el chat.
+  Al avanzar manualmente también se pide la respuesta real del profesor. Cierra
+  con rúbrica por pregunta y resultado final de 0 a 100 con próximos pasos.
 - **Podcast:** guion breve por materia o tema, con reproducción por la voz del
-  navegador y texto para seguir la explicación.
+  navegador y texto para seguir la explicación. También puede basarse en el
+  último PDF, TXT o subtítulos de la conversación.
 - **Modo enfoque:** temporizador Pomodoro de 25 minutos de estudio y 5 de
   descanso, con pausa, reinicio, progreso, sesiones completadas y aviso al
   terminar cada fase; sigue corriendo aunque cierres el panel.
@@ -191,11 +207,16 @@ Variables opcionales:
   propietario, y no guarda el audio en el servidor.
 - **Asistente:** chat general con markdown, tablas, código y matemáticas KaTeX.
 - **Adjuntos:** hasta 2 imágenes por conversación (redimensionadas a JPEG), foto
-  de tarea con la cámara trasera y un PDF, TXT, subtítulos SRT/VTT o PPTX por
+  de tarea con la cámara trasera y un PDF, TXT, subtítulos (SRT, VTT, SBV,
+  ASS o SUB) o PPTX por
   mensaje (texto extraído localmente, sin OCR). Los subtítulos permiten estudiar
   una clase en video sin subir el video.
 - **Historial local:** conversaciones, prácticas, decks, planes y exámenes orales
-  en IndexedDB; el servidor no los guarda.
+  en IndexedDB; el servidor no los guarda. La barra lateral busca en el título,
+  la materia, el nivel, el nombre del archivo y el texto de los mensajes, sin
+  distinguir acentos ni mayúsculas. Cada conversación se descarga en Markdown
+  desde el historial, y Ajustes ofrece un respaldo JSON con todo el progreso y
+  su restauración.
 - **Streaming real:** SSE desde el proxy, con botón de detener, respuesta parcial
   conservada y reintento.
 - **Barra de carga con tiempo estimado:** mientras la IA responde, una barra
@@ -226,7 +247,8 @@ historial.
 │  IndexedDB local         │
 └────────────┬─────────────┘
              │ /api/chat (SSE) · /api/quiz · /api/flashcards ·
-             │ /api/study-plan · /api/oral-exam · /api/podcast (JSON) ·
+             │ /api/study-plan · /api/oral-exam (generate/grade/reply) ·
+             │ /api/podcast (JSON) ·
              │ /api/tts · /api/voice-clone
              ▼
 ┌──────────────────────────┐
@@ -294,16 +316,17 @@ El detalle de la última tanda de cambios, con lo que quedó pendiente, está en
   enviados por el cliente.
 - Topes: 3 MB por body, 24 mensajes, 24.000 caracteres por mensaje, 32.000 en
   total, 2 imágenes de hasta 1,2 MB como data URL, 1 PDF (20 páginas y 20.000
-  caracteres extraídos), TXT o subtítulos SRT/VTT (2 MB y 8.000 caracteres) o
+  caracteres extraídos), TXT o subtítulos (2 MB y 8.000 caracteres) o
   PPTX (15 MB y 40 diapositivas) por mensaje, 1.200 tokens de salida por
   respuesta de chat.
   Práctica: 5 o 10 preguntas y 5.000 tokens. Flashcards: 6 a 10 tarjetas,
   8.000 caracteres de material y 2.500 tokens. Plan: 3 a 14 días, 8 temas y
-  3.000 tokens. Oral: 3, 5 u 8 preguntas, 4.000 caracteres por respuesta.
+  3.000 tokens. Oral: 3, 5 u 8 preguntas, 4.000 caracteres por respuesta;
+  la respuesta del profesor admite 600 caracteres y la repregunta 300.
   TTS: 600 caracteres por reproducción y muestra de voz de hasta 5 MB.
 - Rate limit en memoria por IP: 10 chat/min, 5 práctica/min, 5 generaciones de
-  estudio/min, 3 exámenes orales/min, 10 reproducciones externas/min y
-  2 clonaciones/min. **No es un límite distribuido**: en serverless cada
+  estudio/min, 3 exámenes orales/min, 20 respuestas del profesor/min,
+  10 reproducciones externas/min y 2 clonaciones/min. **No es un límite distribuido**: en serverless cada
   instancia tiene su propia memoria.
 - La voz externa y la clonación requieren `COPE_VOICE_CLONE_CODE`; el código se
   compara en tiempo constante y se guarda solo en `sessionStorage`. La muestra
@@ -381,7 +404,7 @@ suite automática porque dependen de tu clave y tu cuenta.
 - La personalidad y la preferencia de voz se guardan en almacenamiento local; el
   código de propietario vive solo en `sessionStorage`.
 - El PDF original no se sube desde el dispositivo: solo viaja el texto extraído.
-  El TXT, los subtítulos SRT/VTT y el texto de las diapositivas PPTX se leen
+  El TXT, los subtítulos SRT/VTT/SBV/ASS/SUB y el texto de las diapositivas PPTX se leen
   localmente y también viajan solo como texto.
 - Las imágenes (incluidas las fotos de tarea) y los mensajes sí se envían al
   proveedor configurado cuando usás IA real.

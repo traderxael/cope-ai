@@ -131,7 +131,7 @@ export const Markdown = memo(function Markdown({
 }) {
   if (!content.trim()) return null;
   return (
-    <div className="markdown">
+    <div className="markdown" dir="auto">
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[

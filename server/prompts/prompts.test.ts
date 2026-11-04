@@ -10,7 +10,14 @@ import {
   buildStudyPlanUserPrompt,
 } from './study-plan';
 import { buildTutorSystemPrompt } from './tutor';
-import { buildPodcastSystemPrompt } from './podcast';
+import {
+  buildPodcastSystemPrompt,
+  buildPodcastUserPrompt,
+} from './podcast';
+import {
+  buildOralExamSystemPrompt,
+  buildOralExamUserPrompt,
+} from './oral-exam';
 
 describe('prompts', () => {
   it('el tutor incluye materia, nivel y reglas de seguridad', () => {
@@ -155,6 +162,7 @@ describe('prompts', () => {
       examDate: '2026-12-15',
       topics: ['equilibrio', 'ácidos'],
       days: 5,
+      sourceText: 'Capítulo 4: equilibrio químico y ácidos.',
     };
     const system = buildStudyPlanSystemPrompt(request);
     expect(system).toContain('Química');
@@ -164,8 +172,60 @@ describe('prompts', () => {
     expect(system).toContain('exactamente 5 días');
     expect(system).toContain('study, practice, review o rest');
     expect(system).toContain('No incluyas fechas ni ids');
+    expect(system).toContain('material de referencia');
 
-    expect(buildStudyPlanUserPrompt(request)).toContain('5 días');
+    const user = buildStudyPlanUserPrompt(request);
+    expect(user).toContain('5 días');
+    expect(user).toContain('<material>');
+    expect(user).toContain('Capítulo 4: equilibrio químico y ácidos.');
+  });
+
+  it('usa el material de referencia en la práctica', () => {
+    const request = {
+      subject: 'biology' as const,
+      level: 'secundaria' as const,
+      count: 5 as const,
+      difficulty: 'medium' as const,
+      examFormat: 'general' as const,
+      sourceText: 'La célula es la unidad de la vida.',
+    };
+    expect(buildQuizSystemPrompt(request)).toContain(
+      'material de referencia',
+    );
+    const prompt = buildQuizUserPrompt(request);
+    expect(prompt).toContain('<material>');
+    expect(prompt).toContain('La célula es la unidad de la vida.');
+  });
+
+  it('usa el material de referencia en el podcast', () => {
+    const request = {
+      subject: 'biology' as const,
+      level: 'secundaria' as const,
+      sourceText: 'La célula es la unidad de la vida.',
+    };
+    expect(buildPodcastSystemPrompt(request)).toContain(
+      'material de referencia',
+    );
+    const prompt = buildPodcastUserPrompt(request);
+    expect(prompt).toContain('<material>');
+    expect(prompt).toContain('La célula es la unidad de la vida.');
+  });
+
+  it('usa el material de referencia en el examen oral', () => {
+    const config = {
+      subject: 'chemistry' as const,
+      level: 'secundaria' as const,
+      difficulty: 'medium' as const,
+      topics: [],
+      count: 3 as const,
+      sourceText: 'Unidad 4: equilibrio químico y ácidos.',
+    };
+    expect(buildOralExamSystemPrompt(config)).toContain(
+      'material de referencia',
+    );
+    const prompt = buildOralExamUserPrompt(config);
+    expect(prompt).toContain('<material>');
+    expect(prompt).toContain('Unidad 4: equilibrio químico y ácidos.');
   });
 
   it('aplica el idioma elegido a práctica, tarjetas, plan y podcast', () => {

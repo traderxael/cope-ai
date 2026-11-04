@@ -9,12 +9,14 @@ export interface ServerConfig {
   model: string | null;
   demo: boolean;
   jsonMode: boolean;
+  jsonReasoningEffort: 'low' | null;
   visionEnabled: boolean;
   tokenParam: 'max_tokens' | 'max_completion_tokens';
   rateLimitPerMinute: number;
   quizRateLimitPerMinute: number;
   studyRateLimitPerMinute: number;
   oralRateLimitPerMinute: number;
+  oralReplyRateLimitPerMinute: number;
   ttsRateLimitPerMinute: number;
   voiceCloneRateLimitPerMinute: number;
   elevenLabsApiKey: string | null;
@@ -66,7 +68,8 @@ export function readServerConfig(
 ): ServerConfig {
   const openAiKey = env.OPENAI_API_KEY?.trim() || null;
   const openAiModel = env.OPENAI_MODEL?.trim() || null;
-  const forcedDemo = env.COPE_DEMO === '1';
+  const forcedDemo =
+    env.COPE_DEMO === '1' && env.VERCEL_ENV !== 'production';
   const requested = (env.COPE_AI_PROVIDER?.trim().toLowerCase() || 'auto') as
     | 'auto'
     | AiProvider;
@@ -123,6 +126,7 @@ export function readServerConfig(
     model,
     demo: provider === 'fixtures',
     jsonMode: provider !== 'pollinations' && env.OPENAI_JSON_MODE === '1',
+    jsonReasoningEffort: provider === 'pollinations' ? 'low' : null,
     visionEnabled:
       provider === 'pollinations'
         ? false
@@ -153,6 +157,12 @@ export function readServerConfig(
       LIMITS.oralRateLimitPerMinute,
       1,
       30,
+    ),
+    oralReplyRateLimitPerMinute: readInteger(
+      env.COPE_ORAL_REPLY_RATE_LIMIT_PER_MINUTE,
+      LIMITS.oralReplyRateLimitPerMinute,
+      1,
+      60,
     ),
     ttsRateLimitPerMinute: readInteger(
       env.COPE_TTS_RATE_LIMIT_PER_MINUTE,

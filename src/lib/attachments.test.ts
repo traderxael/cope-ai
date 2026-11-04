@@ -111,6 +111,26 @@ describe('attachment limits', () => {
       text: 'La fotosíntesis convierte luz en energía.\nOcurre en los cloroplastos.',
     });
 
+    const ass = await prepareAttachment(
+      new File(
+        [
+          [
+            '[Script Info]',
+            'Title: Clase',
+            '',
+            '[Events]',
+            'Dialogue: 0,0:00:01.00,0:00:02.00,Default,,0,0,0,,Hola clase.',
+          ].join('\n'),
+        ],
+        'clase.ass',
+      ),
+    );
+    expect(ass).toMatchObject({
+      kind: 'text',
+      name: 'clase.ass',
+      text: 'Hola clase.',
+    });
+
     await expect(
       prepareAttachment(
         new File(['WEBVTT\n\n'], 'vacio.vtt', { type: 'text/vtt' }),

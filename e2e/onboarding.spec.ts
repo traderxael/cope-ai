@@ -62,6 +62,9 @@ test.describe('onboarding', () => {
       .getByRole('button', { name: 'Ajustes' })
       .click();
     await expect(page.getByLabel('País de referencia')).toHaveValue('mx');
+    await expect(
+      page.getByRole('link', { name: /Sitio oficial: Ceneval/ }),
+    ).toHaveAttribute('href', 'https://www.ceneval.edu.mx/');
     await expect(page.getByLabel('Objetivo')).toHaveValue('grades');
     await page.getByLabel('Objetivo').selectOption('practice');
     await page.getByRole('button', { name: 'Cerrar', exact: true }).click();

@@ -311,6 +311,9 @@ test.describe('adjuntos', () => {
     page,
   }) => {
     await page.goto('/');
+    await expect(
+      page.getByLabel('Seleccionar archivo para adjuntar'),
+    ).toHaveAttribute('accept', /video\/mp4/);
     await page
       .getByLabel('Seleccionar archivo para adjuntar')
       .setInputFiles({
@@ -319,7 +322,7 @@ test.describe('adjuntos', () => {
         buffer: Buffer.from('video'),
       });
     await expect(page.getByRole('alert')).toContainText(
-      'adjuntá sus subtítulos .srt o .vtt',
+      'adjuntá sus subtítulos',
     );
   });
 });

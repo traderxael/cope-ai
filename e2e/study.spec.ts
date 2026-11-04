@@ -265,6 +265,41 @@ test.describe('suite de estudio', () => {
     await expect(
       panel.getByText('Sugerido para tu país: PAES (Chile).'),
     ).toBeVisible();
+    await expect(
+      panel.getByText(/Examen de referencia: PAES \(DEMRE\)/),
+    ).toBeVisible();
+    await expect(
+      panel.getByRole('link', { name: 'DEMRE · PAES' }),
+    ).toHaveAttribute('href', 'https://demre.cl/');
+  });
+
+  test('actualiza el formato al cambiar el país en ajustes', async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('cope-curriculum-v1', 'cl');
+    });
+    const panel = await openTutor(page);
+    await expect(panel.getByLabel('Formato de examen')).toHaveValue('paes');
+
+    await page
+      .locator('.desktopSidebar')
+      .getByRole('button', { name: 'Ajustes' })
+      .click();
+    const dialog = page.locator('dialog[open]');
+    await dialog.getByLabel('País de referencia').selectOption('mx');
+    await dialog.getByRole('button', { name: 'Cerrar' }).click();
+
+    await expect(panel.getByLabel('Formato de examen')).toHaveValue(
+      'admision',
+    );
+    await expect(
+      panel.getByText('Sugerido para tu país: Admisión (México).'),
+    ).toBeVisible();
+    await expect(panel.getByRole('link', { name: 'Ceneval' })).toHaveAttribute(
+      'href',
+      'https://www.ceneval.edu.mx/',
+    );
   });
 
   test('envía el idioma de respuestas a la práctica', async ({ page }) => {
@@ -284,6 +319,104 @@ test.describe('suite de estudio', () => {
 
     expect((await quizRequest).postDataJSON()).toMatchObject({
       language: 'en',
+    });
+  });
+
+  test('el simulacro usa el formato sugerido del país', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('cope-curriculum-v1', 'cl');
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Tutor' }).click();
+
+    const quizRequest = page.waitForRequest(
+      (request) =>
+        request.url().includes('/api/quiz') && request.method() === 'POST',
+    );
+    await page.getByRole('button', { name: /Simulacro/ }).click();
+
+    expect((await quizRequest).postDataJSON()).toMatchObject({
+      count: 10,
+      examFormat: 'paes',
+    });
+  });
+
+  test('genera práctica a partir del material adjunto', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+
+    await page
+      .getByLabel('Seleccionar archivo para adjuntar')
+      .setInputFiles({
+        name: 'resumen.txt',
+        mimeType: 'text/plain',
+        buffer: Buffer.from(
+          'La fotosíntesis convierte la luz en energía química.',
+        ),
+      });
+    await page.getByLabel('Mensaje para Cope').fill('Guardá este material');
+    await page.getByRole('button', { name: 'Enviar mensaje' }).click();
+    await expect(
+      page.locator('.assistantRow').last(),
+    ).toBeVisible({ timeout: 20_000 });
+
+    await page.getByRole('button', { name: 'Tutor' }).click();
+    const panel = page.locator('.tutorAside');
+    await panel
+      .locator('.switchRow')
+      .filter({ hasText: 'Usar el último material' })
+      .click();
+
+    const quizRequest = page.waitForRequest(
+      (request) =>
+        request.url().includes('/api/quiz') && request.method() === 'POST',
+    );
+    await panel.getByRole('button', { name: 'Practicar' }).click();
+
+    expect((await quizRequest).postDataJSON()).toMatchObject({
+      sourceText: 'La fotosíntesis convierte la luz en energía química.',
+    });
+  });
+
+  test('genera el plan a partir del material adjunto', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+
+    await page
+      .getByLabel('Seleccionar archivo para adjuntar')
+      .setInputFiles({
+        name: 'plan.txt',
+        mimeType: 'text/plain',
+        buffer: Buffer.from('Unidad 4: equilibrio químico y ácidos.'),
+      });
+    await page.getByLabel('Mensaje para Cope').fill('Guardá este material');
+    await page.getByRole('button', { name: 'Enviar mensaje' }).click();
+    await expect(
+      page.locator('.assistantRow').last(),
+    ).toBeVisible({ timeout: 20_000 });
+
+    await page.getByRole('button', { name: 'Tutor' }).click();
+    await page
+      .locator('.tutorAside')
+      .getByRole('button', { name: 'Plan de examen' })
+      .click();
+    const dialog = page.locator('dialog[open]');
+    await dialog.getByRole('button', { name: 'Nuevo plan' }).click();
+    await dialog
+      .locator('.switchRow')
+      .filter({ hasText: 'Usar el último material' })
+      .click();
+
+    const planRequest = page.waitForRequest(
+      (request) =>
+        request.url().includes('/api/study-plan') &&
+        request.method() === 'POST',
+    );
+    await dialog.getByRole('button', { name: 'Generar plan' }).click();
+
+    expect((await planRequest).postDataJSON()).toMatchObject({
+      sourceText: 'Unidad 4: equilibrio químico y ácidos.',
     });
   });
 });

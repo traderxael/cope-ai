@@ -23,6 +23,7 @@ export function isAbortError(error: unknown): boolean {
 export function providerStatusError(
   status: number,
   hasImages: boolean,
+  retryAfterSeconds?: number | null,
 ): AppError {
   if (status === 401 || status === 403) {
     return new AppError(
@@ -52,18 +53,22 @@ export function providerStatusError(
       'El proveedor rechazó la solicitud. Revisá el modelo y la configuración.',
     );
   }
+  const wait =
+    retryAfterSeconds && retryAfterSeconds > 0
+      ? ` Reintentá en ${retryAfterSeconds} s.`
+      : '';
   if (status === 402) {
     return new AppError(
       429,
       'free_ai_limit',
-      'La IA gratuita permite una solicitud cada ~30 segundos. Esperá un momento o configurá una clave gratuita.',
+      `La IA gratuita permite una solicitud cada ~30 segundos.${wait} También podés configurar una clave gratuita.`,
     );
   }
   if (status === 429) {
     return new AppError(
       429,
       'provider_rate_limited',
-      'El proveedor está limitando las solicitudes. Esperá unos segundos y probá de nuevo.',
+      `El proveedor está limitando las solicitudes.${wait || ' Esperá unos segundos y probá de nuevo.'}`,
     );
   }
   if (status >= 500) {

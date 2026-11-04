@@ -52,6 +52,16 @@ describe('parseStudyPlanJson', () => {
     });
   });
 
+  it('acepta descansos más cortos que una tarea', () => {
+    const content = plan();
+    content.days[0]!.tasks.push({
+      title: 'Descanso',
+      minutes: 15,
+      type: 'rest',
+    });
+    expect(parseStudyPlanJson(JSON.stringify(content))?.days).toHaveLength(3);
+  });
+
   it('rechaza días repetidos o menos del mínimo', () => {
     const duplicated = plan();
     duplicated.days[2] = duplicated.days[0]!;

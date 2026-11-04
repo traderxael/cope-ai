@@ -31,6 +31,7 @@ interface StudyPlanDialogProps {
   tutor: TutorConfig;
   online: boolean;
   suggestedExamDate?: string;
+  latestMaterial?: string;
 }
 
 function parseTopics(value: string): string[] {
@@ -50,6 +51,7 @@ export function StudyPlanDialog({
   tutor,
   online,
   suggestedExamDate,
+  latestMaterial,
 }: StudyPlanDialogProps) {
   const [plans, setPlans] = useState<StudyPlan[]>([]);
   const [selected, setSelected] = useState<StudyPlan | null>(null);
@@ -60,6 +62,7 @@ export function StudyPlanDialog({
   const [examDate, setExamDate] = useState('');
   const [topics, setTopics] = useState('');
   const [days, setDays] = useState('7');
+  const [useMaterial, setUseMaterial] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -70,6 +73,7 @@ export function StudyPlanDialog({
     setExamDate(pickUpcomingDate(suggestedExamDate, todayDateOnlyLocal(), 7));
     setTopics('');
     setDays('7');
+    setUseMaterial(false);
     void listStudyPlans()
       .then((stored) => {
         if (cancelled) return;
@@ -141,6 +145,14 @@ export function StudyPlanDialog({
         examDate,
         topics: topicList,
         days: dayCount,
+        ...(useMaterial && latestMaterial
+          ? {
+              sourceText: latestMaterial.slice(
+                0,
+                LIMITS.maxSourceTextChars,
+              ),
+            }
+          : {}),
       });
       const now = Date.now();
       const plan: StudyPlan = {
@@ -283,6 +295,25 @@ export function StudyPlanDialog({
               disabled={busy}
             />
           </div>
+
+          {latestMaterial ? (
+            <label className="switchRow">
+              <span>
+                <span className="fieldLabel">Usar el último material</span>
+                <span className="fieldHint">
+                  PDF, TXT o subtítulos de esta conversación
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                className="switchInput"
+                checked={useMaterial}
+                onChange={(event) => setUseMaterial(event.target.checked)}
+                disabled={busy}
+              />
+              <span className="switchVisual" aria-hidden="true" />
+            </label>
+          ) : null}
 
           <div className="fieldGroup">
             <label className="fieldLabel" htmlFor="plan-days">

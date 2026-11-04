@@ -34,12 +34,14 @@ function config(baseUrl: string, overrides: Partial<ServerConfig> = {}): ServerC
     model: 'fake-model',
     demo: false,
     jsonMode: false,
+    jsonReasoningEffort: null,
     visionEnabled: true,
     tokenParam: 'max_tokens',
     rateLimitPerMinute: 10,
     quizRateLimitPerMinute: 5,
     studyRateLimitPerMinute: 5,
     oralRateLimitPerMinute: 3,
+    oralReplyRateLimitPerMinute: 20,
     ttsRateLimitPerMinute: 10,
     voiceCloneRateLimitPerMinute: 2,
     elevenLabsApiKey: null,
@@ -178,6 +180,26 @@ describe('openChatStream', () => {
     ).rejects.toMatchObject({ status: 429, code: 'provider_rate_limited' });
   });
 
+  it('incluye los segundos de espera del límite gratuito', async () => {
+    upstream = await startFakeUpstream((_record, response) => {
+      response.statusCode = 402;
+      response.end('{"error":{"message":"Retry after 12s"}}');
+    });
+
+    await expect(
+      openChatStream({
+        config: config(upstream.baseUrl),
+        messages: userMessage,
+        systemPrompt: 'Sistema',
+        hasImages: false,
+      }),
+    ).rejects.toMatchObject({
+      status: 429,
+      code: 'free_ai_limit',
+      message: expect.stringContaining('12 s'),
+    });
+  });
+
   it('corta por timeout', async () => {
     upstream = await startFakeUpstream((_record, response) => {
       openSse(response);
@@ -244,6 +266,27 @@ describe('completeJson', () => {
     expect(upstream.requests[0]?.body).toMatchObject({
       stream: false,
       response_format: { type: 'json_object' },
+    });
+  });
+
+  it('baja el razonamiento del proveedor gratuito', async () => {
+    upstream = await startFakeUpstream((_record, response) => {
+      sendJsonUpstream(response, {
+        choices: [{ message: { content: '{"ok":true}' } }],
+      });
+    });
+
+    await completeJson({
+      config: config(upstream.baseUrl, {
+        provider: 'pollinations',
+        jsonReasoningEffort: 'low',
+      }),
+      systemPrompt: 'Sistema',
+      messages: [{ role: 'user', content: 'Generá' }],
+    });
+
+    expect(upstream.requests[0]?.body).toMatchObject({
+      reasoning_effort: 'low',
     });
   });
 

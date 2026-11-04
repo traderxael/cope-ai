@@ -21,6 +21,7 @@ describe('providerStatusError', () => {
       status: 429,
       code: 'free_ai_limit',
     });
+    expect(providerStatusError(402, false, 26).message).toContain('26 s');
   });
 
   it('no incluye cuerpos ni claves en los mensajes', () => {

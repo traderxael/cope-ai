@@ -22,6 +22,15 @@ describe('extractJsonObject', () => {
     expect(extractJsonObject('{ roto }')).toBeNull();
     expect(extractJsonObject('')).toBeNull();
   });
+
+  it('repara comillas dobles sin escapar dentro de un texto', () => {
+    const raw =
+      '{"summary":"No menciona "secuencia de razones" ni "proporciones"","ok":true}';
+    expect(extractJsonObject(raw)).toEqual({
+      summary: 'No menciona "secuencia de razones" ni "proporciones"',
+      ok: true,
+    });
+  });
 });
 
 describe('parseQuizJson', () => {

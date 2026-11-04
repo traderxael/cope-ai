@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { LIMITS } from '../../../shared/limits';
 import { chatRequestSchema } from '../../../shared/schemas/chat';
 import {
   DEFAULT_TUTOR,
@@ -811,15 +812,16 @@ export function useChatApp(): ChatAppState {
             : file.type === 'text/plain' ||
                 file.type === 'text/vtt' ||
                 file.type === 'application/x-subrip' ||
-                /\.(txt|srt|vtt|pptx)$/i.test(file.name) ||
+                file.type === 'text/x-ssa' ||
+                /\.(txt|srt|vtt|sbv|ass|ssa|sub|pptx)$/i.test(file.name) ||
                 file.type ===
                   'application/vnd.openxmlformats-officedocument.presentationml.presentation'
               ? 'text'
               : null;
         if (!kind) {
           error = file.type.startsWith('video/')
-            ? 'Para estudiar un video, adjuntá sus subtítulos .srt o .vtt; la IA gratis no transcribe audio.'
-            : 'Solo se pueden adjuntar PNG, JPG, WebP, PDF, TXT, SRT/VTT o PPTX.';
+            ? 'Para estudiar un video, adjuntá sus subtítulos .srt, .vtt, .sbv, .ass o .sub; la IA gratis no transcribe audio.'
+            : 'Solo se pueden adjuntar PNG, JPG, WebP, PDF, TXT, subtítulos o PPTX.';
           continue;
         }
         const limit = attachmentLimitError(current, kind);
@@ -870,6 +872,9 @@ export function useChatApp(): ChatAppState {
       const cleaned: PracticeSettings = {
         ...settings,
         topic: settings.topic?.trim() || undefined,
+        sourceText: settings.sourceText
+          ?.slice(0, LIMITS.maxSourceTextChars)
+          .trim() || undefined,
       };
       const generation = quizGenerationRef.current + 1;
       quizGenerationRef.current = generation;
@@ -888,6 +893,7 @@ export function useChatApp(): ChatAppState {
             difficulty: cleaned.difficulty,
             country: curriculumCountryForRequest(),
             language: personality.language,
+            sourceText: cleaned.sourceText,
             examFormat: cleaned.examFormat,
           },
           controller.signal,

@@ -5,6 +5,7 @@ import { difficultySchema, levelSchema, subjectSchema } from './common.js';
 import { personalityConfigSchema } from './personality.js';
 
 export const ORAL_EXAM_COUNTS = [3, 5, 8] as const;
+export const ORAL_REPLY_STAGES = ['initial', 'followup', 'closing'] as const;
 
 const topicSchema = z.string().trim().min(1).max(80);
 
@@ -18,6 +19,12 @@ export const oralExamConfigSchema = z.object({
     .max(LIMITS.maxOralTopics)
     .default([])
     .transform((topics) => [...new Set(topics)]),
+  sourceText: z
+    .string()
+    .trim()
+    .max(LIMITS.maxSourceTextChars)
+    .transform((value) => (value ? value : undefined))
+    .optional(),
   count: z
     .union([z.literal(3), z.literal(5), z.literal(8)])
     .default(LIMITS.defaultOralExamQuestions),
@@ -29,7 +36,7 @@ export const oralQuestionSchema = z.object({
   expectedPoints: z
     .array(z.string().trim().min(1).max(300))
     .min(2)
-    .max(5),
+    .max(8),
   rubric: z.string().trim().min(1).max(800),
 });
 
@@ -69,12 +76,27 @@ export const oralGradeContentSchema = z.object({
     .min(1)
     .max(LIMITS.maxOralExamQuestions),
   summary: z.string().trim().min(1).max(1_200),
-  nextSteps: z.array(z.string().trim().min(1).max(300)).min(1).max(4),
+  nextSteps: z.array(z.string().trim().min(1).max(300)).max(4).default([]),
 });
 
 export const oralGradeResponseSchema = oralGradeContentSchema.extend({
   overallScore: z.number().int().min(0).max(100),
   zone: z.enum(['segura', 'practica', 'refuerzo']),
+  demo: z.boolean(),
+});
+
+export const oralReplyContentSchema = z.object({
+  reply: z.string().trim().min(1).max(LIMITS.maxOralReplyChars),
+  followUp: z
+    .union([
+      z.string().trim().max(LIMITS.maxOralFollowUpChars),
+      z.null(),
+    ])
+    .transform((value) => value ?? '')
+    .default(''),
+});
+
+export const oralReplyResponseSchema = oralReplyContentSchema.extend({
   demo: z.boolean(),
 });
 
@@ -102,6 +124,19 @@ export const oralExamRequestSchema = z
         .array(oralAnswerSchema)
         .min(LIMITS.minOralExamQuestions)
         .max(LIMITS.maxOralExamQuestions),
+    }),
+    z.object({
+      action: z.literal('reply'),
+      config: oralExamConfigSchema,
+      personality: personalityConfigSchema.optional(),
+      question: oralQuestionSchema,
+      answer: z.string().trim().min(1).max(LIMITS.maxOralAnswerChars),
+      stage: z.enum(ORAL_REPLY_STAGES).default('initial'),
+      followUp: z
+        .string()
+        .trim()
+        .max(LIMITS.maxOralFollowUpChars)
+        .optional(),
     }),
   ])
   .superRefine((request, ctx) => {
@@ -142,4 +177,7 @@ export type OralExamResponse = z.infer<typeof oralExamResponseSchema>;
 export type OralGradeResult = z.infer<typeof oralGradeResultSchema>;
 export type OralGradeContent = z.infer<typeof oralGradeContentSchema>;
 export type OralGradeResponse = z.infer<typeof oralGradeResponseSchema>;
+export type OralReplyContent = z.infer<typeof oralReplyContentSchema>;
+export type OralReplyResponse = z.infer<typeof oralReplyResponseSchema>;
+export type OralReplyStage = (typeof ORAL_REPLY_STAGES)[number];
 export type OralExamRequest = z.infer<typeof oralExamRequestSchema>;

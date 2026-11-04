@@ -10,6 +10,12 @@ export const podcastRequestSchema = z.object({
   topic: z.string().trim().max(LIMITS.maxTopicChars).optional(),
   country: z.enum(CURRICULUM_COUNTRIES).optional(),
   language: responseLanguageSchema.optional(),
+  sourceText: z
+    .string()
+    .trim()
+    .max(LIMITS.maxSourceTextChars)
+    .transform((value) => (value ? value : undefined))
+    .optional(),
 });
 
 export const podcastContentSchema = z.object({

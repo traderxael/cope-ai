@@ -3,7 +3,7 @@ import type { ServerConfig } from '../config.js';
 import { completeJson, type JsonCompletionOptions } from '../providers/openai.js';
 
 const REPAIR_PROMPT =
-  'Tu respuesta anterior no fue JSON válido o no cumplió el formato. Devolvé únicamente el objeto JSON solicitado, sin fences ni texto adicional.';
+  'Tu respuesta anterior no fue JSON válido o no cumplió el formato. Devolvé únicamente el objeto JSON solicitado, sin fences ni texto adicional. No omitas ninguna entrada ni campo pedido.';
 
 type CompleteJson = (options: JsonCompletionOptions) => Promise<string>;
 

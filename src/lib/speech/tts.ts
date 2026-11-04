@@ -165,16 +165,43 @@ function pickVoice(
   return matching[0] ?? null;
 }
 
-export function speakText(
+function waitForVoices(timeoutMs = 500): Promise<boolean> {
+  const synth = window.speechSynthesis;
+  if (synth.getVoices().length > 0) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    let settled = false;
+    let timer = 0;
+    const finish = (ready: boolean) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      synth.removeEventListener?.('voiceschanged', onChange);
+      resolve(ready);
+    };
+    const onChange = () => finish(synth.getVoices().length > 0);
+    synth.addEventListener?.('voiceschanged', onChange);
+    timer = window.setTimeout(
+      () => finish(synth.getVoices().length > 0),
+      timeoutMs,
+    );
+  });
+}
+
+export async function speakText(
   text: string,
   profile: VoiceProfile = 'neutra',
   language: ResponseLanguage = 'es',
 ): Promise<void> {
   if (!speechSynthesisSupported()) {
-    return Promise.reject(new Error('La voz del navegador no está disponible.'));
+    throw new Error('La voz del navegador no está disponible.');
   }
   const clean = text.replace(/\s+/g, ' ').trim();
-  if (!clean) return Promise.resolve();
+  if (!clean) return;
+  // Sin voces el navegador acepta `speak` pero nunca dispara `onend`; el flujo
+  // de manos libres quedaría esperando para siempre.
+  if (!(await waitForVoices())) {
+    throw new Error('La voz del navegador no está disponible.');
+  }
 
   window.speechSynthesis.cancel();
   const voiceSettings = loadVoiceSettings();
@@ -198,13 +225,29 @@ export function speakText(
   if (voice) utterance.voice = voice;
 
   return new Promise<void>((resolve, reject) => {
-    utterance.onend = () => resolve();
+    let settled = false;
+    let timer = 0;
+    const finish = (error?: Error) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      if (error) reject(error);
+      else resolve();
+    };
+    timer = window.setTimeout(
+      () => {
+        window.speechSynthesis.cancel();
+        finish();
+      },
+      Math.min(60_000, Math.max(3_000, clean.length * 100)),
+    );
+    utterance.onend = () => finish();
     utterance.onerror = (event) => {
       if (event.error === 'canceled' || event.error === 'interrupted') {
-        resolve();
+        finish();
         return;
       }
-      reject(new Error('No se pudo reproducir la voz del navegador.'));
+      finish(new Error('No se pudo reproducir la voz del navegador.'));
     };
     window.speechSynthesis.speak(utterance);
   });

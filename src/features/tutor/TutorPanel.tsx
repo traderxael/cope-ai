@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { LIMITS } from '../../../shared/limits';
 import { SUBJECTS } from '../../../shared/schemas/common';
 import {
@@ -12,6 +12,10 @@ import {
   type Subject,
   type TutorConfig,
 } from '../../../shared/types';
+import {
+  CURRICULUM_COUNTRY_PROFILES,
+  CURRICULUM_OFFICIAL_SOURCES,
+} from '../../../shared/curriculum';
 import { Icon, type IconName } from '../../components/Icon';
 import type { PracticeSettings } from '../study/practice';
 import {
@@ -49,11 +53,13 @@ interface TutorPanelProps {
   onChange: (partial: Partial<TutorConfig>) => void;
   online: boolean;
   onPractice: (settings: PracticeSettings) => void;
+  latestMaterial?: string;
   practiceLoading: boolean;
   disabled?: boolean;
   onOpenFlashcards: () => void;
   onOpenPlan: () => void;
   onOpenOralExam: () => void;
+  onOpenPodcast: () => void;
   onOpenProgress: () => void;
 }
 
@@ -62,11 +68,13 @@ export function TutorPanel({
   onChange,
   online,
   onPractice,
+  latestMaterial,
   practiceLoading,
   disabled = false,
   onOpenFlashcards,
   onOpenPlan,
   onOpenOralExam,
+  onOpenPodcast,
   onOpenProgress,
 }: TutorPanelProps) {
   const titleId = useId();
@@ -77,9 +85,25 @@ export function TutorPanel({
   const [count, setCount] = useState<5 | 10>(5);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [timed, setTimed] = useState(false);
-  const countryFormat = suggestedExamFormat(loadCurriculumCountry());
+  const [useMaterial, setUseMaterial] = useState(false);
+  const country = loadCurriculumCountry();
+  const countryFormat = suggestedExamFormat(country);
+  const officialExam =
+    country !== 'general' ? CURRICULUM_COUNTRY_PROFILES[country].exam : null;
+  const officialSource =
+    country !== 'general' ? CURRICULUM_OFFICIAL_SOURCES[country] : null;
   const [examFormat, setExamFormat] = useState<ExamFormat>(countryFormat);
   const examFormatId = useId();
+  const suggestedRef = useRef(countryFormat);
+
+  useEffect(() => {
+    if (suggestedRef.current === countryFormat) return;
+    const previous = suggestedRef.current;
+    suggestedRef.current = countryFormat;
+    setExamFormat((current) =>
+      current === previous ? countryFormat : current,
+    );
+  }, [countryFormat]);
 
   const practiceDisabled = disabled || practiceLoading || !online;
 
@@ -252,6 +276,19 @@ export function TutorPanel({
         {examFormat !== 'general' ? (
           <span className="fieldHint">{EXAM_FORMAT_NOTES[examFormat]}</span>
         ) : null}
+        {officialExam && officialSource ? (
+          <span className="fieldHint">
+            Examen de referencia: {officialExam}.{' '}
+            <a
+              className="settingsExternalLink"
+              href={officialSource.url}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {officialSource.label}
+            </a>
+          </span>
+        ) : null}
       </div>
 
       <label className="switchRow">
@@ -286,6 +323,25 @@ export function TutorPanel({
         />
       </div>
 
+      {latestMaterial ? (
+        <label className="switchRow">
+          <span>
+            <span className="fieldLabel">Usar el último material</span>
+            <span className="fieldHint">
+              PDF, TXT o subtítulos de esta conversación
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            className="switchInput"
+            checked={useMaterial}
+            onChange={(event) => setUseMaterial(event.target.checked)}
+            disabled={disabled}
+          />
+          <span className="switchVisual" aria-hidden="true" />
+        </label>
+      ) : null}
+
       <button
         type="button"
         className="button primary practiceButton"
@@ -296,6 +352,9 @@ export function TutorPanel({
             timed,
             examFormat,
             topic: topic.trim() || undefined,
+            ...(useMaterial && latestMaterial
+              ? { sourceText: latestMaterial }
+              : {}),
           })
         }
         disabled={practiceDisabled}
@@ -335,6 +394,10 @@ export function TutorPanel({
         <button type="button" className="studyTool" onClick={onOpenOralExam}>
           <Icon name="mic" size={18} />
           <span>Examen oral</span>
+        </button>
+        <button type="button" className="studyTool" onClick={onOpenPodcast}>
+          <Icon name="volume" size={18} />
+          <span>Podcast</span>
         </button>
         <button type="button" className="studyTool" onClick={onOpenProgress}>
           <Icon name="chart" size={18} />

@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
+import { disableNativeSpeech } from './helpers/speech';
 
 test.describe('accesibilidad', () => {
   test('la pantalla inicial no tiene violaciones graves', async ({ page }) => {
@@ -75,6 +76,89 @@ test.describe('accesibilidad', () => {
     await check();
     await dialog.getByRole('button', { name: 'Iniciar', exact: true }).click();
     await check();
+  });
+
+  test('el panel de insignias no tiene violaciones graves', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page
+      .locator('.desktopSidebar')
+      .getByRole('button', { name: 'Insignias' })
+      .click();
+    await expect(
+      page.locator('dialog[open]').getByRole('heading', { name: 'Insignias' }),
+    ).toBeVisible();
+
+    const results = await new AxeBuilder({ page }).analyze();
+    const serious = results.violations.filter(
+      (violation) =>
+        violation.impact === 'serious' || violation.impact === 'critical',
+    );
+    expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
+  });
+
+  test('la conversación con el profesor no tiene violaciones graves', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Tutor' }).click();
+    await page
+      .getByRole('button', { name: /Conversar con el profesor/ })
+      .click();
+    await expect(
+      page
+        .locator('dialog[open]')
+        .getByRole('heading', { name: 'Hablar con el profesor' }),
+    ).toBeVisible();
+
+    const results = await new AxeBuilder({ page }).analyze();
+    const serious = results.violations.filter(
+      (violation) =>
+        violation.impact === 'serious' || violation.impact === 'critical',
+    );
+    expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
+  });
+
+  test('el resultado de la conversación no tiene violaciones graves', async ({
+    page,
+  }) => {
+    await disableNativeSpeech(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Tutor' }).click();
+    await page
+      .getByRole('button', { name: /Conversar con el profesor/ })
+      .click();
+    const dialog = page.locator('dialog[open]');
+    await dialog
+      .getByRole('button', { name: 'Empezar conversación' })
+      .click();
+    await expect(
+      dialog.getByRole('progressbar', { name: 'Preguntas de la conversación' }),
+    ).toBeVisible({ timeout: 20_000 });
+
+    for (let question = 2; question <= 5; question += 1) {
+      await dialog.getByRole('button', { name: 'Omitir' }).click();
+      await expect(
+        dialog.getByText(new RegExp(`Pregunta ${question} de 5`)),
+      ).toBeVisible({ timeout: 30_000 });
+    }
+    await dialog
+      .getByRole('button', { name: 'Terminar y calificar' })
+      .click();
+    await expect(
+      dialog.getByText('Resultado de la conversación'),
+    ).toBeVisible({ timeout: 30_000 });
+
+    const results = await new AxeBuilder({ page }).analyze();
+    const serious = results.violations.filter(
+      (violation) =>
+        violation.impact === 'serious' || violation.impact === 'critical',
+    );
+    expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
   });
 
   test('el onboarding no tiene violaciones graves', async ({ page }) => {

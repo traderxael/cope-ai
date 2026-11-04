@@ -114,6 +114,15 @@ describe('oral question and grade schemas', () => {
         expectedPoints: ['solo uno'],
       }).success,
     ).toBe(false);
+    expect(
+      oralQuestionSchema.safeParse({
+        ...questions[0],
+        expectedPoints: Array.from(
+          { length: 6 },
+          (_, index) => `Punto ${index + 1}`,
+        ),
+      }).success,
+    ).toBe(true);
   });
 
   it('valida el contenido y la respuesta final', () => {
@@ -132,6 +141,10 @@ describe('oral question and grade schemas', () => {
       nextSteps: ['Practicar circuitos en serie'],
     };
     expect(oralGradeContentSchema.safeParse(content).success).toBe(true);
+    expect(
+      oralGradeContentSchema.parse({ ...content, nextSteps: undefined })
+        .nextSteps,
+    ).toEqual([]);
     expect(
       oralGradeResponseSchema.safeParse({
         ...content,

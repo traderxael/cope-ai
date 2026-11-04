@@ -13,7 +13,7 @@ export const LazyMarkdown = memo(function LazyMarkdown({
   return (
     <Suspense
       fallback={
-        <div className="markdown markdownFallback" aria-busy="true">
+        <div className="markdown markdownFallback" aria-busy="true" dir="auto">
           {content}
         </div>
       }

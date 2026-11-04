@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   CURRICULUM_COUNTRIES,
   CURRICULUM_COUNTRY_LABELS,
   CURRICULUM_COUNTRY_PROFILES,
+  CURRICULUM_OFFICIAL_SOURCES,
   type CurriculumCountry,
 } from '../../shared/curriculum';
 import {
@@ -12,6 +13,7 @@ import {
 } from '../../shared/types';
 import type { AiProvider, VoiceCapabilities } from '../lib/api';
 import { formatBytes } from '../lib/attachments';
+import { downloadBackup, restoreBackup } from '../lib/backup';
 import {
   loadCurriculumCountry,
   saveCurriculumCountry,
@@ -76,6 +78,11 @@ export function SettingsDialog({
   const [storageLoading, setStorageLoading] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [backupState, setBackupState] = useState<
+    'idle' | 'working' | 'done' | 'error'
+  >('idle');
+  const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
+  const restoreInputRef = useRef<HTMLInputElement>(null);
   const [country, setCountry] =
     useState<CurriculumCountry>(loadCurriculumCountry);
 
@@ -106,6 +113,36 @@ export function SettingsDialog({
     setClearing(false);
     setConfirmClear(false);
     onClose();
+  };
+
+  const saveBackup = async () => {
+    setBackupState('working');
+    try {
+      await downloadBackup();
+      setBackupState('done');
+    } catch {
+      setBackupState('error');
+    }
+  };
+
+  const restoreFile = async (file: File) => {
+    setRestoreMessage(null);
+    if (file.size > 10 * 1024 * 1024) {
+      setRestoreMessage('El archivo supera los 10 MB.');
+      return;
+    }
+    setBackupState('working');
+    try {
+      await restoreBackup(await file.text());
+      window.location.reload();
+    } catch (error) {
+      setBackupState('error');
+      setRestoreMessage(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo restaurar el respaldo.',
+      );
+    }
   };
 
   return (
@@ -208,10 +245,23 @@ export function SettingsDialog({
           currículo específico.
         </p>
         {country !== 'general' ? (
-          <p className="settingsHint">
-            Examen de referencia: {CURRICULUM_COUNTRY_PROFILES[country].exam}.
-            Es una referencia general, no contenido oficial.
-          </p>
+          <>
+            <p className="settingsHint">
+              Examen de referencia: {CURRICULUM_COUNTRY_PROFILES[country].exam}.
+              Es una referencia general, no contenido oficial.
+            </p>
+            <p className="settingsHint">
+              <a
+                className="settingsExternalLink"
+                href={CURRICULUM_OFFICIAL_SOURCES[country].url}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                Sitio oficial: {CURRICULUM_OFFICIAL_SOURCES[country].label}
+              </a>{' '}
+              · No alojamos exámenes; adjuntá el PDF y practicá desde el material.
+            </p>
+          </>
         ) : null}
       </div>
 
@@ -340,6 +390,64 @@ export function SettingsDialog({
             Borrar todo el historial y progreso
           </button>
         )}
+      </div>
+
+      <div className="settingsSection">
+        <h3>Respaldo</h3>
+        <p className="settingsHint">
+          Descargá un archivo JSON con tus conversaciones, prácticas, mazos,
+          planes y exámenes orales. Tus datos siguen guardados en este
+          dispositivo.
+        </p>
+        <button
+          type="button"
+          className="button ghost small"
+          onClick={() => void saveBackup()}
+          disabled={backupState === 'working'}
+        >
+          <Icon name="download" size={16} />
+          {backupState === 'working'
+            ? 'Preparando…'
+            : 'Descargar respaldo'}
+        </button>
+        {backupState === 'done' ? (
+          <p className="settingsHint" role="status">
+            Respaldo descargado.
+          </p>
+        ) : null}
+        {backupState === 'error' && !restoreMessage ? (
+          <p className="settingsHint" role="alert">
+            No se pudo generar el respaldo.
+          </p>
+        ) : null}
+        <button
+          type="button"
+          className="button ghost small"
+          onClick={() => restoreInputRef.current?.click()}
+          disabled={backupState === 'working'}
+        >
+          Restaurar respaldo
+        </button>
+        <input
+          ref={restoreInputRef}
+          type="file"
+          accept="application/json,.json"
+          hidden
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            event.target.value = '';
+            if (file) void restoreFile(file);
+          }}
+        />
+        <p className="settingsHint">
+          Suma conversaciones, prácticas, mazos, planes y exámenes del archivo
+          sin borrar los que ya tenés.
+        </p>
+        {restoreMessage ? (
+          <p className="settingsHint" role="alert">
+            {restoreMessage}
+          </p>
+        ) : null}
       </div>
 
       <div className="settingsSection aboutSection">

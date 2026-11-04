@@ -212,6 +212,18 @@ function extractMessageText(payload: unknown): string {
   return '';
 }
 
+async function retryAfterSeconds(response: Response): Promise<number | null> {
+  const header = Number.parseInt(response.headers.get('retry-after') ?? '', 10);
+  if (Number.isFinite(header) && header > 0) return header;
+  try {
+    const text = await response.text();
+    const match = text.match(/retry after (\d+)\s*s/i);
+    return match ? Number(match[1]) : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function openChatStream(
   options: ChatCompletionOptions,
 ): Promise<AsyncGenerator<string>> {
@@ -245,8 +257,11 @@ export async function openChatStream(
   }
 
   if (!response.ok) {
-    await response.body?.cancel().catch(() => undefined);
-    const error = providerStatusError(response.status, options.hasImages);
+    const error = providerStatusError(
+      response.status,
+      options.hasImages,
+      await retryAfterSeconds(response),
+    );
     guard.cleanup();
     throw error;
   }
@@ -308,11 +323,15 @@ export async function completeJson(
       })),
     ],
     stream: false,
+    temperature: 0.2,
   };
   body[options.config.tokenParam] =
     options.maxTokens ?? LIMITS.maxOutputTokens * 2;
   if (options.config.jsonMode) {
     body.response_format = { type: 'json_object' };
+  }
+  if (options.config.jsonReasoningEffort) {
+    body.reasoning_effort = options.config.jsonReasoningEffort;
   }
 
   try {
@@ -324,8 +343,11 @@ export async function completeJson(
     });
 
     if (!response.ok) {
-      await response.body?.cancel().catch(() => undefined);
-      throw providerStatusError(response.status, false);
+      throw providerStatusError(
+        response.status,
+        false,
+        await retryAfterSeconds(response),
+      );
     }
 
     let payload: unknown;
