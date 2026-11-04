@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   oralExamResponseSchema,
   oralGradeResponseSchema,
+  oralReplyResponseSchema,
   type OralQuestion,
 } from '../../shared/schemas/oral-exam';
 import { readServerConfig } from '../config';
@@ -96,6 +97,144 @@ describe('prepareOralExam', () => {
     if (!result.ok || !('grade' in result)) return;
     expect(oralGradeResponseSchema.safeParse(result.grade).success).toBe(true);
     expect(result.grade.zone).toBe('segura');
+  });
+
+  it('responde como profesor en modo demo con feedback y repregunta', async () => {
+    const question = makeQuestions()[0];
+    const result = await prepareOralExam(
+      {
+        action: 'reply',
+        config: configBody,
+        question,
+        answer: question.expectedPoints.join(' '),
+        stage: 'initial',
+      },
+      context,
+      { config: demoConfig, limiter: new RateLimiter() },
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok || !('reply' in result)) return;
+    expect(oralReplyResponseSchema.safeParse(result.reply).success).toBe(true);
+    expect(result.reply.reply.length).toBeGreaterThan(10);
+    expect(result.reply.followUp.length).toBeGreaterThan(5);
+    expect(result.reply.demo).toBe(true);
+  });
+
+  it('cierra sin repregunta después de la repregunta', async () => {
+    const question = makeQuestions()[0];
+    const result = await prepareOralExam(
+      {
+        action: 'reply',
+        config: configBody,
+        question,
+        answer: 'Un ejemplo concreto que explica el concepto.',
+        stage: 'followup',
+        followUp: '¿Podés dar un ejemplo?',
+      },
+      context,
+      { config: demoConfig, limiter: new RateLimiter() },
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok || !('reply' in result)) return;
+    expect(result.reply.followUp).toBe('');
+  });
+
+  it('rechaza una respuesta vacía del alumno', async () => {
+    const result = await prepareOralExam(
+      {
+        action: 'reply',
+        config: configBody,
+        question: makeQuestions()[0],
+        answer: '   ',
+        stage: 'initial',
+      },
+      context,
+      { config: demoConfig, limiter: new RateLimiter() },
+    );
+    expect(result).toMatchObject({ ok: false, status: 400 });
+  });
+
+  it('responde con el proveedor real', async () => {
+    upstream = await startFakeUpstream((_record, response) => {
+      respondWith(
+        response,
+        JSON.stringify({
+          reply: 'Bien, mencionaste la idea central. Falta justificar.',
+          followUp: '¿Podés dar un ejemplo concreto?',
+        }),
+      );
+    });
+    const question = makeQuestions()[0];
+    const result = await prepareOralExam(
+      {
+        action: 'reply',
+        config: configBody,
+        question,
+        answer: 'La ley de Ohm relaciona tensión, corriente y resistencia.',
+        stage: 'initial',
+      },
+      context,
+      { config: providerConfig(upstream.baseUrl), limiter: new RateLimiter() },
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok || !('reply' in result)) return;
+    expect(result.reply).toMatchObject({
+      reply: 'Bien, mencionaste la idea central. Falta justificar.',
+      followUp: '¿Podés dar un ejemplo concreto?',
+      demo: false,
+    });
+  });
+
+  it('usa un rate limit propio para las respuestas', async () => {
+    const limiter = new RateLimiter();
+    const config = {
+      ...demoConfig,
+      oralRateLimitPerMinute: 1,
+      oralReplyRateLimitPerMinute: 1,
+    };
+    const question = makeQuestions()[0];
+    const exams = await prepareOralExam(
+      { action: 'generate', config: configBody },
+      context,
+      { config, limiter },
+    );
+    const replyBody = {
+      action: 'reply',
+      config: configBody,
+      question,
+      answer: 'Una respuesta válida.',
+      stage: 'initial',
+    } as const;
+    const first = await prepareOralExam(replyBody, context, { config, limiter });
+    const second = await prepareOralExam(replyBody, context, {
+      config,
+      limiter,
+    });
+    expect(exams.ok).toBe(true);
+    expect(first.ok).toBe(true);
+    expect(second).toMatchObject({ ok: false, status: 429 });
+  });
+
+  it('falla si el proveedor devuelve una respuesta de profesor inválida', async () => {
+    upstream = await startFakeUpstream((_record, response) => {
+      respondWith(response, 'no es json');
+    });
+    const result = await prepareOralExam(
+      {
+        action: 'reply',
+        config: configBody,
+        question: makeQuestions()[0],
+        answer: 'Una respuesta válida.',
+        stage: 'initial',
+      },
+      context,
+      { config: providerConfig(upstream.baseUrl), limiter: new RateLimiter() },
+    );
+    expect(result).toMatchObject({
+      ok: false,
+      status: 502,
+      code: 'oral_reply_parse_failed',
+    });
   });
 
   it('rechaza solicitudes inválidas', async () => {

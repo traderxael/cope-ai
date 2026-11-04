@@ -16,6 +16,7 @@ export interface ServerConfig {
   quizRateLimitPerMinute: number;
   studyRateLimitPerMinute: number;
   oralRateLimitPerMinute: number;
+  oralReplyRateLimitPerMinute: number;
   ttsRateLimitPerMinute: number;
   voiceCloneRateLimitPerMinute: number;
   elevenLabsApiKey: string | null;
@@ -156,6 +157,12 @@ export function readServerConfig(
       LIMITS.oralRateLimitPerMinute,
       1,
       30,
+    ),
+    oralReplyRateLimitPerMinute: readInteger(
+      env.COPE_ORAL_REPLY_RATE_LIMIT_PER_MINUTE,
+      LIMITS.oralReplyRateLimitPerMinute,
+      1,
+      60,
     ),
     ttsRateLimitPerMinute: readInteger(
       env.COPE_TTS_RATE_LIMIT_PER_MINUTE,

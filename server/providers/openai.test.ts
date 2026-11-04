@@ -41,6 +41,7 @@ function config(baseUrl: string, overrides: Partial<ServerConfig> = {}): ServerC
     quizRateLimitPerMinute: 5,
     studyRateLimitPerMinute: 5,
     oralRateLimitPerMinute: 3,
+    oralReplyRateLimitPerMinute: 20,
     ttsRateLimitPerMinute: 10,
     voiceCloneRateLimitPerMinute: 2,
     elevenLabsApiKey: null,

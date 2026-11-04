@@ -104,6 +104,55 @@ Para ver la barra de carga hace falta una respuesta que tarde: con la IA de
 nube gratuita (Pollinations) la espera es visible de entrada; con fixtures
 (`COPE_DEMO=1`) es demasiado rápida.
 
+## Cuarta tanda: fixes de CI portados y conversación con voz real
+
+Esta tanda parte de la base nueva de `main` y vuelve a aplicar los tres
+arreglos del PR del arranque en oscuro, además de completar la conversación
+con el profesor.
+
+### Fixes de CI portados
+
+- `public/theme-init.js` arranca en oscuro y respeta `system` cuando el usuario
+  lo eligió explícitamente; el `catch` también cae en oscuro.
+- `src/styles/astra.css` ya no fuerza `position` en `.appShell > *` (eso sacaba
+  el toast fijo de pantalla). Ahora `.appShell` usa `isolation: isolate` y las
+  estrellas van en `z-index: -1`.
+- La cola de avisos vive en `src/lib/toastQueue.ts`, con ids derivados de la
+  propia cola y tests. `App` y `Toast` descartan por id y `FocusDialog` manda
+  un solo aviso por sesión.
+- `e2e/focus.spec.ts` verifica que el toast caiga dentro del viewport.
+
+### Conversación con voz
+
+- **API:** `POST /api/oral-exam` acepta `action: "reply"` con `config`,
+  `personality`, `question`, `answer` y `stage` (`initial`, `followup`,
+  `closing`). Devuelve `{ reply, followUp, demo }`. El servidor limpia
+  `followUp` fuera de `initial` y aplica un rate limit propio
+  (`COPE_ORAL_REPLY_RATE_LIMIT_PER_MINUTE`, 20 por defecto) para no chocar con
+  el de exámenes.
+- **Demo:** el feedback se deriva de los puntos esperados de la pregunta y la
+  repregunta apunta al primer punto faltante.
+- **Cliente:** `requestOralReply` en `src/lib/api.ts`. El diálogo reemplaza las
+  frases fijas por la respuesta real y, si la API falla, sigue con una frase
+  local para no cortar la conversación.
+- **Manos libres:** se activa por defecto si el navegador soporta dictado. Tras
+  cada respuesta final guarda, pide y lee el feedback + repregunta, lee la
+  siguiente pregunta y rearma el micrófono. Las guardas por vista, índice y
+  cierre evitan rearmar fuera de contexto; la última pregunta no se califica
+  sola.
+- **Entradas visibles:** el botón **Hablar con Cope** del compositor abre la
+  conversación y el botón de dictado escribe en el mensaje. `tts.ts` no se
+  bloquea si el navegador no expone voces (caso headless) y tiene timeout.
+- **Tests:** `server/routes/oral-exam.test.ts`, `src/lib/toastQueue.test.ts`,
+  `src/components/Composer.test.tsx` y `e2e/voice.spec.ts` (simula
+  `SpeechRecognition` y `speechSynthesis`, y verifica los pedidos `initial` /
+  `followup` / `closing`, la UI, el TTS y el rearme del micrófono).
+
+```bash
+npm run verify
+npx playwright test e2e/voice.spec.ts e2e/focus.spec.ts e2e/oral-exam.spec.ts
+```
+
 ## Decisiones de diseño a respetar
 
 - **Sin servicios de pago ni claves.** El motor por defecto sigue siendo

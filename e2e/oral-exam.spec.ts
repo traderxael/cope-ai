@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { disableNativeSpeech } from './helpers/speech';
 
 test.describe('examen oral', () => {
   test('genera, responde, corrige y conserva el historial', async ({ page }) => {
@@ -158,6 +159,7 @@ test.describe('examen oral', () => {
   });
 
   test('inicia una conversación guiada con el profesor', async ({ page }) => {
+    await disableNativeSpeech(page);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
     await page.getByRole('button', { name: 'Tutor' }).click();

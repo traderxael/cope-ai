@@ -18,7 +18,7 @@ import { RenameDialog } from './components/RenameDialog';
 import { SegmentedMode } from './components/SegmentedMode';
 import { SettingsDialog } from './components/SettingsDialog';
 import { Sidebar } from './components/Sidebar';
-import { Toast, type ToastMessage, type ToastTone } from './components/Toast';
+import { Toast } from './components/Toast';
 import { TopBar } from './components/TopBar';
 import { QuizCard } from './features/quiz/QuizCard';
 import { TutorPanel } from './features/tutor/TutorPanel';
@@ -48,6 +48,13 @@ import {
 import { downloadConversation } from './lib/exportConversation';
 import type { Conversation, PracticeResult } from './lib/storage';
 import { logStudyMinutes } from './lib/studyLog';
+import {
+  dismissToast as removeToast,
+  enqueueToast,
+  visibleToast,
+  type ToastMessage,
+  type ToastTone,
+} from './lib/toastQueue';
 import {
   applyTheme,
   getStoredTheme,
@@ -111,30 +118,29 @@ export default function App() {
   const [deleting, setDeleting] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [updateReady, setUpdateReady] = useState(false);
-  const toastIdRef = useRef(0);
 
+  // Los avisos se encolan: si llega otro mientras hay uno en pantalla, el
+  // nuevo espera su turno en lugar de pisar al anterior.
   const notify = useCallback(
     (
       message: string,
       tone: ToastTone = 'info',
       action?: ToastMessage['action'],
     ) => {
-      toastIdRef.current += 1;
-      const next: ToastMessage = {
-        id: toastIdRef.current,
-        message,
-        tone,
-        ...(action ? { action } : {}),
-      };
-      setToasts((previous) => [...previous, next].slice(-3));
+      setToasts((current) =>
+        enqueueToast(current, {
+          message,
+          tone,
+          ...(action ? { action } : {}),
+        }),
+      );
     },
     [],
   );
 
-  const dismissToast = useCallback(
-    () => setToasts((previous) => previous.slice(1)),
-    [],
-  );
+  const dismissToast = useCallback((id: number) => {
+    setToasts((current) => removeToast(current, id));
+  }, []);
 
   const changeTheme = useCallback((next: Theme) => {
     setTheme(next);
@@ -680,6 +686,7 @@ export default function App() {
                   chat.actions.dismissAttachmentError();
                   chat.actions.dismissComposerError();
                 }}
+                onOpenVoiceChat={openOralConversation}
                 placeholder={
                   mode === 'tutor'
                     ? 'Escribí tu duda o ejercicio…'
@@ -862,7 +869,7 @@ export default function App() {
           onClose={() => setDeleteTarget(null)}
         />
 
-        <Toast toast={toasts[0] ?? null} onDismiss={dismissToast} />
+        <Toast toast={visibleToast(toasts)} onDismiss={dismissToast} />
       </div>
     </>
   );

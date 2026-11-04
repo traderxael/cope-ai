@@ -22,6 +22,7 @@ function renderComposer(overrides: Overrides = {}) {
   const onAddFiles = vi.fn();
   const onRemoveAttachment = vi.fn();
   const onDismissError = vi.fn();
+  const onOpenVoiceChat = vi.fn();
 
   function Wrapper() {
     const [value, setValue] = useState(overrides.value ?? 'Hola');
@@ -39,6 +40,7 @@ function renderComposer(overrides: Overrides = {}) {
         online={overrides.online ?? true}
         error={overrides.error ?? null}
         onDismissError={onDismissError}
+        onOpenVoiceChat={onOpenVoiceChat}
         placeholder="Preguntá lo que necesites…"
       />
     );
@@ -51,6 +53,7 @@ function renderComposer(overrides: Overrides = {}) {
     onAddFiles,
     onRemoveAttachment,
     onDismissError,
+    onOpenVoiceChat,
   };
 }
 
@@ -132,6 +135,22 @@ describe('Composer', () => {
     const file = new File(['abc'], 'tarea.jpg', { type: 'image/jpeg' });
     await user.upload(camera, file);
     expect(onAddFiles).toHaveBeenCalledWith([file]);
+  });
+
+  it('abre la conversación de voz desde el compositor', async () => {
+    const user = userEvent.setup();
+    const { onOpenVoiceChat } = renderComposer();
+    await user.click(screen.getByRole('button', { name: 'Hablar con Cope' }));
+    expect(onOpenVoiceChat).toHaveBeenCalledTimes(1);
+  });
+
+  it('avisa si el navegador no admite dictado', async () => {
+    const user = userEvent.setup();
+    renderComposer();
+    await user.click(screen.getByRole('button', { name: 'Dictar mensaje' }));
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'no admite dictado por voz',
+    );
   });
 
   it('muestra y cierra errores', async () => {

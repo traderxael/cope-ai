@@ -281,7 +281,8 @@ export async function handleNodeOralExam(
     }
 
     if ('exam' in result) sendJson(response, 200, result.exam);
-    else sendJson(response, 200, result.grade);
+    else if ('grade' in result) sendJson(response, 200, result.grade);
+    else sendJson(response, 200, result.reply);
   } catch (error) {
     logError(error);
     const failure = describeError(error);

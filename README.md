@@ -133,6 +133,7 @@ Variables opcionales:
 | `COPE_QUIZ_RATE_LIMIT_PER_MINUTE` | Límite por IP para práctica (default 5) |
 | `COPE_STUDY_RATE_LIMIT_PER_MINUTE` | Límite por IP para flashcards y planes (default 5) |
 | `COPE_ORAL_RATE_LIMIT_PER_MINUTE` | Límite por IP para exámenes orales (default 3) |
+| `COPE_ORAL_REPLY_RATE_LIMIT_PER_MINUTE` | Límite por IP para respuestas del profesor en la conversación (default 20) |
 | `ELEVENLABS_API_KEY` | Clave server-side para voz externa y clonación |
 | `ELEVENLABS_VOICE_ID` | Voz predefinida de ElevenLabs (necesaria para la voz externa) |
 | `ELEVENLABS_MODEL_ID` | Modelo de voz (default `eleven_multilingual_v2`) |
@@ -186,9 +187,13 @@ Variables opcionales:
   historial local. Puede basarse en el último PDF, TXT o subtítulos. La voz del
   navegador está siempre disponible y sigue el idioma de respuesta elegido en
   Personalidad.
-- **Conversación con el profesor:** preguntas encadenadas por voz o texto, con
-  avance automático, rúbrica por pregunta y resultado final de 0 a 100 con
-  próximos pasos.
+- **Conversación con el profesor:** el profesor responde de verdad a cada
+  respuesta (feedback breve + repregunta) y lo dice en voz alta. El modo
+  **manos libres** rearma el micrófono solo después de cada respuesta, sin
+  tocar nada. Entradas visibles: el botón **Hablar con Cope** del compositor
+  abre la conversación y el botón de dictado escribe el mensaje en el chat.
+  Al avanzar manualmente también se pide la respuesta real del profesor. Cierra
+  con rúbrica por pregunta y resultado final de 0 a 100 con próximos pasos.
 - **Podcast:** guion breve por materia o tema, con reproducción por la voz del
   navegador y texto para seguir la explicación. También puede basarse en el
   último PDF, TXT o subtítulos de la conversación.
@@ -242,7 +247,8 @@ historial.
 │  IndexedDB local         │
 └────────────┬─────────────┘
              │ /api/chat (SSE) · /api/quiz · /api/flashcards ·
-             │ /api/study-plan · /api/oral-exam · /api/podcast (JSON) ·
+             │ /api/study-plan · /api/oral-exam (generate/grade/reply) ·
+             │ /api/podcast (JSON) ·
              │ /api/tts · /api/voice-clone
              ▼
 ┌──────────────────────────┐
@@ -315,11 +321,12 @@ El detalle de la última tanda de cambios, con lo que quedó pendiente, está en
   respuesta de chat.
   Práctica: 5 o 10 preguntas y 5.000 tokens. Flashcards: 6 a 10 tarjetas,
   8.000 caracteres de material y 2.500 tokens. Plan: 3 a 14 días, 8 temas y
-  3.000 tokens. Oral: 3, 5 u 8 preguntas, 4.000 caracteres por respuesta.
+  3.000 tokens. Oral: 3, 5 u 8 preguntas, 4.000 caracteres por respuesta;
+  la respuesta del profesor admite 600 caracteres y la repregunta 300.
   TTS: 600 caracteres por reproducción y muestra de voz de hasta 5 MB.
 - Rate limit en memoria por IP: 10 chat/min, 5 práctica/min, 5 generaciones de
-  estudio/min, 3 exámenes orales/min, 10 reproducciones externas/min y
-  2 clonaciones/min. **No es un límite distribuido**: en serverless cada
+  estudio/min, 3 exámenes orales/min, 20 respuestas del profesor/min,
+  10 reproducciones externas/min y 2 clonaciones/min. **No es un límite distribuido**: en serverless cada
   instancia tiene su propia memoria.
 - La voz externa y la clonación requieren `COPE_VOICE_CLONE_CODE`; el código se
   compara en tiempo constante y se guarda solo en `sessionStorage`. La muestra

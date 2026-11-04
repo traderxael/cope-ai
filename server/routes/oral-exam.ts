@@ -2,14 +2,17 @@ import {
   oralExamRequestSchema,
   oralExamResponseSchema,
   oralGradeResponseSchema,
+  oralReplyResponseSchema,
   type OralExamResponse,
   type OralGradeResponse,
+  type OralReplyResponse,
 } from '../../shared/schemas/oral-exam.js';
 import { LIMITS } from '../../shared/limits.js';
 import { oralOverallScore, oralZoneForScore } from '../../shared/oral-grade.js';
 import {
   parseOralExamJson,
   parseOralGradeJson,
+  parseOralReplyJson,
 } from '../../shared/oral-exam-json.js';
 import {
   DEFAULT_PERSONALITY,
@@ -23,8 +26,14 @@ import {
   buildOralExamUserPrompt,
   buildOralGradeSystemPrompt,
   buildOralGradeUserPrompt,
+  buildOralReplySystemPrompt,
+  buildOralReplyUserPrompt,
 } from '../prompts/oral-exam.js';
-import { demoOralExam, demoOralGrade } from '../providers/demo-oral.js';
+import {
+  demoOralExam,
+  demoOralGrade,
+  demoOralReply,
+} from '../providers/demo-oral.js';
 import { checkOrigin, defaultLimiter, type RateLimiter } from '../security.js';
 import { generateValidatedJson } from './generate-json.js';
 import type { RequestContext, RouteFailure } from './types.js';
@@ -39,9 +48,15 @@ export interface OralGradeSuccess {
   grade: OralGradeResponse;
 }
 
+export interface OralReplySuccess {
+  ok: true;
+  reply: OralReplyResponse;
+}
+
 export type OralExamResult =
   | OralExamSuccess
   | OralGradeSuccess
+  | OralReplySuccess
   | RouteFailure;
 
 export interface OralExamDeps {
@@ -75,15 +90,24 @@ export async function prepareOralExam(
     );
   }
 
+  const requestedAction =
+    typeof body === 'object' && body !== null
+      ? (body as { action?: unknown }).action
+      : null;
+  const replying = requestedAction === 'reply';
   const rate = limiter.check(
-    `oral:${context.ip || 'unknown'}`,
-    config.oralRateLimitPerMinute,
+    `${replying ? 'oral-reply' : 'oral'}:${context.ip || 'unknown'}`,
+    replying
+      ? config.oralReplyRateLimitPerMinute
+      : config.oralRateLimitPerMinute,
   );
   if (!rate.allowed) {
     return failure(
       429,
       'rate_limited',
-      `Demasiados exámenes seguidos. Esperá ${rate.retryAfterSeconds} segundos.`,
+      replying
+        ? `Demasiadas respuestas seguidas. Esperá ${rate.retryAfterSeconds} segundos.`
+        : `Demasiados exámenes seguidos. Esperá ${rate.retryAfterSeconds} segundos.`,
     );
   }
 
@@ -102,6 +126,12 @@ export async function prepareOralExam(
   if (config.demo) {
     if (request.action === 'generate') {
       return { ok: true, exam: demoOralExam(request.config) };
+    }
+    if (request.action === 'reply') {
+      return {
+        ok: true,
+        reply: demoOralReply(request.question, request.answer, request.stage),
+      };
     }
     return {
       ok: true,
@@ -147,6 +177,49 @@ export async function prepareOralExam(
         );
       }
       return { ok: true, exam };
+    }
+
+    if (request.action === 'reply') {
+      const content = await generateValidatedJson({
+        config,
+        systemPrompt: buildOralReplySystemPrompt(
+          request.config,
+          personality,
+          request.stage,
+        ),
+        userPrompt: buildOralReplyUserPrompt(
+          request.question,
+          request.answer,
+          request.stage,
+          request.followUp ?? '',
+        ),
+        signal: context.signal,
+        maxTokens: LIMITS.maxOralOutputTokens,
+        budgetMs: config.jsonRouteBudgetMs,
+        attemptTimeoutMs: config.jsonAttemptTimeoutMs,
+        parse: parseOralReplyJson,
+      });
+      if (!content) {
+        return failure(
+          502,
+          'oral_reply_parse_failed',
+          'No se pudo responder como profesor. Probá de nuevo.',
+        );
+      }
+      const reply: OralReplyResponse = {
+        reply: content.reply,
+        // La repregunta solo tiene sentido después de la respuesta inicial.
+        followUp: request.stage === 'initial' ? content.followUp : '',
+        demo: false,
+      };
+      if (!oralReplyResponseSchema.safeParse(reply).success) {
+        return failure(
+          502,
+          'oral_reply_parse_failed',
+          'La respuesta del profesor llegó en un formato inválido.',
+        );
+      }
+      return { ok: true, reply };
     }
 
     const content = await generateValidatedJson({

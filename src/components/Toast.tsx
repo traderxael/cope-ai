@@ -1,24 +1,21 @@
 import { useEffect } from 'react';
 import { Icon } from './Icon';
+import type { ToastMessage } from '../lib/toastQueue';
 
-export type ToastTone = 'info' | 'success' | 'error';
-
-export interface ToastMessage {
-  id: number;
-  message: string;
-  tone: ToastTone;
-  action?: { label: string; onClick: () => void };
-}
+export type { ToastMessage, ToastTone } from '../lib/toastQueue';
 
 interface ToastProps {
   toast: ToastMessage | null;
-  onDismiss: () => void;
+  onDismiss: (id: number) => void;
 }
 
 export function Toast({ toast, onDismiss }: ToastProps) {
   useEffect(() => {
     if (!toast) return;
-    const timer = window.setTimeout(onDismiss, toast.action ? 8_000 : 5_000);
+    const timer = window.setTimeout(
+      () => onDismiss(toast.id),
+      toast.action ? 8_000 : 5_000,
+    );
     return () => window.clearTimeout(timer);
   }, [toast, onDismiss]);
 
@@ -53,7 +50,7 @@ export function Toast({ toast, onDismiss }: ToastProps) {
         type="button"
         className="toastClose"
         aria-label="Cerrar aviso"
-        onClick={onDismiss}
+        onClick={() => onDismiss(toast.id)}
       >
         <Icon name="close" size={14} />
       </button>

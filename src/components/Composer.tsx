@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState, type DragEvent } from 'react';
 import { LIMITS } from '../../shared/limits';
 import { formatBytes } from '../lib/attachments';
+import {
+  speechRecognitionSupported,
+  startDictation,
+  type Dictation,
+} from '../lib/speech/stt';
 import type { StoredAttachment } from '../lib/storage';
 import { Icon } from './Icon';
 
@@ -17,6 +22,7 @@ interface ComposerProps {
   online: boolean;
   error: string | null;
   onDismissError: () => void;
+  onOpenVoiceChat: () => void;
   placeholder: string;
 }
 
@@ -36,13 +42,30 @@ export function Composer({
   online,
   error,
   onDismissError,
+  onOpenVoiceChat,
   placeholder,
 }: ComposerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const dragDepthRef = useRef(0);
+  const dictationRef = useRef<Dictation | null>(null);
+  const valueRef = useRef(value);
   const [dragging, setDragging] = useState(false);
+  const [dictating, setDictating] = useState(false);
+  const [interim, setInterim] = useState('');
+  const [dictationError, setDictationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
+
+  useEffect(
+    () => () => {
+      dictationRef.current?.abort();
+    },
+    [],
+  );
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -57,13 +80,67 @@ export function Composer({
     !streaming &&
     (value.trim().length > 0 || attachments.length > 0);
 
-  const send = () => {
-    if (canSend) onSend();
-  };
-
   const pickFiles = (files: FileList | null) => {
     if (!files?.length) return;
     void onAddFiles(Array.from(files));
+  };
+
+  const stopDictation = () => {
+    dictationRef.current?.abort();
+    dictationRef.current = null;
+    setDictating(false);
+    setInterim('');
+  };
+
+  const toggleDictation = () => {
+    if (dictating) {
+      stopDictation();
+      return;
+    }
+    setDictationError(null);
+    if (!speechRecognitionSupported()) {
+      setDictationError(
+        'Este navegador no admite dictado por voz. Escribí tu mensaje.',
+      );
+      return;
+    }
+    setInterim('');
+    setDictating(true);
+    dictationRef.current = startDictation({
+      onInterim: (text) => setInterim(text),
+      onFinal: (text) => {
+        const clean = text.trim();
+        if (clean) {
+          const current = valueRef.current;
+          const next = `${current}${current.trim() ? ' ' : ''}${clean}`;
+          valueRef.current = next;
+          onChange(next);
+        }
+        stopDictation();
+      },
+      onError: (message) => {
+        dictationRef.current = null;
+        setDictating(false);
+        setInterim('');
+        setDictationError(message);
+      },
+      onEnd: () => {
+        dictationRef.current = null;
+        setDictating(false);
+        setInterim('');
+      },
+    });
+  };
+
+  const send = () => {
+    if (!canSend) return;
+    stopDictation();
+    onSend();
+  };
+
+  const openVoiceChat = () => {
+    stopDictation();
+    onOpenVoiceChat();
   };
 
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
@@ -111,6 +188,21 @@ export function Composer({
             className="inlineErrorClose"
             aria-label="Cerrar aviso"
             onClick={onDismissError}
+          >
+            <Icon name="close" size={15} />
+          </button>
+        </div>
+      ) : null}
+
+      {dictationError ? (
+        <div className="inlineError" role="alert">
+          <Icon name="alert" size={17} />
+          <span>{dictationError}</span>
+          <button
+            type="button"
+            className="inlineErrorClose"
+            aria-label="Cerrar aviso de dictado"
+            onClick={() => setDictationError(null)}
           >
             <Icon name="close" size={15} />
           </button>
@@ -208,6 +300,17 @@ export function Composer({
           >
             <Icon name="camera" size={20} />
           </button>
+          <button
+            type="button"
+            className="composerTalk"
+            aria-label="Hablar con Cope"
+            title={online ? 'Hablar con Cope' : 'Sin conexión'}
+            onClick={openVoiceChat}
+            disabled={!online || processing || streaming}
+          >
+            <Icon name="mic" size={18} />
+            <span className="composerTalkLabel">Hablar con Cope</span>
+          </button>
 
           <textarea
             ref={textareaRef}
@@ -238,6 +341,20 @@ export function Composer({
             aria-label="Mensaje para Cope"
             aria-describedby="composer-help"
           />
+
+          <button
+            type="button"
+            className={
+              dictating ? 'composerTool isListening' : 'composerTool'
+            }
+            aria-label={dictating ? 'Detener dictado' : 'Dictar mensaje'}
+            title={dictating ? 'Detener dictado' : 'Dictar mensaje'}
+            aria-pressed={dictating}
+            onClick={toggleDictation}
+            disabled={processing || streaming}
+          >
+            <Icon name="waveform" size={20} />
+          </button>
 
           {streaming ? (
             <button
@@ -270,6 +387,11 @@ export function Composer({
               : 'Cope puede equivocarse. Verificá lo importante.'}
           </span>
           <span className="composerMetaRight">
+            {dictating ? (
+              <span className="composerInterim" role="status" aria-live="polite">
+                {interim ? `Escuchando: ${interim}` : 'Escuchando…'}
+              </span>
+            ) : null}
             {showCount ? (
               <span className="charCount">
                 {value.length.toLocaleString('es')} /{' '}

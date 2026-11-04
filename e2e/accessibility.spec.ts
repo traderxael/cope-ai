@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
+import { disableNativeSpeech } from './helpers/speech';
 
 test.describe('accesibilidad', () => {
   test('la pantalla inicial no tiene violaciones graves', async ({ page }) => {
@@ -124,6 +125,7 @@ test.describe('accesibilidad', () => {
   test('el resultado de la conversación no tiene violaciones graves', async ({
     page,
   }) => {
+    await disableNativeSpeech(page);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
     await page.getByRole('button', { name: 'Tutor' }).click();

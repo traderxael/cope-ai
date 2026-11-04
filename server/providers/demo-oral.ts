@@ -1,9 +1,12 @@
+import { LIMITS } from '../../shared/limits.js';
 import { oralOverallScore, oralZoneForScore } from '../../shared/oral-grade.js';
 import type {
   OralExamConfig,
   OralExamResponse,
   OralGradeResponse,
   OralQuestion,
+  OralReplyResponse,
+  OralReplyStage,
 } from '../../shared/types.js';
 import {
   LEVEL_LABELS,
@@ -126,6 +129,75 @@ export function demoOralExam(config: OralExamConfig): OralExamResponse {
   return {
     title: `Simulacro oral de ${SUBJECT_LABELS[config.subject]} (${LEVEL_LABELS[config.level]})`,
     questions,
+    demo: true,
+  };
+}
+
+export function demoOralReply(
+  question: OralQuestion,
+  answer: string,
+  stage: OralReplyStage = 'initial',
+): OralReplyResponse {
+  const clean = answer.trim();
+  if (clean.length < 8) {
+    return stage === 'initial'
+      ? {
+          reply:
+            'No llegué a escuchar una explicación completa. Probá contarlo con tus palabras, sin miedo.',
+          followUp: '¿Podés intentarlo de nuevo con un ejemplo?',
+          demo: true,
+        }
+      : {
+          reply:
+            'Quedó muy breve. Para cerrar, alcanza con una idea y un ejemplo.',
+          followUp: '',
+          demo: true,
+        };
+  }
+
+  const normalizedAnswer = normalized(clean);
+  const answerWords = words(clean);
+  const covered = question.expectedPoints.filter((point) =>
+    pointCovered(point, normalizedAnswer, answerWords),
+  );
+  const missing = question.expectedPoints.filter(
+    (point) => !pointCovered(point, normalizedAnswer, answerWords),
+  );
+
+  if (stage === 'followup') {
+    return {
+      reply: covered.length
+        ? `Gracias por el ejemplo. Se ve que entendiste ${covered[0]}.`
+        : 'Gracias por ampliar. Así se responde en un oral.',
+      followUp: '',
+      demo: true,
+    };
+  }
+
+  if (stage === 'closing') {
+    return {
+      reply: missing.length
+        ? `Bien. Nos falta ${missing[0]}; lo retomamos en el repaso.`
+        : 'Bien dicho. Sigamos con la próxima.',
+      followUp: '',
+      demo: true,
+    };
+  }
+
+  return {
+    reply: `${
+      covered.length
+        ? `Mencionaste ${covered[0]}.`
+        : 'Ubicaste la respuesta dentro del tema.'
+    } ${
+      missing.length
+        ? `Para completar, profundizá en ${missing[0]}.`
+        : 'Agregá un ejemplo propio para cerrar la idea.'
+    }`.slice(0, LIMITS.maxOralReplyChars),
+    followUp: (missing.length
+      ? `¿Podés explicar ${missing[0]} con un ejemplo?`
+      : '¿Podés darme un ejemplo concreto y justificar por qué se aplica?'
+    ).slice(0, LIMITS.maxOralFollowUpChars),
     demo: true,
   };
 }
