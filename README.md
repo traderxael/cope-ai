@@ -19,30 +19,30 @@ tiempo estimado y una grilla de insignias por rachas.
 
 | Tema oscuro (predeterminado) | Insignias por órbita |
 | --- | --- |
-| <img src="docs/astra-dark.png" alt="Cope AI en tema oscuro" width="640" /> | <img src="docs/astra-badges.png" alt="Panel de insignias por órbita" width="420" /> |
+| <img src="docs/astra-dark.jpg" alt="Cope AI en tema oscuro" width="640" /> | <img src="docs/astra-badges.jpg" alt="Panel de insignias por órbita" width="420" /> |
 
 | Barra de progreso con tiempo estimado |
 | --- |
-| <img src="docs/astra-progress.png" alt="Barra de progreso con tiempo estimado" width="640" /> |
+| <img src="docs/astra-progress.jpg" alt="Barra de progreso con tiempo estimado" width="640" /> |
 
 | Bienvenida | Escritorio |
 | --- | --- |
-| <img src="docs/onboarding.png" alt="Bienvenida de Cope AI con perfil local" width="640" /> | <img src="docs/desktop-light.png" alt="Cope AI en escritorio" width="420" /> |
+| <img src="docs/onboarding.jpg" alt="Bienvenida de Cope AI con perfil local" width="640" /> | <img src="docs/desktop-light.jpg" alt="Cope AI en escritorio" width="420" /> |
 
 | Móvil |
 | --- |
-| <img src="docs/mobile-light.png" alt="Cope AI en móvil" width="220" /> |
+| <img src="docs/mobile-light.jpg" alt="Cope AI en móvil" width="220" /> |
 
 | Tutor y configuración | Plan de examen |
 | --- | --- |
-| <img src="docs/tutor-desktop.png" alt="Panel del tutor con estilo, materia, nivel y práctica" width="640" /> | <img src="docs/study-plan.png" alt="Plan de examen con tareas por día" width="640" /> |
+| <img src="docs/tutor-desktop.jpg" alt="Panel del tutor con estilo, materia, nivel y práctica" width="640" /> | <img src="docs/study-plan.jpg" alt="Plan de examen con tareas por día" width="640" /> |
 
 | Personalidad y voz | Examen oral |
 | --- | --- |
-| <img src="docs/personality-settings.png" alt="Ajustes de personalidad y voz de Cope AI" width="420" /> | <img src="docs/oral-exam.png" alt="Examen oral simulado con pregunta y respuesta por voz" width="640" /> |
+| <img src="docs/personality-settings.jpg" alt="Ajustes de personalidad y voz de Cope AI" width="420" /> | <img src="docs/oral-exam.jpg" alt="Examen oral simulado con pregunta y respuesta por voz" width="640" /> |
 
 <p align="center">
-  <img src="docs/conversation-demo.png" alt="Conversación de ejemplo con IA gratuita" width="760" />
+  <img src="docs/conversation-demo.jpg" alt="Conversación de ejemplo con IA gratuita" width="760" />
 </p>
 
 Capturas reales del build de producción con el motor gratuito.
