@@ -2,6 +2,7 @@ import { chromium } from '@playwright/test';
 
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:5173/';
 const OUT = process.env.SHOT_DIR || '.';
+const SKIP_PROFILE = process.env.NO_PROFILE === '1';
 
 const browser = await chromium.launch({
   channel: 'chrome',
@@ -13,7 +14,8 @@ const context = await browser.newContext({
 });
 const page = await context.newPage();
 
-await page.addInitScript(() => {
+await page.addInitScript((skipProfile) => {
+  if (skipProfile) return;
   localStorage.setItem(
     'cope-profile-v1',
     JSON.stringify({
@@ -39,11 +41,20 @@ await page.addInitScript(() => {
     write: [7000, 9000],
     chars: [1100, 1400],
   }));
-});
+}, SKIP_PROFILE);
 
 await page.goto(BASE, { waitUntil: 'networkidle' });
 await page.waitForTimeout(2500);
 await page.screenshot({ path: `${OUT}/01-home.png`, fullPage: false });
+
+if (SKIP_PROFILE) {
+  const theme = await page.evaluate(
+    () => document.documentElement.dataset.theme,
+  );
+  console.log(`tema al arrancar: ${theme}`);
+  await browser.close();
+  process.exit(0);
+}
 
 const badgesButton = page.getByRole('button', { name: 'Insignias' });
 if (await badgesButton.count()) {

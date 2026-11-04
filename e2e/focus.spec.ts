@@ -62,6 +62,7 @@ test('al terminar el enfoque pasa al descanso y cuenta la sesión', async ({
   await expect(
     dialog.getByText('1 sesión de enfoque completada.'),
   ).toBeVisible();
+
   // El aviso del fin de sesión. Se busca por fragmento porque el texto
   // incluye los minutos guardados.
   const aviso = page.getByRole('status').getByText(/Enfoque completado/);

@@ -120,7 +120,8 @@ export default function App() {
   const [updateReady, setUpdateReady] = useState(false);
 
   // Los avisos se encolan: si llega otro mientras hay uno en pantalla, el
-  // nuevo espera su turno en lugar de pisar al anterior.
+  // nuevo espera su turno en lugar de pisar al anterior. Antes un aviso de
+  // PWA podía tapar y perder el "Enfoque completado".
   const notify = useCallback(
     (
       message: string,
@@ -797,6 +798,8 @@ export default function App() {
           onClose={() => setFocusOpen(false)}
           onNotify={(message) => notify(message, 'success')}
           onSessionComplete={(minutes) => {
+            // El aviso lo manda el diálogo (un solo mensaje para el evento);
+            // acá solo se registra el tiempo para la meta y la racha.
             logStudyMinutes(minutes);
           }}
         />

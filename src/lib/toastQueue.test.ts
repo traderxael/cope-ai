@@ -8,10 +8,7 @@ import {
 
 describe('cola de avisos', () => {
   it('muestra el primer aviso de la cola', () => {
-    const queue = enqueueToast([], {
-      message: 'Enfoque completado.',
-      tone: 'info',
-    });
+    const queue = enqueueToast([], { message: 'Enfoque completado.', tone: 'info' });
     expect(visibleToast(queue)?.message).toBe('Enfoque completado.');
   });
 
@@ -28,6 +25,8 @@ describe('cola de avisos', () => {
   });
 
   it('da un id distinto a cada aviso aunque se agreguen en el mismo ciclo', () => {
+    // Regresión: si dos avisos comparten id, al descartar uno se pierden los
+    // dos y el segundo nunca llega a mostrarse.
     let queue: ToastMessage[] = [];
     queue = enqueueToast(queue, { message: 'Sesión guardada.', tone: 'success' });
     queue = enqueueToast(queue, {
