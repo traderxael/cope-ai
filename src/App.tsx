@@ -48,6 +48,7 @@ import {
 import { downloadConversation } from './lib/exportConversation';
 import type { Conversation, PracticeResult } from './lib/storage';
 import { logStudyMinutes } from './lib/studyLog';
+import { useChatStudyMinutes } from './lib/chatStudyTime';
 import {
   dismissToast as removeToast,
   enqueueToast,
@@ -95,6 +96,7 @@ function BootProgress() {
 export default function App() {
   const chat = useChatApp();
   const online = useOnlineStatus();
+  useChatStudyMinutes(chat.lastChatActivityAt);
 
   const [profile, setProfile] = useState<UserProfile | null>(loadProfile);
   const [theme, setTheme] = useState<Theme>(getStoredTheme);

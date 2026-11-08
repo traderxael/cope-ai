@@ -9,8 +9,14 @@ import {
   nextBadge,
   unlockedCount,
   type Badge,
+  type BadgeIcon,
   type BadgeTier,
 } from '../../lib/achievements';
+import {
+  achievements,
+  summarizePractice,
+  type Achievement,
+} from '../../lib/progress';
 import { listPracticeResults, type PracticeResult } from '../../lib/storage';
 import {
   DAILY_GOAL_OPTIONS,
@@ -86,6 +92,7 @@ export function BadgeDialog({ open, onClose }: BadgeDialogProps) {
     const week = studyWeek(Date.now(), log);
     const minutes = studyMinutesOn(week[week.length - 1]?.date ?? '', log);
     const ratio = goal > 0 ? Math.min(1, minutes / goal) : 0;
+    const missions = achievements(summarizePractice(results));
     return {
       streak,
       best,
@@ -95,6 +102,7 @@ export function BadgeDialog({ open, onClose }: BadgeDialogProps) {
       week,
       minutes,
       ratio,
+      missions,
     };
   }, [results, log, goal]);
 
@@ -223,7 +231,7 @@ export function BadgeDialog({ open, onClose }: BadgeDialogProps) {
                 <p>
                   {view.ratio >= 1
                     ? '¡Meta del día completada! Seguí así.'
-                    : 'Se suma el tiempo de prácticas y sesiones de enfoque.'}
+                    : 'Se suma el tiempo de prácticas, sesiones de enfoque y chat activo con el tutor.'}
                 </p>
                 <div className="goalChipRow" role="group" aria-label="Meta diaria">
                   {DAILY_GOAL_OPTIONS.map((option) => (
@@ -244,6 +252,15 @@ export function BadgeDialog({ open, onClose }: BadgeDialogProps) {
                 </div>
               </div>
             </div>
+          </section>
+
+          <section className="progressSection" aria-labelledby="badge-missions">
+            <h3 id="badge-missions">Misiones</h3>
+            <ul className="badgeGrid">
+              {view.missions.map((mission) => (
+                <MissionTile mission={mission} key={mission.id} />
+              ))}
+            </ul>
           </section>
 
           {grouped.map((group) => (
@@ -289,6 +306,53 @@ function BadgeTile({ badge }: { badge: Badge }) {
         {badge.unlocked
           ? 'Desbloqueada'
           : `Bloqueada. Faltan ${badge.missing} días de racha.`}
+      </span>
+    </li>
+  );
+}
+
+const MISSION_ICONS: Record<string, BadgeIcon> = {
+  first: 'rocket',
+  streak3: 'comet',
+  ten: 'asteroid',
+  sharp: 'supernova',
+};
+
+function MissionTile({ mission }: { mission: Achievement }) {
+  const percent = Math.round(mission.progress * 100);
+  return (
+    <li
+      className={
+        mission.unlocked ? 'badgeTile isUnlocked' : 'badgeTile isLocked'
+      }
+    >
+      <span className="badgeArt" aria-hidden="true">
+        <BadgeArt icon={MISSION_ICONS[mission.id] ?? 'rocket'} />
+        {mission.unlocked ? null : (
+          <span className="badgeLock">
+            <Icon name="shield" size={13} />
+          </span>
+        )}
+      </span>
+      <h4>{mission.label}</h4>
+      <p>{mission.description}</p>
+      <div
+        className="missionProgress"
+        role="progressbar"
+        aria-label={`Avance de ${mission.label}`}
+        aria-valuemin={0}
+        aria-valuemax={mission.target}
+        aria-valuenow={mission.current}
+      >
+        <div className="missionProgressFill" style={{ width: `${percent}%` }} />
+      </div>
+      <span className="missionCount">
+        {mission.current}/{mission.target}
+      </span>
+      <span className="srOnly">
+        {mission.unlocked
+          ? 'Completada'
+          : `En progreso: ${mission.current} de ${mission.target}.`}
       </span>
     </li>
   );

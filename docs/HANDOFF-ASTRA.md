@@ -278,6 +278,64 @@ npm run verify
 npx playwright test e2e/voice.spec.ts e2e/focus.spec.ts e2e/oral-exam.spec.ts
 ```
 
+## Quinta tanda: insignias 3D, barra sensible al prompt y misiones
+
+Rama `feat/3d-badges-eta-missions` (desde `main`). Cierra tres de los pendientes
+de la tanda anterior: iconografía 3D, más sensores de la barra y meta diaria con
+chat activo, más la grilla "Misiones". `npm run verify` en verde.
+
+### 1. Insignias con render 3D (Blender)
+
+- **`scripts/render-badges.py`**: genera los 12 PNG con Blender headless
+  (Cycles CPU). Idempotente; flags `--only`, `--samples`, `--size`, `--outdir`.
+  En esta máquina (CPU sin AVX2, sin GPU) se usa denoiser **off**, 64 samples y
+  seed fija para renders limpios y reproducibles.
+- **`src/features/achievements/art/*.png`**: 12 renders 512×512 RGBA con esquinas
+  transparentes, paleta Astra cohete→universo.
+- **`src/features/achievements/BadgeArt.tsx`**: ya no dibuja SVG; importa los PNG
+  con Vite y devuelve un `<img alt="">` decorativo (la tarjeta ya nombra la
+  insignia). Conserva la API `icon: BadgeIcon`.
+- **`src/styles/astra.css`**: `.badgeArt img` (70 px, `object-fit: contain`) y
+  `.badgeTile.isLocked .badgeArt img` con grayscale, en lugar de las reglas `svg`.
+- Tests: `src/features/achievements/BadgeArt.test.tsx` (img por icono, sin SVG).
+- Captura: `e2e/visual.spec.ts` ganó el test "panel de insignias con arte 3D"
+  (siembra racha de 9 días, abre el panel, espera los PNG y encuadra Misiones +
+  Órbita baja). De ahí se regeneró `docs/astra-badges.jpg`.
+
+### 2. Barra sensible al largo del prompt
+
+- **`src/lib/generationProgress.ts`**: el historial pasa a muestras **pareadas**
+  `{promptChars, waitMs, writeMs, chars}` bajo la clave nueva
+  `cope-gen-estimates-v2` (la v1 se ignora; el historial viejo no migraba porque
+  no guardaba el largo del prompt). Máximo 8 muestras.
+  - `estimateWaitMs(provider, promptChars)`: mediana de esperas; con ≥3 pares
+    escala por `promptChars / medianaPrompt`, acotado a [0.5, 2].
+  - `estimateExpectedChars(promptChars)`: con ≥3 pares usa la mediana de
+    `chars/promptChars`; resultado acotado a [120, 6000]; si no, mediana de chars
+    o 900.
+  - `recordEstimateSample` solo guarda si wait, write y chars son > 0.
+- **`useChatApp.ts`**: calcula `promptChars` sumando el texto de los mensajes del
+  request y lo lleva en `generationStatus` y en la medición final.
+- **`GenerationProgress.tsx`**: pasa `promptChars` a ambas estimaciones.
+- Se mantiene la invariante "la barra nunca miente" (espera asintótica < 72 %,
+  100 % solo al terminar).
+
+### 3. Meta diaria con chat activo + Misiones
+
+- **`src/lib/chatStudyTime.ts`**: `isChatStudyActive(lastActivityAt, now,
+  visible)` (ventana de 5 min y pestaña visible) y `useChatStudyMinutes` que
+  registra 1 min por tick estable. **`App.tsx`** lo conecta a
+  `chat.lastChatActivityAt`, que `useChatApp` marca al iniciar y al finalizar el
+  streaming (no al generar práctica, para no contar dos veces).
+- **`src/lib/progress.ts`**: `Achievement` gana `current`, `target` y `progress`;
+  `achievements()` devuelve Primer paso (1), Racha de 3 (3), Constancia (10) y
+  Puntería (20 preguntas con ≥80 %).
+- **`BadgeDialog.tsx`**: nueva sección **Misiones** con `MissionTile` (arte 3D,
+  barra `role="progressbar"` y contador `actual/objetivo`). El texto de la meta
+  ahora dice que también suma el chat activo con el tutor.
+- Tests: `src/lib/chatStudyTime.test.ts`, `src/lib/progress.test.ts` (avance),
+  `src/features/achievements/BadgeDialog.test.tsx` (grilla Misiones).
+
 ## Decisiones de diseño a respetar
 
 - **Sin servicios de pago ni claves.** El motor por defecto sigue siendo
@@ -286,7 +344,8 @@ npx playwright test e2e/voice.spec.ts e2e/focus.spec.ts e2e/oral-exam.spec.ts
   la respuesta se pasa del tiempo estimado, muestra "tarda más de lo previsto".
 - **La barra nunca miente.** No marca 100 % hasta que la respuesta termina de
   verdad; la fase de espera se queda por debajo del 72 % de forma asintótica.
-- **Cero dependencias nuevas.** Solo SVG y CSS; no se agregaron librerías.
+- **Cero dependencias nuevas.** El arte 3D son PNG propios generados con Blender
+  (herramienta de build, no de runtime); no se agregaron librerías al bundle.
 - **Aislamiento legal.** Astra AI no se copia: no se usa su código, sus
   textos, sus recursos ni su marca. El proyecto ya declaraba esto en el
   README y la nota sigue siendo válida. Los nombres de las insignias son
@@ -297,27 +356,24 @@ npx playwright test e2e/voice.spec.ts e2e/focus.spec.ts e2e/oral-exam.spec.ts
 
 ## Qué queda pendiente (sugerencias, no bloquean)
 
-1. **Iconografía 3D real.** Hoy las insignias son SVG con degradados. Para
-   seguir de cerca la referencia, se pueden generar PNG con render 3D
-   (Blender) y reemplazar `BadgeArt.tsx` conservando los mismos nombres de
-   icono. El repo ya tiene `scripts/generate-icons.mjs` para los iconos PWA.
-2. **Más^−1 sensores de la barra.** La estimación se apoya solo en la duración
-   observada. Con el historial se podría estimar también por tokens o por
-   longitud del prompt.
-3. **Meta diaria por minuto de chat.** Hoy la meta suma prácticas y sesiones de
-   enfoque; se podría sumar también el tiempo activo con el tutor abierto.
-4. **Capturas de `docs/`.** Ya se regeneraron con el tema nuevo durante esta
-   tanda (las produce la suite E2E en `test-results/screenshots/`). Si se vuelve
-   a tocar el diseño hay que copiarlas de nuevo a `docs/`.
-5. **Insignias de hitos de práctica.** La grilla actual es solo por racha.
-   `src/lib/progress.ts` ya tiene `achievements()` con logros por práctica
-   (precisión, cantidad); se puede sumar una segunda grilla "Misiones" en el
-   mismo panel.
-6. **Accesibilidad.** La barra usa `role="progressbar"` con `aria-valuenow`,
-   pero conviene verificar el anuncio con lector de pantalla (el texto de
-   `aria-live` en `MessageList.tsx` dice "Cope está respondiendo."). La suite
-   E2E de accesibilidad (`e2e/accessibility.spec.ts`) cubre los diálogos, pero
-   no el panel de insignias nuevo.
+La quinta tanda cerró los puntos 1 (iconografía 3D), 2 (sensores de la barra),
+3 (meta con chat activo) y 5 (grilla Misiones) de la lista anterior. Queda:
+
+1. **Accesibilidad del panel de insignias.** La barra usa `role="progressbar"`
+   con `aria-valuenow` y las misiones exponen `aria-valuemax/now`, pero conviene
+   verificar el anuncio con lector de pantalla. `e2e/accessibility.spec.ts`
+   cubre los diálogos en general, no el panel de insignias en detalle.
+2. **Acentos cálidos del tema claro.** `src/styles/app.css` conserva algunos
+   colores cálidos en el bloque "Study suite" (p. ej. `#f5c451` en repaso SRS).
+   Se pueden neutralizar desde `astra.css` sin tocar el base. En esta tanda el
+   usuario decidió no abordar el pulido visual/a11y, así que sigue pendiente.
+3. **Resto de capturas de `docs/`.** Solo se regeneró `astra-badges.jpg` (arte 3D
+   + Misiones). Las demás siguen siendo válidas; si se vuelve a tocar el diseño,
+   copiarlas de `test-results/screenshots/` como antes.
+4. **Historial de estimaciones v1.** La clave pasó a `cope-gen-estimates-v2`; el
+   historial v1 (sin largo de prompt) se descartó en vez de migrarse. Las
+   primeras respuestas tras actualizar usan los valores por defecto del
+   proveedor hasta juntar 3 muestras pareadas.
 
 ## Cambios que hicieron falta por el tema oscuro por defecto
 

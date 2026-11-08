@@ -37,7 +37,7 @@ export function GenerationProgress({
 
   const view = useMemo(() => {
     if (!generation) return null;
-    const waitEstimate = estimateWaitMs(provider);
+    const waitEstimate = estimateWaitMs(provider, generation.promptChars);
     const elapsed = now - generation.startedAt;
     const firstTokenAt = generation.firstTokenAt;
 
@@ -55,7 +55,7 @@ export function GenerationProgress({
     }
 
     const writeElapsed = Math.max(1, now - firstTokenAt);
-    const expected = estimateExpectedChars();
+    const expected = estimateExpectedChars(generation.promptChars);
     const remainingMs = remainingWriteMs(
       generation.chars,
       writeElapsed,

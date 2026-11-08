@@ -118,34 +118,67 @@ export interface Achievement {
   label: string;
   description: string;
   unlocked: boolean;
+  /** Valor actual hacia el objetivo de la misión. */
+  current: number;
+  target: number;
+  /** Avance de la misión, entre 0 y 1. */
+  progress: number;
+}
+
+function mission(
+  id: string,
+  label: string,
+  description: string,
+  unlocked: boolean,
+  current: number,
+  target: number,
+): Achievement {
+  const capped = Math.min(current, target);
+  return {
+    id,
+    label,
+    description,
+    unlocked,
+    current: capped,
+    target,
+    progress: target > 0 ? Math.min(1, Math.max(0, capped / target)) : 0,
+  };
 }
 
 export function achievements(summary: ProgressSummary): Achievement[] {
   return [
-    {
-      id: 'first',
-      label: 'Primer paso',
-      description: 'Completá tu primera práctica.',
-      unlocked: summary.attempts >= 1,
-    },
-    {
-      id: 'streak3',
-      label: 'Racha de 3',
-      description: 'Practicá tres días seguidos.',
-      unlocked: summary.streakDays >= 3,
-    },
-    {
-      id: 'ten',
-      label: 'Constancia',
-      description: 'Completá diez prácticas.',
-      unlocked: summary.attempts >= 10,
-    },
-    {
-      id: 'sharp',
-      label: 'Puntería',
-      description: 'Alcanzá 80% con veinte preguntas o más.',
-      unlocked: summary.questions >= 20 && summary.accuracy >= 0.8,
-    },
+    mission(
+      'first',
+      'Primer paso',
+      'Completá tu primera práctica.',
+      summary.attempts >= 1,
+      summary.attempts,
+      1,
+    ),
+    mission(
+      'streak3',
+      'Racha de 3',
+      'Practicá tres días seguidos.',
+      summary.streakDays >= 3,
+      summary.streakDays,
+      3,
+    ),
+    mission(
+      'ten',
+      'Constancia',
+      'Completá diez prácticas.',
+      summary.attempts >= 10,
+      summary.attempts,
+      10,
+    ),
+    mission(
+      'sharp',
+      'Puntería',
+      'Alcanzá 80% con veinte preguntas o más.',
+      summary.questions >= 20 && summary.accuracy >= 0.8,
+      summary.questions,
+      20,
+    ),
   ];
 }
 

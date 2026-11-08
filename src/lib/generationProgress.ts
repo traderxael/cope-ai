@@ -1,7 +1,8 @@
 import type { AiProvider } from './api';
 
-const STORAGE_KEY = 'cope-gen-estimates-v1';
+const STORAGE_KEY = 'cope-gen-estimates-v2';
 const MAX_SAMPLES = 8;
+const MIN_PAIRED_SAMPLES = 3;
 
 /**
  * Porcentaje de la barra que se cubre mientras se espera al primer token.
@@ -9,10 +10,16 @@ const MAX_SAMPLES = 8;
  */
 export const WAITING_SHARE = 0.72;
 
+/** Una medición real de una respuesta, pareada con el largo del prompt. */
+export interface GenerationSample {
+  promptChars: number;
+  waitMs: number;
+  writeMs: number;
+  chars: number;
+}
+
 export interface EstimateSamples {
-  wait: number[];
-  write: number[];
-  chars: number[];
+  samples: GenerationSample[];
 }
 
 /** Estado de la generación en curso, usado para la barra de progreso. */
@@ -23,6 +30,8 @@ export interface GenerationStatus {
   firstTokenAt: number | null;
   /** Caracteres recibidos hasta ahora. */
   chars: number;
+  /** Caracteres de texto del prompt enviado, como sensor de la estimación. */
+  promptChars: number;
 }
 
 /** Espera por defecto hasta el primer token, según el proveedor. */
@@ -36,8 +45,30 @@ export const DEFAULT_WAIT_MS: Record<AiProvider, number> = {
 export const DEFAULT_WRITE_MS = 6_000;
 export const DEFAULT_EXPECTED_CHARS = 900;
 
+const MIN_EXPECTED_CHARS = 120;
+const MAX_EXPECTED_CHARS = 6_000;
+
 export function emptySamples(): EstimateSamples {
-  return { wait: [], write: [], chars: [] };
+  return { samples: [] };
+}
+
+function isSample(value: unknown): value is GenerationSample {
+  if (!value || typeof value !== 'object') return false;
+  const source = value as Record<string, unknown>;
+  const positive = (key: string) =>
+    typeof source[key] === 'number' &&
+    Number.isFinite(source[key]) &&
+    (source[key] as number) > 0;
+  const nonNegative = (key: string) =>
+    typeof source[key] === 'number' &&
+    Number.isFinite(source[key]) &&
+    (source[key] as number) >= 0;
+  return (
+    positive('waitMs') &&
+    positive('writeMs') &&
+    positive('chars') &&
+    nonNegative('promptChars')
+  );
 }
 
 export function readEstimateSamples(): EstimateSamples {
@@ -46,51 +77,49 @@ export function readEstimateSamples(): EstimateSamples {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return emptySamples();
     const parsed: unknown = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object') return emptySamples();
-    const source = parsed as Record<string, unknown>;
-    const pick = (key: 'wait' | 'write' | 'chars'): number[] => {
-      const value = source[key];
-      if (!Array.isArray(value)) return [];
-      return value.filter(
-        (item): item is number =>
-          typeof item === 'number' && Number.isFinite(item) && item > 0,
-      );
-    };
-    return { wait: pick('wait'), write: pick('write'), chars: pick('chars') };
+    if (!Array.isArray(parsed)) return emptySamples();
+    return { samples: parsed.filter(isSample).slice(-MAX_SAMPLES) };
   } catch {
     return emptySamples();
   }
 }
 
-function pushSample(list: number[], value: number): number[] {
-  const next = [...list, value];
-  return next.length > MAX_SAMPLES ? next.slice(next.length - MAX_SAMPLES) : next;
-}
-
-/** Guarda una medición real de espera/escritura para afinar la estimación. */
+/** Guarda una medición real completa para afinar la estimación. */
 export function recordEstimateSample(sample: {
+  promptChars?: number;
   waitMs?: number;
   writeMs?: number;
   chars?: number;
 }): void {
   if (typeof window === 'undefined') return;
-  const current = readEstimateSamples();
-  const next: EstimateSamples = {
-    wait:
-      sample.waitMs && sample.waitMs > 0
-        ? pushSample(current.wait, Math.round(sample.waitMs))
-        : current.wait,
-    write:
-      sample.writeMs && sample.writeMs > 0
-        ? pushSample(current.write, Math.round(sample.writeMs))
-        : current.write,
-    chars:
-      sample.chars && sample.chars > 0
-        ? pushSample(current.chars, Math.round(sample.chars))
-        : current.chars,
+  const { waitMs, writeMs, chars } = sample;
+  if (
+    !waitMs || waitMs <= 0 ||
+    !writeMs || writeMs <= 0 ||
+    !chars || chars <= 0
+  ) {
+    return;
+  }
+  const promptChars =
+    typeof sample.promptChars === 'number' &&
+    Number.isFinite(sample.promptChars) &&
+    sample.promptChars > 0
+      ? Math.round(sample.promptChars)
+      : 0;
+  const next: GenerationSample = {
+    promptChars,
+    waitMs: Math.round(waitMs),
+    writeMs: Math.round(writeMs),
+    chars: Math.round(chars),
   };
+  const current = readEstimateSamples().samples;
+  const combined = [...current, next];
+  const capped =
+    combined.length > MAX_SAMPLES
+      ? combined.slice(combined.length - MAX_SAMPLES)
+      : combined;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(capped));
   } catch {
     // Sin historial persistido la estimación usa los valores por defecto.
   }
@@ -104,28 +133,72 @@ export function median(values: number[]): number {
   return (sorted[middle - 1]! + sorted[middle]!) / 2;
 }
 
-/** Espera estimada hasta el primer token, en milisegundos. */
-export function estimateWaitMs(
-  provider: AiProvider | null,
-  samples: EstimateSamples = readEstimateSamples(),
-): number {
-  const observed = median(samples.wait);
-  if (observed > 0) return observed;
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function defaultWait(provider: AiProvider | null): number {
   if (provider && provider in DEFAULT_WAIT_MS) return DEFAULT_WAIT_MS[provider];
   return DEFAULT_WAIT_MS.pollinations;
 }
 
+/**
+ * Espera estimada hasta el primer token. Con historial pareado suficiente,
+ * escala la espera según el largo del prompt respecto de lo observado.
+ */
+export function estimateWaitMs(
+  provider: AiProvider | null,
+  promptChars = 0,
+  samples: EstimateSamples = readEstimateSamples(),
+): number {
+  const observed = median(
+    samples.samples.map((sample) => sample.waitMs).filter((value) => value > 0),
+  );
+  const base = observed > 0 ? observed : defaultWait(provider);
+  const paired = samples.samples.filter(
+    (sample) => sample.promptChars > 0 && sample.waitMs > 0,
+  );
+  if (promptChars > 0 && paired.length >= MIN_PAIRED_SAMPLES) {
+    const medianPrompt = median(paired.map((sample) => sample.promptChars));
+    if (medianPrompt > 0) {
+      const scale = clamp(promptChars / medianPrompt, 0.5, 2);
+      return Math.round(base * scale);
+    }
+  }
+  return base;
+}
+
 /** Duración estimada de la escritura de la respuesta. */
-export function estimateWriteMs(samples: EstimateSamples = readEstimateSamples()): number {
-  const observed = median(samples.write);
+export function estimateWriteMs(
+  samples: EstimateSamples = readEstimateSamples(),
+): number {
+  const observed = median(
+    samples.samples.map((sample) => sample.writeMs).filter((value) => value > 0),
+  );
   return observed > 0 ? observed : DEFAULT_WRITE_MS;
 }
 
-/** Cantidad de caracteres que se espera que tenga la respuesta. */
+/**
+ * Caracteres esperados de la respuesta. Con historial pareado suficiente,
+ * los estima proporcionales al largo del prompt; si no, usa la mediana
+ * observada o el valor por defecto.
+ */
 export function estimateExpectedChars(
+  promptChars = 0,
   samples: EstimateSamples = readEstimateSamples(),
 ): number {
-  const observed = median(samples.chars);
+  const paired = samples.samples.filter(
+    (sample) => sample.promptChars > 0 && sample.chars > 0,
+  );
+  if (promptChars > 0 && paired.length >= MIN_PAIRED_SAMPLES) {
+    const ratio = median(paired.map((sample) => sample.chars / sample.promptChars));
+    if (ratio > 0) {
+      return Math.round(clamp(promptChars * ratio, MIN_EXPECTED_CHARS, MAX_EXPECTED_CHARS));
+    }
+  }
+  const observed = median(
+    samples.samples.map((sample) => sample.chars).filter((value) => value > 0),
+  );
   return observed > 0 ? observed : DEFAULT_EXPECTED_CHARS;
 }
 
@@ -163,10 +236,7 @@ export function remainingWriteMs(
   if (receivedChars <= 0 || writeElapsedMs <= 0) return 0;
   const rate = receivedChars / writeElapsedMs;
   if (rate <= 0) return 0;
-  const remainingChars = Math.max(
-    0,
-    expectedChars - receivedChars,
-  );
+  const remainingChars = Math.max(0, expectedChars - receivedChars);
   return remainingChars / rate;
 }
 

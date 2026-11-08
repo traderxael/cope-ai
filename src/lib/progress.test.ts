@@ -164,6 +164,36 @@ describe('summarizePractice', () => {
     );
   });
 
+  it('expone el avance de cada misión hacia su objetivo', () => {
+    const summary = summarizePractice([
+      result({ questionCount: 10, score: 9 }),
+      result({ questionCount: 10, score: 8 }),
+      result({ questionCount: 10, score: 7 }),
+    ]);
+    const missions = achievements(summary);
+    const ten = missions.find((mission) => mission.id === 'ten')!;
+    expect(ten.current).toBe(3);
+    expect(ten.target).toBe(10);
+    expect(ten.progress).toBeCloseTo(0.3, 5);
+    const first = missions.find((mission) => mission.id === 'first')!;
+    expect(first.unlocked).toBe(true);
+    expect(first.progress).toBe(1);
+    const sharp = missions.find((mission) => mission.id === 'sharp')!;
+    expect(sharp.current).toBe(20);
+    expect(sharp.target).toBe(20);
+    expect(sharp.progress).toBe(1);
+  });
+
+  it('el avance de una misión bloqueada arranca en cero', () => {
+    const missions = achievements(summarizePractice([]));
+    for (const mission of missions) {
+      expect(mission.progress).toBe(0);
+      expect(mission.current).toBe(0);
+      expect(mission.target).toBeGreaterThan(0);
+      expect(mission.unlocked).toBe(false);
+    }
+  });
+
   it('ordena y limita las prácticas recientes', () => {
     const results = Array.from({ length: 10 }, (_, index) =>
       result({ completedAt: 1_700_000_000_000 + index }),

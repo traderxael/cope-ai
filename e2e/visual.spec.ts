@@ -44,6 +44,59 @@ test.describe('capturas de referencia', () => {
     });
   });
 
+  test('panel de insignias con arte 3D', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        'cope-profile-v1',
+        JSON.stringify({
+          name: 'Xael',
+          level: 'secundaria',
+          subjects: ['math', 'physics'],
+          goal: 'exam',
+          createdAt: Date.now(),
+        }),
+      );
+      const today = new Date();
+      const log: Record<string, number> = {};
+      for (let i = 0; i < 9; i += 1) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        log[key] = i === 0 ? 18.5 : 12 + (i % 4) * 6;
+      }
+      localStorage.setItem('cope-study-log-v1', JSON.stringify(log));
+      localStorage.setItem('cope-study-goal', '30');
+    });
+    await page.goto('/');
+    await expect(page.locator('.demoBanner')).toBeVisible();
+    await page
+      .locator('.desktopSidebar')
+      .getByRole('button', { name: 'Insignias' })
+      .click();
+    const dialog = page.locator('dialog.badgeDialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText('Misiones')).toBeVisible();
+    await page.waitForFunction(() =>
+      [...document.querySelectorAll<HTMLImageElement>('.badgeDialog img')].every(
+        (img) => img.complete && img.naturalWidth > 0,
+      ),
+    );
+    await dialog.locator('.dialogBody').evaluate((body) => {
+      const missions = body.querySelector('#badge-missions');
+      if (!missions) return;
+      body.scrollTop =
+        missions.getBoundingClientRect().top -
+        body.getBoundingClientRect().top +
+        body.scrollTop -
+        12;
+    });
+    await page.screenshot({
+      path: 'test-results/screenshots/astra-badges.png',
+      animations: 'disabled',
+    });
+  });
+
   test('tutor y plan de estudio', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
