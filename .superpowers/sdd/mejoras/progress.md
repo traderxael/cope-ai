@@ -15,3 +15,14 @@ Tareas nuevas acordadas: insignias-concepto con explicación al desbloquear + ar
 Ruling: el cambio de fondo a `#0d0d0d` se hizo en `tokens.css` + manifest PWA/TWA, sin tocar `app.css`, para mantener la reversibilidad. Coste si me equivoco: el azul espacial anterior se pierde; se puede revertir con un solo commit.
 
 Ruling: el duelo usa la API de práctica existente y un rival determinista por porcentaje, en lugar de un endpoint nuevo — evita tocar el proxy y mantiene "sin servicios de pago". Coste si me equivoco: menos imprevisibilidad que un rival real.
+
+## Revisión final
+
+Revisor fresco (subagente): 0 Critical, 4 Important, varios Minor. Corregidos los 4 Important en `cad4b3a`:
+1. Estrellas del duelo no se acreditaban → persistidas en `cope-duel-stars-v1` y sumadas al contador.
+2. Desafío de flashcards nunca se reiniciaba → `countTodayFlashcardReviews` cuenta solo `lastReviewedAt` de hoy.
+3. Un mensaje de chat generaba hasta 5 min → ventana de 75 s y control de Activity ya contado; un mensaje aislado suma 1 min.
+4. Barra sin accesibilidad → `aria-valuetext` con fase/ETA y región `aria-live` por fase; test nuevo.
+
+Minor diferido: `listConversations()` en BadgeDialog sigue cargándose sin consumirse (coste: una lectura async extra al abrir el panel). No afecta al usuario.
+Verificación: `npm run verify` 455 tests y E2E 65/65 en verde.
