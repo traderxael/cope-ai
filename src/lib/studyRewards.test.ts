@@ -1,8 +1,14 @@
+// @vitest-environment jsdom
+
 import { describe, expect, it } from 'vitest';
 import {
+  addDuelStars,
+  countTodayFlashcardReviews,
   dailyChallenges,
+  readDuelStars,
   starsFromActivity,
   type DailyChallengeInput,
+  type ReviewedDeck,
 } from './studyRewards';
 
 describe('estrellas', () => {
@@ -53,5 +59,43 @@ describe('desafíos diarios', () => {
 
   it('no marca ninguno sin actividad', () => {
     expect(dailyChallenges(input()).every((challenge) => !challenge.completed)).toBe(true);
+  });
+});
+
+describe('estrellas de duelo', () => {
+  it('acumula estrellas entre duelos', () => {
+    window.localStorage.clear();
+    expect(readDuelStars()).toBe(0);
+    addDuelStars(3);
+    addDuelStars(1);
+    expect(readDuelStars()).toBe(4);
+    window.localStorage.clear();
+  });
+
+  it('ignora valores inválidos', () => {
+    window.localStorage.clear();
+    addDuelStars(-5);
+    addDuelStars(Number.NaN);
+    expect(readDuelStars()).toBe(0);
+  });
+});
+
+describe('countTodayFlashcardReviews', () => {
+  const now = new Date(2026, 10, 16, 12, 0, 0).getTime();
+  const deck = (lastReviewedAt?: number): ReviewedDeck => ({
+    cards: [{ lastReviewedAt }],
+  });
+
+  it('cuenta solo las tarjetas repasadas hoy', () => {
+    expect(
+      countTodayFlashcardReviews(
+        [deck(now - 3_600_000), deck(now - 3 * 86_400_000), deck(undefined)],
+        now,
+      ),
+    ).toBe(1);
+  });
+
+  it('devuelve cero sin mazos', () => {
+    expect(countTodayFlashcardReviews([], now)).toBe(0);
   });
 });

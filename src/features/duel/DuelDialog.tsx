@@ -7,6 +7,7 @@ import { requestQuiz } from '../../lib/api';
 import { curriculumCountryForRequest } from '../../lib/curriculum';
 import { loadPersonality } from '../../lib/personality';
 import { scoreDuel, type DuelAnswer, type DuelResult } from '../../lib/duel';
+import { addDuelStars } from '../../lib/studyRewards';
 
 interface DuelDialogProps {
   open: boolean;
@@ -65,7 +66,9 @@ export function DuelDialog({ open, onClose, tutor, online }: DuelDialogProps) {
 
   const finish = useCallback(
     (nextAnswers: DuelAnswer[]) => {
-      setResult(scoreDuel(questions, nextAnswers, OPPONENT_ACCURACY));
+      const score = scoreDuel(questions, nextAnswers, OPPONENT_ACCURACY);
+      addDuelStars(score.stars);
+      setResult(score);
     },
     [questions],
   );
@@ -128,7 +131,9 @@ export function DuelDialog({ open, onClose, tutor, online }: DuelDialogProps) {
             Vos <strong>{result.playerScore}</strong> · Rival{' '}
             <strong>{result.opponentScore}</strong>
           </p>
-          <p className="duelStars">{result.stars} estrellas ganadas</p>
+          <p className="duelStars">
+            {result.stars} {result.stars === 1 ? 'estrella ganada' : 'estrellas ganadas'}
+          </p>
           <button type="button" className="button" onClick={onClose}>
             Listo
           </button>

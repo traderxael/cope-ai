@@ -5,7 +5,7 @@ import { logStudyMinutes } from './studyLog';
  * Ventana sin actividad tras la cual el chat deja de contar para la meta
  * diaria: tener la app abierta sin escribir no es tiempo de estudio.
  */
-export const CHAT_ACTIVE_WINDOW_MS = 5 * 60_000;
+export const CHAT_ACTIVE_WINDOW_MS = 75_000;
 
 const TICK_MS = 60_000;
 
@@ -22,22 +22,42 @@ export function isChatStudyActive(
 }
 
 /**
- * Suma un minuto de estudio por cada minuto con el chat activo (pestaña
- * visible y un mensaje enviado o respuesta recibida dentro de la ventana).
- * El intervalo es estable: la actividad frecuente no lo reinicia.
+ * Decide si este tick debe sumar un minuto. Exige actividad *nueva* desde el
+ * último minuto contado, para que un solo mensaje no sume varios minutos.
+ */
+export function shouldCountChatMinute(
+  lastActivityAt: number,
+  countedAt: number,
+  now: number,
+  visible: boolean,
+): boolean {
+  if (lastActivityAt <= countedAt) return false;
+  return isChatStudyActive(lastActivityAt, now, visible);
+}
+
+/**
+ * Suma un minuto por cada minuto con actividad nueva en el chat (pestaña
+ * visible y mensaje enviado o respuesta recibida en la última ventana).
  */
 export function useChatStudyMinutes(lastActivityAt: number): void {
   const activityRef = useRef(lastActivityAt);
   activityRef.current = lastActivityAt;
+  const countedRef = useRef(0);
 
   useEffect(() => {
     const id = window.setInterval(() => {
-      const active = isChatStudyActive(
-        activityRef.current,
-        Date.now(),
-        document.visibilityState === 'visible',
-      );
-      if (active) logStudyMinutes(1);
+      const now = Date.now();
+      if (
+        shouldCountChatMinute(
+          activityRef.current,
+          countedRef.current,
+          now,
+          document.visibilityState === 'visible',
+        )
+      ) {
+        countedRef.current = activityRef.current;
+        logStudyMinutes(1);
+      }
     }, TICK_MS);
     return () => window.clearInterval(id);
   }, []);

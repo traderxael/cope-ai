@@ -42,7 +42,12 @@ import {
 } from '../../lib/learningBadges';
 import { LearningBadgeArt } from './LearningBadgeArt';
 import { LearningConceptDialog } from './LearningConceptDialog';
-import { dailyChallenges, starsFromActivity } from '../../lib/studyRewards';
+import {
+  countTodayFlashcardReviews,
+  dailyChallenges,
+  readDuelStars,
+  starsFromActivity,
+} from '../../lib/studyRewards';
 
 interface BadgeDialogProps {
   open: boolean;
@@ -94,11 +99,7 @@ export function BadgeDialog({ open, onClose }: BadgeDialogProps) {
         if (!cancelled) {
           setResults(practice);
           setLearningSources({
-            flashcardReviews: decks.reduce(
-              (total, deck) =>
-                total + deck.cards.filter((card) => card.lastReviewedAt).length,
-              0,
-            ),
+            flashcardReviews: countTodayFlashcardReviews(decks),
             oralSessions: exams.length,
             conversations: conversations.filter(
               (conversation) => conversation.messages.length > 0,
@@ -148,7 +149,7 @@ export function BadgeDialog({ open, onClose }: BadgeDialogProps) {
       )
       .reduce((total, result) => total + result.questionCount, 0);
     return {
-      stars: starsFromActivity(activity),
+      stars: starsFromActivity(activity) + readDuelStars(),
       challenges: dailyChallenges({
         minutes: minutes,
         questions: todayQuestions,

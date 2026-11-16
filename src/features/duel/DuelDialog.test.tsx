@@ -29,6 +29,6 @@ describe('DuelDialog', () => {
     expect(await screen.findByText('¿Cuánto es 2 + 2?')).toBeTruthy();
     await user.click(screen.getByRole('button', { name: '4' }));
     expect(await screen.findByText(/Duelo perdido/)).toBeTruthy();
-    expect(screen.getByText(/1 estrellas ganadas/)).toBeTruthy();
+    expect(screen.getByText(/1 estrella ganada/)).toBeTruthy();
   });
 });

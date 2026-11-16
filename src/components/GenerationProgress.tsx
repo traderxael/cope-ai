@@ -94,6 +94,7 @@ export function GenerationProgress({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={percent}
+        aria-valuetext={`${view.label} ${percent} %. ${view.eta}.`}
       >
         <div
           className={
@@ -105,6 +106,11 @@ export function GenerationProgress({
         />
       </div>
       <p className="genProgressHint">{view.hint}</p>
+      <div className="srOnly" role="status" aria-live="polite" aria-atomic="true">
+        {view.phase === 'writing'
+          ? 'Escribiendo la respuesta.'
+          : 'Preparando la respuesta.'}
+      </div>
     </div>
   );
 }

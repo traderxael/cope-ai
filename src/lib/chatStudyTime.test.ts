@@ -4,6 +4,7 @@ import { renderHook } from '@testing-library/react';
 import {
   CHAT_ACTIVE_WINDOW_MS,
   isChatStudyActive,
+  shouldCountChatMinute,
   useChatStudyMinutes,
 } from './chatStudyTime';
 import { studyMinutesToday } from './studyLog';
@@ -47,8 +48,28 @@ describe('isChatStudyActive', () => {
   });
 });
 
+describe('shouldCountChatMinute', () => {
+  const now = Date.now();
+
+  it('cuenta la actividad del último minuto', () => {
+    expect(shouldCountChatMinute(now - 60_000, 0, now, true)).toBe(true);
+  });
+
+  it('no cuenta dos veces la misma actividad', () => {
+    expect(shouldCountChatMinute(now - 60_000, now - 60_000, now, true)).toBe(false);
+  });
+
+  it('no cuenta actividad fuera de la ventana corta', () => {
+    expect(shouldCountChatMinute(now - CHAT_ACTIVE_WINDOW_MS - 5_000, 0, now, true)).toBe(false);
+  });
+
+  it('no cuenta con la pestaña oculta', () => {
+    expect(shouldCountChatMinute(now - 60_000, 0, now, false)).toBe(false);
+  });
+});
+
 describe('useChatStudyMinutes', () => {
-  it('suma un minuto por cada minuto activo de chat', () => {
+  it('suma un minuto por cada minuto con actividad nueva', () => {
     const { rerender } = renderHook(
       ({ at }) => useChatStudyMinutes(at),
       { initialProps: { at: Date.now() } },
@@ -60,12 +81,18 @@ describe('useChatStudyMinutes', () => {
     expect(studyMinutesToday()).toBe(2);
   });
 
+  it('un mensaje aislado no genera cinco minutos de estudio', () => {
+    renderHook(() => useChatStudyMinutes(Date.now()));
+    vi.advanceTimersByTime(5 * 60_000);
+    expect(studyMinutesToday()).toBe(1);
+  });
+
   it('deja de sumar cuando la actividad queda vieja', () => {
     const { rerender } = renderHook(
       ({ at }) => useChatStudyMinutes(at),
       { initialProps: { at: Date.now() } },
     );
-    vi.advanceTimersByTime(60_000);
+    vi.advanceTimersByTime(120_000);
     expect(studyMinutesToday()).toBe(1);
     rerender({ at: Date.now() - CHAT_ACTIVE_WINDOW_MS - 60_000 });
     vi.advanceTimersByTime(120_000);
