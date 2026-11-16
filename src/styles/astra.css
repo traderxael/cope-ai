@@ -517,11 +517,23 @@
   flex: 0 0 auto;
   width: 56px;
   height: 56px;
-  border-radius: 20px;
+  border-radius: 50%;
   border: 1px solid color-mix(in srgb, var(--astra-cyan) 45%, transparent);
-  background: color-mix(in srgb, var(--astra-indigo) 22%, transparent);
+  background:
+    radial-gradient(
+      120% 120% at 30% 22%,
+      rgba(255, 255, 255, 0.14),
+      transparent 46%
+    ),
+    color-mix(in srgb, var(--astra-indigo) 22%, transparent);
   color: var(--astra-cyan);
   box-shadow: var(--astra-glow-cyan);
+}
+
+.badgeHeroIcon img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
 }
 
 .goalChipRow {
@@ -576,6 +588,19 @@
   letter-spacing: -0.02em;
 }
 
+.badgeHeroStreak {
+  color: var(--astra-indigo);
+  background: var(--astra-grad-cyan);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 1.35em;
+  font-variant-numeric: tabular-nums;
+}
+
+[data-theme='light'] .badgeHeroStreak {
+  background-image: linear-gradient(135deg, #0e7490 0%, #2f49db 100%);
+}
+
 .badgeHeroCopy p {
   margin: 0;
   color: var(--muted);
@@ -584,6 +609,7 @@
 
 .badgeHeroStats {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 10px;
 }
@@ -640,7 +666,23 @@
 }
 
 .badgeTile.isLocked {
-  opacity: 0.58;
+  background: color-mix(in srgb, var(--surface-soft) 55%, transparent);
+}
+
+.badgeTile.isLocked .badgeArt {
+  border-color: var(--glass-line);
+  background:
+    radial-gradient(
+      120% 120% at 30% 22%,
+      rgba(255, 255, 255, 0.06),
+      transparent 46%
+    ),
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--surface-raised) 70%, transparent),
+      color-mix(in srgb, var(--surface-soft) 60%, transparent)
+    );
+  box-shadow: var(--glass-inner);
 }
 
 .badgeArt {
@@ -649,39 +691,64 @@
   place-items: center;
   width: 88px;
   height: 88px;
-  border-radius: 26px;
-  border: 1px solid var(--glass-line);
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--astra-indigo) 28%, var(--glass-line));
   background:
+    radial-gradient(
+      120% 120% at 30% 22%,
+      rgba(255, 255, 255, 0.16),
+      transparent 46%
+    ),
     linear-gradient(
       160deg,
       color-mix(in srgb, var(--surface-raised) 92%, transparent),
       color-mix(in srgb, var(--surface-soft) 82%, transparent)
     );
-  box-shadow: var(--glass-inner);
+  box-shadow:
+    var(--glass-inner),
+    0 12px 24px -16px rgba(3, 6, 20, 0.9);
 }
 
 .badgeTile.isUnlocked .badgeArt {
-  border-color: color-mix(in srgb, var(--astra-cyan) 48%, transparent);
+  border: 2px solid transparent;
+  background:
+    radial-gradient(120% 120% at 30% 22%, color-mix(in srgb, var(--surface-raised) 90%, var(--astra-cyan)), var(--surface-soft)) padding-box,
+    var(--astra-grad-cyan) border-box;
   box-shadow:
     var(--glass-inner),
-    0 0 0 3px color-mix(in srgb, var(--astra-cyan) 16%, transparent),
-    0 18px 44px -18px color-mix(in srgb, var(--astra-cyan) 85%, transparent);
+    0 0 0 3px color-mix(in srgb, var(--astra-cyan) 12%, transparent),
+    0 18px 44px -18px color-mix(in srgb, var(--astra-cyan) 65%, transparent);
+}
+
+.badgeArt::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  width: 40px;
+  height: 7px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink) 18%, transparent);
+  filter: blur(3px);
 }
 
 .badgeArt img {
-  width: 70px;
-  height: 70px;
+  position: relative;
+  z-index: 1;
+  width: 74px;
+  height: 74px;
   object-fit: contain;
 }
 
 .badgeTile.isLocked .badgeArt img {
-  filter: grayscale(1) brightness(0.75);
+  filter: grayscale(0.85) brightness(0.72) contrast(0.95);
 }
 
 .badgeLock {
   position: absolute;
-  right: -4px;
-  bottom: -4px;
+  right: 2px;
+  bottom: 2px;
   display: grid;
   place-items: center;
   width: 26px;
@@ -708,9 +775,10 @@
 
 .missionProgress {
   width: 100%;
-  height: 6px;
+  height: 8px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--surface-soft) 80%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 55%, transparent);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
   overflow: hidden;
 }
 
@@ -718,12 +786,33 @@
   height: 100%;
   border-radius: inherit;
   background: var(--astra-grad);
+  box-shadow: 0 0 10px -1px color-mix(in srgb, var(--astra-indigo) 75%, transparent);
+}
+
+.missionMeta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
 }
 
 .missionCount {
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.missionPct {
+  color: var(--astra-cyan);
+  font-size: 0.72rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+[data-theme='light'] .missionPct {
+  color: #0e7490;
 }
 
 .badgeTier {

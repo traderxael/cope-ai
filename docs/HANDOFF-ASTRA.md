@@ -336,6 +336,29 @@ chat activo, más la grilla "Misiones". `npm run verify` en verde.
 - Tests: `src/lib/chatStudyTime.test.ts`, `src/lib/progress.test.ts` (avance),
   `src/features/achievements/BadgeDialog.test.tsx` (grilla Misiones).
 
+## Sexta tanda: rediseño Astra del panel de insignias
+
+Interpretación propia de la estética Astra (sin copiar código ni recursos):
+medallones circulares con anillo de gradiente para las insignias desbloqueadas,
+sombra de contacto bajo el arte, estado bloqueado legible y porcentaje por
+misión. Vive en `astra.css` + `BadgeDialog.tsx`.
+
+- **`BadgeDialog.tsx`**: hero con medallón (arte de la próxima insignia), número
+  de racha destacado (`.badgeHeroStreak`), encabezado "Misiones" y pie por misión
+  con contador `actual/objetivo` y porcentaje (`.missionMeta`).
+- **`astra.css`**: `.badgeArt` circular con brillo radial y sombra de contacto;
+  anillo padding-box/border-box en desbloqueadas; `.badgeTile.isLocked` atenúa
+  fondo y arte (grayscale) sin opacar el texto; `.missionProgress` con glow.
+  Tintas legibles en tema claro: `[data-theme='light']` oscurece racha y
+  porcentaje (el cyan de Astra no contrasta sobre superficies claras).
+- **Responsive**: `.badgeHeroStats` con `flex-wrap` (a 320 px los chips bajan en
+  vez de desbordar). El E2E guarda overflow horizontal del `.dialogBody` en
+  1440/390/320 oscuro y 390 claro.
+- **Tests**: `BadgeDialog.test.tsx` (marcado nuevo y % exactos por misión),
+  `e2e/visual.spec.ts` (capturas por viewport/tema + guarda de overflow),
+  `e2e/accessibility.spec.ts` (test axe dedicado al panel).
+- **Captura**: `docs/astra-badges.jpg` regenerada del panel nuevo.
+
 ## Decisiones de diseño a respetar
 
 - **Sin servicios de pago ni claves.** El motor por defecto sigue siendo
@@ -359,10 +382,9 @@ chat activo, más la grilla "Misiones". `npm run verify` en verde.
 La quinta tanda cerró los puntos 1 (iconografía 3D), 2 (sensores de la barra),
 3 (meta con chat activo) y 5 (grilla Misiones) de la lista anterior. Queda:
 
-1. **Accesibilidad del panel de insignias.** La barra usa `role="progressbar"`
-   con `aria-valuenow` y las misiones exponen `aria-valuemax/now`, pero conviene
-   verificar el anuncio con lector de pantalla. `e2e/accessibility.spec.ts`
-   cubre los diálogos en general, no el panel de insignias en detalle.
+1. **Accesibilidad del panel de insignias.** `e2e/accessibility.spec.ts` ya
+   tiene un test axe dedicado al panel (sin violaciones graves); queda
+   verificar el anuncio con lector de pantalla real.
 2. **Acentos cálidos del tema claro.** `src/styles/app.css` conserva algunos
    colores cálidos en el bloque "Study suite" (p. ej. `#f5c451` en repaso SRS).
    Se pueden neutralizar desde `astra.css` sin tocar el base. En esta tanda el

@@ -133,13 +133,22 @@ export function BadgeDialog({ open, onClose }: BadgeDialogProps) {
         <>
           <div className="badgeHero">
             <span className="badgeHeroIcon" aria-hidden="true">
-              <Icon name="target" size={26} />
+              {view.next ? (
+                <BadgeArt icon={view.next.icon} />
+              ) : (
+                <Icon name="target" size={26} />
+              )}
             </span>
             <div className="badgeHeroCopy">
               <h3>
-                {view.streak === 0
-                  ? 'Empezá tu primera racha'
-                  : `Racha actual: ${view.streak} día${view.streak === 1 ? '' : 's'}`}
+                {view.streak === 0 ? (
+                  'Empezá tu primera racha'
+                ) : (
+                  <>
+                    Racha actual: <span className="badgeHeroStreak">{view.streak}</span>{' '}
+                    día{view.streak === 1 ? '' : 's'}
+                  </>
+                )}
               </h3>
               <p>
                 {view.next
@@ -255,7 +264,9 @@ export function BadgeDialog({ open, onClose }: BadgeDialogProps) {
           </section>
 
           <section className="progressSection" aria-labelledby="badge-missions">
-            <h3 id="badge-missions">Misiones</h3>
+            <div className="badgeTier" id="badge-missions">
+              Misiones
+            </div>
             <ul className="badgeGrid">
               {view.missions.map((mission) => (
                 <MissionTile mission={mission} key={mission.id} />
@@ -346,9 +357,12 @@ function MissionTile({ mission }: { mission: Achievement }) {
       >
         <div className="missionProgressFill" style={{ width: `${percent}%` }} />
       </div>
-      <span className="missionCount">
-        {mission.current}/{mission.target}
-      </span>
+      <div className="missionMeta">
+        <span className="missionCount">
+          {mission.current}/{mission.target}
+        </span>
+        <span className="missionPct">{percent}%</span>
+      </div>
       <span className="srOnly">
         {mission.unlocked
           ? 'Completada'

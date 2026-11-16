@@ -77,11 +77,18 @@ test.describe('capturas de referencia', () => {
     const dialog = page.locator('dialog.badgeDialog');
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText('Misiones')).toBeVisible();
+    await expect(dialog.locator('.badgeArt img')).toHaveCount(16);
+    await expect(dialog.locator('.badgeHeroIcon img')).toHaveAttribute('src', /mars/);
+    await expect(dialog.locator('.missionPct')).toHaveText(['0%', '0%', '0%', '0%']);
     await page.waitForFunction(() =>
       [...document.querySelectorAll<HTMLImageElement>('.badgeDialog img')].every(
         (img) => img.complete && img.naturalWidth > 0,
       ),
     );
+    await page.screenshot({
+      path: 'test-results/screenshots/astra-badges-hero.png',
+      animations: 'disabled',
+    });
     await dialog.locator('.dialogBody').evaluate((body) => {
       const missions = body.querySelector('#badge-missions');
       if (!missions) return;
@@ -95,6 +102,63 @@ test.describe('capturas de referencia', () => {
       path: 'test-results/screenshots/astra-badges.png',
       animations: 'disabled',
     });
+
+    await dialog.getByRole('button', { name: 'Cerrar', exact: true }).click();
+    await page.evaluate(() => new Promise<void>((resolve, reject) => {
+      const request = indexedDB.open('cope-ai');
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const db = request.result;
+        const transaction = db.transaction('practiceResults', 'readwrite');
+        for (const id of ['visual-a', 'visual-b', 'visual-c']) {
+          transaction.objectStore('practiceResults').put({
+            id, subject: 'math', level: 'secundaria', difficulty: 'medium',
+            questionCount: 5, timed: false, durationSeconds: 300,
+            startedAt: Date.now() - 300_000, completedAt: Date.now(),
+            score: 4, questions: [], answers: [],
+          });
+        }
+        transaction.oncomplete = () => { db.close(); resolve(); };
+        transaction.onabort = () => { db.close(); reject(transaction.error); };
+      };
+    }));
+
+    for (const { width, theme } of [
+      { width: 1440, theme: 'dark' },
+      { width: 390, theme: 'dark' },
+      { width: 320, theme: 'dark' },
+      { width: 390, theme: 'light' },
+    ]) {
+      await page.setViewportSize({ width, height: width > 600 ? 900 : 844 });
+      await page.evaluate((value) => {
+        document.documentElement.dataset.theme = value;
+      }, theme);
+      if (width > 600) {
+        await page.locator('.desktopSidebar').getByRole('button', { name: 'Insignias' }).click();
+      } else {
+        await page.getByRole('button', { name: 'Abrir conversaciones' }).click();
+        await page.locator('dialog[open]').getByRole('button', { name: 'Insignias' }).click();
+      }
+      await expect(dialog).toBeVisible();
+      await expect(dialog.locator('.missionPct')).toHaveText(['100%', '33%', '30%', '75%']);
+      await expect(dialog.getByText('3/10', { exact: true })).toBeVisible();
+      await expect(dialog.locator('.badgeHeroIcon img')).toHaveAttribute('src', /mars/);
+      await expect(dialog.locator('.dialogBody')).toHaveJSProperty('scrollLeft', 0);
+      const body = dialog.locator('.dialogBody');
+      expect(await body.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+      await dialog.locator('.badgeHero').scrollIntoViewIfNeeded();
+      await page.screenshot({
+        path: `test-results/screenshots/astra-badges-${width}-${theme}-hero.png`,
+        animations: 'disabled',
+      });
+      await dialog.locator('#badge-missions').scrollIntoViewIfNeeded();
+      await page.screenshot({
+        path: `test-results/screenshots/astra-badges-${width}-${theme}-missions.png`,
+        animations: 'disabled',
+      });
+      await page.keyboard.press('Escape');
+      await expect(dialog).not.toBeVisible();
+    }
   });
 
   test('tutor y plan de estudio', async ({ page }) => {

@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
+import { dateOnlyFromEpochLocal } from '../../../shared/date';
 import { BadgeDialog } from './BadgeDialog';
-import { savePracticeResult, type PracticeResult } from '../../lib/storage';
+import { clearAllData, savePracticeResult, type PracticeResult } from '../../lib/storage';
 
 function result(id: string): PracticeResult {
   return {
@@ -21,8 +22,9 @@ function result(id: string): PracticeResult {
   };
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   window.localStorage.clear();
+  await clearAllData();
 });
 
 describe('BadgeDialog misiones', () => {
@@ -35,5 +37,47 @@ describe('BadgeDialog misiones', () => {
     expect(screen.getByText('Constancia')).toBeInTheDocument();
     expect(screen.getByText('3/10')).toBeInTheDocument();
     expect(screen.getByText('Primer paso')).toBeInTheDocument();
+  });
+
+  it('el hero muestra Marte como próxima insignia tras nueve días de estudio', async () => {
+    const log: Record<string, number> = {};
+    for (let i = 0; i < 9; i += 1) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      log[dateOnlyFromEpochLocal(date.getTime())] = 10;
+    }
+    window.localStorage.setItem('cope-study-log-v1', JSON.stringify(log));
+    render(<BadgeDialog open onClose={() => {}} />);
+    await screen.findByText('Misiones');
+    const hero = document.querySelector('.badgeHero');
+    expect(hero?.querySelector('img')).toHaveAttribute('src', expect.stringContaining('mars'));
+    expect(screen.getByRole('heading', { name: 'Racha actual: 9 días' })).toBeInTheDocument();
+  });
+
+  it('destaca la cifra de la racha sin perder el texto del encabezado', async () => {
+    await savePracticeResult(result('a'));
+    render(<BadgeDialog open onClose={() => {}} />);
+    await screen.findByText('Misiones');
+    const heading = screen.getByRole('heading', { name: 'Racha actual: 1 día' });
+    expect(within(heading).getByText('1')).toBeInTheDocument();
+  });
+
+  it('cada misión muestra su porcentaje de avance real', async () => {
+    await savePracticeResult(result('a'));
+    render(<BadgeDialog open onClose={() => {}} />);
+    await screen.findByText('Misiones');
+    const bars = screen.getAllByRole('progressbar');
+    expect(bars).toHaveLength(4);
+    for (const [index, percent] of ['100%', '33%', '10%', '25%'].entries()) {
+      expect(within(bars[index]!.closest('li')!).getByText(percent)).toBeInTheDocument();
+    }
+  });
+
+  it('sin actividad muestra el cohete inicial y cuatro misiones al cero por ciento', async () => {
+    render(<BadgeDialog open onClose={() => {}} />);
+    await screen.findByText('Misiones');
+    expect(screen.getByRole('heading', { name: 'Empezá tu primera racha' })).toBeInTheDocument();
+    expect(document.querySelector('.badgeHero img')).toHaveAttribute('src', expect.stringContaining('rocket'));
+    expect(screen.getAllByText('0%')).toHaveLength(4);
   });
 });
