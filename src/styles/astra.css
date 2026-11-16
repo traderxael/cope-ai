@@ -517,11 +517,23 @@
   flex: 0 0 auto;
   width: 56px;
   height: 56px;
-  border-radius: 20px;
+  border-radius: 50%;
   border: 1px solid color-mix(in srgb, var(--astra-cyan) 45%, transparent);
-  background: color-mix(in srgb, var(--astra-indigo) 22%, transparent);
+  background:
+    radial-gradient(
+      120% 120% at 30% 22%,
+      rgba(255, 255, 255, 0.14),
+      transparent 46%
+    ),
+    color-mix(in srgb, var(--astra-indigo) 22%, transparent);
   color: var(--astra-cyan);
   box-shadow: var(--astra-glow-cyan);
+}
+
+.badgeHeroIcon img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
 }
 
 .goalChipRow {
@@ -576,6 +588,19 @@
   letter-spacing: -0.02em;
 }
 
+.badgeHeroStreak {
+  color: var(--astra-indigo);
+  background: var(--astra-grad-cyan);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 1.35em;
+  font-variant-numeric: tabular-nums;
+}
+
+[data-theme='light'] .badgeHeroStreak {
+  background-image: linear-gradient(135deg, #0e7490 0%, #2f49db 100%);
+}
+
 .badgeHeroCopy p {
   margin: 0;
   color: var(--muted);
@@ -584,6 +609,7 @@
 
 .badgeHeroStats {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 10px;
 }
@@ -640,7 +666,23 @@
 }
 
 .badgeTile.isLocked {
-  opacity: 0.58;
+  background: color-mix(in srgb, var(--surface-soft) 55%, transparent);
+}
+
+.badgeTile.isLocked .badgeArt {
+  border-color: var(--glass-line);
+  background:
+    radial-gradient(
+      120% 120% at 30% 22%,
+      rgba(255, 255, 255, 0.06),
+      transparent 46%
+    ),
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--surface-raised) 70%, transparent),
+      color-mix(in srgb, var(--surface-soft) 60%, transparent)
+    );
+  box-shadow: var(--glass-inner);
 }
 
 .badgeArt {
@@ -649,39 +691,64 @@
   place-items: center;
   width: 88px;
   height: 88px;
-  border-radius: 26px;
-  border: 1px solid var(--glass-line);
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--astra-indigo) 28%, var(--glass-line));
   background:
+    radial-gradient(
+      120% 120% at 30% 22%,
+      rgba(255, 255, 255, 0.16),
+      transparent 46%
+    ),
     linear-gradient(
       160deg,
       color-mix(in srgb, var(--surface-raised) 92%, transparent),
       color-mix(in srgb, var(--surface-soft) 82%, transparent)
     );
-  box-shadow: var(--glass-inner);
+  box-shadow:
+    var(--glass-inner),
+    0 12px 24px -16px rgba(3, 6, 20, 0.9);
 }
 
 .badgeTile.isUnlocked .badgeArt {
-  border-color: color-mix(in srgb, var(--astra-cyan) 48%, transparent);
+  border: 2px solid transparent;
+  background:
+    radial-gradient(120% 120% at 30% 22%, color-mix(in srgb, var(--surface-raised) 90%, var(--astra-cyan)), var(--surface-soft)) padding-box,
+    var(--astra-grad-cyan) border-box;
   box-shadow:
     var(--glass-inner),
-    0 0 0 3px color-mix(in srgb, var(--astra-cyan) 16%, transparent),
-    0 18px 44px -18px color-mix(in srgb, var(--astra-cyan) 85%, transparent);
+    0 0 0 3px color-mix(in srgb, var(--astra-cyan) 12%, transparent),
+    0 18px 44px -18px color-mix(in srgb, var(--astra-cyan) 65%, transparent);
 }
 
-.badgeArt svg {
-  width: 66px;
-  height: 66px;
-  overflow: visible;
+.badgeArt::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  width: 40px;
+  height: 7px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink) 18%, transparent);
+  filter: blur(3px);
 }
 
-.badgeTile.isLocked .badgeArt svg {
-  filter: grayscale(1) brightness(0.75);
+.badgeArt img {
+  position: relative;
+  z-index: 1;
+  width: 74px;
+  height: 74px;
+  object-fit: contain;
+}
+
+.badgeTile.isLocked .badgeArt img {
+  filter: grayscale(0.85) brightness(0.72) contrast(0.95);
 }
 
 .badgeLock {
   position: absolute;
-  right: -4px;
-  bottom: -4px;
+  right: 2px;
+  bottom: 2px;
   display: grid;
   place-items: center;
   width: 26px;
@@ -704,6 +771,48 @@
   color: var(--muted);
   font-size: 0.74rem;
   line-height: 1.4;
+}
+
+.missionProgress {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-soft) 55%, transparent);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.missionProgressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--astra-grad);
+  box-shadow: 0 0 10px -1px color-mix(in srgb, var(--astra-indigo) 75%, transparent);
+}
+
+.missionMeta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.missionCount {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.missionPct {
+  color: var(--astra-cyan);
+  font-size: 0.72rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+[data-theme='light'] .missionPct {
+  color: #0e7490;
 }
 
 .badgeTier {
@@ -832,6 +941,353 @@
   color: var(--ink);
   font-variant-numeric: tabular-nums;
   font-weight: 750;
+}
+
+/* Visor 3D de temas ------------------------------------------------------ */
+
+.topicModel {
+  margin-bottom: 14px;
+}
+
+.topicModelStage {
+  position: relative;
+  min-height: 260px;
+  border-radius: 14px;
+  background-color: #14151c;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  overflow: hidden;
+}
+
+.topicModelHost {
+  min-height: 260px;
+}
+
+.topicModelFallback {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 6px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.topicModelHint {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+model-viewer::part(default-progress-bar) {
+  --progress-bar-color: var(--astra-violet);
+}
+
+/* Catálogo de temas ------------------------------------------------------ */
+
+.topicAreaDesc {
+  margin: -4px 0 10px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.topicList {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.topicButton {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--glass);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.topicButton:hover {
+  border-color: var(--astra-violet);
+  box-shadow: var(--astra-glow);
+}
+
+.topicButton:focus-visible {
+  outline: 2px solid var(--astra-violet);
+  outline-offset: 2px;
+}
+
+.topicButtonIcon {
+  display: inline-flex;
+  flex: none;
+  color: var(--astra-violet);
+}
+
+.topicButton > span:nth-child(2) {
+  flex: 1;
+  font-weight: 650;
+}
+
+.topicNote {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.topicDetailHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.topicDetailIcon {
+  display: inline-flex;
+  color: var(--astra-violet);
+}
+
+.topicDetailHead h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.topicAreaLabel {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: capitalize;
+}
+
+.topicText {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.topicSource {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+  color: var(--accent-text);
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+
+.topicSource:hover {
+  text-decoration: underline;
+}
+
+/* Duelo ------------------------------------------------------------------ */
+
+.duelHud {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.duelTimer {
+  color: var(--astra-violet);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.duelTrack {
+  height: 6px;
+  margin: 8px 0 18px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--glass);
+}
+
+.duelTrackFill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--astra-grad);
+  transition: width 200ms ease;
+}
+
+.duelPrompt {
+  margin: 0 0 14px;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.duelOptions {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.duelOption {
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--glass);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.duelOption:hover {
+  border-color: var(--astra-violet);
+  box-shadow: var(--astra-glow);
+}
+
+.duelResult {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.duelResultIcon {
+  color: var(--astra-violet);
+}
+
+.duelResult h3 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.duelScore,
+.duelStars,
+.duelDemo {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.duelStars {
+  color: var(--astra-violet);
+  font-weight: 700;
+}
+
+.duelDemo {
+  margin-top: 10px;
+  font-size: 0.75rem;
+}
+
+/* Desafíos diarios ------------------------------------------------------- */
+
+.challengeList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.challengeItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--glass);
+  font-size: 0.85rem;
+}
+
+.challengeItem.isDone {
+  border-color: color-mix(in srgb, var(--astra-violet) 50%, transparent);
+}
+
+.challengeCheck {
+  color: var(--astra-violet);
+  font-weight: 800;
+}
+
+.challengeCopy {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.challengeCopy small {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Insignias-concepto ----------------------------------------------------- */
+
+.learningIntro {
+  margin: -6px 0 12px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.badgeTileButton {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.badgeTileButton:hover {
+  border-color: var(--astra-violet);
+  box-shadow: var(--astra-glow);
+}
+
+.badgeTileButton:focus-visible {
+  outline: 2px solid var(--astra-violet);
+  outline-offset: 2px;
+}
+
+.badgeTileButton h4 {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.learningConceptHero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.learningConceptHero .badgeArt {
+  flex: none;
+  width: 72px;
+  height: 72px;
+}
+
+.learningConceptHero h3 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+}
+
+.learningConceptState {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.learningConceptText {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  line-height: 1.65;
 }
 
 /* Reduced motion --------------------------------------------------------- */

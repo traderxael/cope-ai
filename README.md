@@ -9,7 +9,7 @@ local, 14 materias, personalidad configurable, estilos **Socrático** y **Solver
 práctica de 5 o 10 preguntas, progreso, flashcards, plan de examen, examen oral
 con voz y clonación opcional, cámara, contexto de imágenes/PDF/TXT/subtítulos/PPTX, historial local e
 identidad visual propia con tema oscuro por defecto, barra de progreso con
-tiempo estimado y una grilla de insignias por rachas.
+tiempo estimado, insignias 3D por rachas y misiones de práctica.
 
 > Cope AI es un proyecto independiente. No tiene afiliación con Astra AI ni usa
 > su código, recursos, textos o marca. La app no se construyó descompilando ni
@@ -222,11 +222,24 @@ Variables opcionales:
 - **Barra de carga con tiempo estimado:** mientras la IA responde, una barra
   muestra la fase ("preparando" o "escribiendo") y cuánto falta aproximadamente
   ("quedan ~12 s"). La estimación se afina con las últimas respuestas reales
-  del dispositivo y nunca marca 100 % antes de que la respuesta termine.
+  del dispositivo y también escala según el largo del prompt (espera y tamaño
+  de respuesta previstos); nunca marca 100 % antes de que la respuesta termine.
 - **Insignias por órbita:** 12 insignias (Primer cohete, Órbita terrestre,
-  Órbita lunar…) que se desbloquean con días seguidos de estudio, con la
-  racha semanal, la próxima insignia a alcanzar y el anillo de la meta diaria
-  (15 a 90 minutos, configurable).
+  Órbita lunar…) con arte 3D propio renderizado en Blender, que se desbloquean
+  con días seguidos de estudio, más la racha semanal, la próxima insignia y el
+  anillo de la meta diaria (15 a 90 minutos, configurable). La meta suma
+  prácticas, sesiones de enfoque y minutos de chat activo con el tutor.
+- **Misiones:** grilla de logros de práctica (primera práctica, racha de 3,
+  diez prácticas y puntería ≥80 %) con barra de avance y contador por misión.
+- **Aprende:** seis insignias-concepto con arte 3D propio (repetición espaciada,
+  recuperación activa, técnica Feynman, Pomodoro, segunda ley de Newton y teorema
+  de Pitágoras). Se desbloquean con actividad real y al tocarlas explican el
+  concepto y cómo usarlo en la app; las bloqueadas muestran solo un adelanto.
+- **Estrellas y desafíos:** estrellas acumuladas por práctica, aciertos, repasos
+  y exámenes orales, más tres desafíos diarios con avance real (minutos,
+  preguntas y flashcards).
+- **Duelo:** cinco preguntas cronometradas contra un rival simulado, con
+  resultado y estrellas. Usa la misma API de práctica, sin servicios nuevos.
 - **PWA:** instalable, shell offline, fuentes empaquetadas y aviso de actualización.
 - **Temas:** claro, oscuro y sistema. El **oscuro es el tema por defecto**.
 
@@ -282,14 +295,17 @@ shared/                 esquemas y utilidades compartidas
 src/                    PWA React
 e2e/                    pruebas Playwright
 twa/                    configuración y pasos para Android
-scripts/                generación de iconos y captura visual de control
+scripts/                iconos PWA, renders 3D de insignias y captura visual
 ```
 
 La identidad visual vive en `src/styles/tokens.css` (paleta y tema por
 defecto) más la capa `src/styles/astra.css`, que se importa después de
 `app.css`. Los módulos de la barra de progreso y la gamificación son
 `src/lib/generationProgress.ts`, `src/lib/studyLog.ts`,
-`src/lib/achievements.ts` y `src/features/achievements/`.
+`src/lib/chatStudyTime.ts`, `src/lib/progress.ts`,
+`src/lib/achievements.ts` y `src/features/achievements/`. El arte 3D de las
+insignias se genera con `scripts/render-badges.py` (Blender headless) y vive en
+`src/features/achievements/art/`.
 
 El detalle de la última tanda de cambios, con lo que quedó pendiente, está en
 [`docs/HANDOFF-ASTRA.md`](docs/HANDOFF-ASTRA.md).

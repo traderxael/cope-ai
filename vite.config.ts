@@ -46,8 +46,8 @@ export default defineConfig(({ mode }) => {
           scope: '/',
           display: 'standalone',
           orientation: 'portrait-primary',
-          background_color: '#070A15',
-          theme_color: '#070A15',
+          background_color: '#0D0D0D',
+          theme_color: '#0D0D0D',
           categories: ['education', 'productivity'],
           icons: [
             {

@@ -101,11 +101,11 @@
 [data-theme='dark'] {
   color-scheme: dark;
 
-  --paper: #070a15;
-  --paper-deep: #04060e;
-  --surface: #0d1120;
-  --surface-raised: #121829;
-  --surface-soft: #18203a;
+  --paper: #0d0d0d;
+  --paper-deep: #08080c;
+  --surface: #12131a;
+  --surface-raised: #181a23;
+  --surface-soft: #1e2130;
   --ink: #e8edfb;
   --ink-soft: #c2cbe6;
   --muted: #8b95b6;
@@ -128,7 +128,7 @@
   --user-bubble-ink: #e8edfb;
   --overlay: rgba(3, 5, 12, 0.74);
 
-  --code-bg: #070a15;
+  --code-bg: #0d0d0d;
   --code-ink: #e7ecff;
   --code-bar: rgba(255, 255, 255, 0.06);
   --code-line: rgba(255, 255, 255, 0.09);

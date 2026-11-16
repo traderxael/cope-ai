@@ -37,7 +37,7 @@ export function GenerationProgress({
 
   const view = useMemo(() => {
     if (!generation) return null;
-    const waitEstimate = estimateWaitMs(provider);
+    const waitEstimate = estimateWaitMs(provider, generation.promptChars);
     const elapsed = now - generation.startedAt;
     const firstTokenAt = generation.firstTokenAt;
 
@@ -55,7 +55,7 @@ export function GenerationProgress({
     }
 
     const writeElapsed = Math.max(1, now - firstTokenAt);
-    const expected = estimateExpectedChars();
+    const expected = estimateExpectedChars(generation.promptChars);
     const remainingMs = remainingWriteMs(
       generation.chars,
       writeElapsed,
@@ -94,6 +94,7 @@ export function GenerationProgress({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={percent}
+        aria-valuetext={`${view.label} ${percent} %. ${view.eta}.`}
       >
         <div
           className={
@@ -105,6 +106,11 @@ export function GenerationProgress({
         />
       </div>
       <p className="genProgressHint">{view.hint}</p>
+      <div className="srOnly" role="status" aria-live="polite" aria-atomic="true">
+        {view.phase === 'writing'
+          ? 'Escribiendo la respuesta.'
+          : 'Preparando la respuesta.'}
+      </div>
     </div>
   );
 }

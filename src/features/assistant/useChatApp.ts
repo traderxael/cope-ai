@@ -84,6 +84,7 @@ export interface ChatAppState {
   streaming: boolean;
   streamingId: string | null;
   generationStatus: GenerationStatus | null;
+  lastChatActivityAt: number;
   demo: boolean | null;
   provider: AiProvider | null;
   vision: boolean | null;
@@ -150,6 +151,7 @@ export function useChatApp(): ChatAppState {
   const [streamingId, setStreamingId] = useState<string | null>(null);
   const [generationStatus, setGenerationStatus] =
     useState<GenerationStatus | null>(null);
+  const [lastChatActivityAt, setLastChatActivityAt] = useState(0);
   const [demo, setDemo] = useState<boolean | null>(loadDemoMode);
   const [provider, setProvider] = useState<AiProvider | null>(null);
   const [vision, setVision] = useState<boolean | null>(null);
@@ -175,7 +177,11 @@ export function useChatApp(): ChatAppState {
   const abortRef = useRef<AbortController | null>(null);
   const quizAbortRef = useRef<AbortController | null>(null);
   const streamingIdRef = useRef<string | null>(null);
-  const streamTimingRef = useRef<{ startedAt: number; firstTokenAt: number | null } | null>(
+  const streamTimingRef = useRef<{
+    startedAt: number;
+    firstTokenAt: number | null;
+    promptChars: number;
+  } | null>(
     null,
   );
   const generationCharsRef = useRef(0);
@@ -346,6 +352,7 @@ export function useChatApp(): ChatAppState {
         timing.firstTokenAt !== null
       ) {
         recordEstimateSample({
+          promptChars: timing.promptChars,
           waitMs: timing.firstTokenAt - timing.startedAt,
           writeMs: Date.now() - timing.firstTokenAt,
           chars: fullTextRef.current.length,
@@ -361,6 +368,7 @@ export function useChatApp(): ChatAppState {
         setStreaming(false);
         setStreamingId(null);
         setGenerationStatus(null);
+        setLastChatActivityAt(Date.now());
       }
       abortRef.current = null;
       streamingIdRef.current = null;
@@ -395,13 +403,25 @@ export function useChatApp(): ChatAppState {
       fullTextRef.current = '';
       streamingIdRef.current = assistantId;
       const startedAt = Date.now();
-      streamTimingRef.current = { startedAt, firstTokenAt: null };
+      const promptChars = request.messages.reduce((total, message) => {
+        const content = message.content;
+        if (typeof content === 'string') return total + content.length;
+        return (
+          total +
+          content.reduce(
+            (sum, part) => sum + (part.type === 'text' ? part.text.length : 0),
+            0,
+          )
+        );
+      }, 0);
+      streamTimingRef.current = { startedAt, firstTokenAt: null, promptChars };
       generationCharsRef.current = 0;
       generationUpdateRef.current = 0;
       if (mountedRef.current) {
         setStreaming(true);
         setStreamingId(assistantId);
-        setGenerationStatus({ startedAt, firstTokenAt: null, chars: 0 });
+        setGenerationStatus({ startedAt, firstTokenAt: null, chars: 0, promptChars });
+        setLastChatActivityAt(startedAt);
       }
 
       void persistConversation(conversation);
@@ -431,6 +451,7 @@ export function useChatApp(): ChatAppState {
                     startedAt: timing?.startedAt ?? now,
                     firstTokenAt: timing?.firstTokenAt ?? null,
                     chars: generationCharsRef.current,
+                    promptChars: timing?.promptChars ?? 0,
                   });
                 }
               }
@@ -1009,6 +1030,7 @@ export function useChatApp(): ChatAppState {
     streaming,
     streamingId,
     generationStatus,
+    lastChatActivityAt,
     demo,
     provider,
     vision,

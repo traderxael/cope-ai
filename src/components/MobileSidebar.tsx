@@ -18,6 +18,8 @@ interface MobileSidebarProps {
   onSettings: () => void;
   onProgress: () => void;
   onBadges: () => void;
+  onTopics: () => void;
+  onDuel: () => void;
   onFocus: () => void;
   onToggleTheme: () => void;
 }
@@ -38,6 +40,8 @@ export function MobileSidebar({
   onSettings,
   onProgress,
   onBadges,
+  onTopics,
+  onDuel,
   onFocus,
   onToggleTheme,
 }: MobileSidebarProps) {
@@ -86,6 +90,14 @@ export function MobileSidebar({
         onBadges={() => {
           onClose();
           onBadges();
+        }}
+        onTopics={() => {
+          onClose();
+          onTopics();
+        }}
+        onDuel={() => {
+          onClose();
+          onDuel();
         }}
         onFocus={() => {
           onClose();
