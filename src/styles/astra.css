@@ -943,6 +943,109 @@
   font-weight: 750;
 }
 
+/* Catálogo de temas ------------------------------------------------------ */
+
+.topicAreaDesc {
+  margin: -4px 0 10px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.topicList {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.topicButton {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--glass);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.topicButton:hover {
+  border-color: var(--astra-violet);
+  box-shadow: var(--astra-glow);
+}
+
+.topicButton:focus-visible {
+  outline: 2px solid var(--astra-violet);
+  outline-offset: 2px;
+}
+
+.topicButtonIcon {
+  display: inline-flex;
+  flex: none;
+  color: var(--astra-violet);
+}
+
+.topicButton > span:nth-child(2) {
+  flex: 1;
+  font-weight: 650;
+}
+
+.topicNote {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.topicDetailHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.topicDetailIcon {
+  display: inline-flex;
+  color: var(--astra-violet);
+}
+
+.topicDetailHead h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.topicAreaLabel {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: capitalize;
+}
+
+.topicText {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.topicSource {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+  color: var(--accent-text);
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+
+.topicSource:hover {
+  text-decoration: underline;
+}
+
 /* Duelo ------------------------------------------------------------------ */
 
 .duelHud {

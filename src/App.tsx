@@ -24,6 +24,7 @@ import { QuizCard } from './features/quiz/QuizCard';
 import { TutorPanel } from './features/tutor/TutorPanel';
 import { BadgeDialog } from './features/achievements/BadgeDialog';
 import { DuelDialog } from './features/duel/DuelDialog';
+import { TopicsDialog } from './features/topics/TopicsDialog';
 import { useChatApp } from './features/assistant/useChatApp';
 import {
   DEFAULT_PRACTICE_SETTINGS,
@@ -110,6 +111,7 @@ export default function App() {
   const [progressOpen, setProgressOpen] = useState(false);
   const [badgesOpen, setBadgesOpen] = useState(false);
   const [duelOpen, setDuelOpen] = useState(false);
+  const [topicsOpen, setTopicsOpen] = useState(false);
   const [flashcardsOpen, setFlashcardsOpen] = useState(false);
   const [studyPlanOpen, setStudyPlanOpen] = useState(false);
   const [oralExamOpen, setOralExamOpen] = useState(false);
@@ -476,6 +478,7 @@ export default function App() {
             onSettings={() => setSettingsOpen(true)}
             onProgress={openProgress}
             onBadges={openBadges}
+            onTopics={() => setTopicsOpen(true)}
             onDuel={() => {
               setTutorOpen(false);
               setDuelOpen(true);
@@ -745,6 +748,7 @@ export default function App() {
           onSettings={() => setSettingsOpen(true)}
           onProgress={openProgress}
           onBadges={openBadges}
+          onTopics={() => setTopicsOpen(true)}
           onDuel={() => {
             setTutorOpen(false);
             setDuelOpen(true);
@@ -793,6 +797,11 @@ export default function App() {
           onClose={() => setDuelOpen(false)}
           tutor={tutor}
           online={online}
+        />
+
+        <TopicsDialog
+          open={topicsOpen}
+          onClose={() => setTopicsOpen(false)}
         />
 
         <FlashcardsDialog

@@ -35,6 +35,7 @@ function renderSidebar(conversations: Conversation[]) {
       onSettings={vi.fn()}
       onProgress={vi.fn()}
       onBadges={vi.fn()}
+      onTopics={vi.fn()}
       onDuel={vi.fn()}
       onFocus={vi.fn()}
       onToggleTheme={vi.fn()}

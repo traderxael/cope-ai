@@ -21,6 +21,7 @@ interface SidebarProps {
   onSettings: () => void;
   onProgress: () => void;
   onBadges: () => void;
+  onTopics: () => void;
   onDuel: () => void;
   onFocus: () => void;
   onToggleTheme: () => void;
@@ -90,6 +91,7 @@ export function Sidebar({
   onSettings,
   onProgress,
   onBadges,
+  onTopics,
   onDuel,
   onFocus,
   onToggleTheme,
@@ -305,6 +307,14 @@ export function Sidebar({
           >
             <Icon name="sparkles" size={17} />
             Insignias
+          </button>
+          <button
+            type="button"
+            className="sidebarAction"
+            onClick={onTopics}
+          >
+            <Icon name="book" size={17} />
+            Temas
           </button>
           <button
             type="button"
