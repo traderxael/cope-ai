@@ -359,6 +359,39 @@ misión. Vive en `astra.css` + `BadgeDialog.tsx`.
   `e2e/accessibility.spec.ts` (test axe dedicado al panel).
 - **Captura**: `docs/astra-badges.jpg` regenerada del panel nuevo.
 
+## Séptima tanda: aprendizaje, paridad de funciones y tema neutro
+
+Trabajo adicional sobre la rama `feat/3d-badges-eta-missions`. `npm run verify` y
+`npm run test:e2e` en verde (444 tests unitarios, 65 E2E).
+
+- **Insignias-concepto** (`src/lib/learningBadges.ts`): seis insignias que
+  enseñan una idea concreta — repetición espaciada, recuperación activa, técnica
+  Feynman, Pomodoro, segunda ley de Newton y teorema de Pitágoras. Cada una tiene
+  `concept: { title, explanation, application }`, se desbloquea con actividad real
+  derivada de prácticas, mazos, exámenes orales y registro de estudio, y se abre
+  en `LearningConceptDialog.tsx`. Bloqueadas muestran un adelanto sin revelar la
+  explicación.
+- **Arte 3D propio**: `scripts/render-badges.py` pasa de 12 a 18 PNG (los 6
+  nuevos son conceptos, no planetas). Blender 5.3 headless, Cycles CPU, 48
+  muestras, semilla fija. Revisión visual: tarjetas apiladas, bombilla, libro,
+  reloj de arena, manzana con órbita y triángulo de Pitágoras.
+- **Paridad con Astra AI**: estrellas (`src/lib/studyRewards.ts`), tres desafíos
+  diarios y un **duelo** de cinco preguntas cronometradas contra un rival
+  simulado (`src/lib/duel.ts`, `src/features/duel/DuelDialog.tsx`), accesible
+  desde la barra lateral. El duelo reutiliza `/api/quiz`: sin endpoints nuevos.
+- **Tema**: fondo oscuro `#0d0d0d` (el del manifest de Astra) en `tokens.css`,
+  `index.html`, `vite.config.ts` y `twa/twa-manifest.json`. `app.css` intacto.
+- **Capturas**: `scripts/update-docs-screenshots.mjs` convierte las capturas E2E
+  a JPG para `docs/`. El panel muestra ahora las secciones Desafíos, Aprende,
+  Misiones y las órbitas.
+
+### Límites respetados
+
+No se copiaron marca, textos, arte ni código de Astra AI. La paridad es de
+**funciones y lenguaje visual**, con identidad propia (Cope AI), dati locales y
+motor gratuito. El duelo es determinista: el rival acierta un porcentaje fijo
+de preguntas, no hay azar ni llamadas externas adicionales.
+
 ## Decisiones de diseño a respetar
 
 - **Sin servicios de pago ni claves.** El motor por defecto sigue siendo

@@ -10,6 +10,8 @@ Tareas nuevas acordadas: insignias-concepto con explicación al desbloquear + ar
 
 - [x] Nuevas insignias-concepto (datos + arte 3D + diálogo de concepto) — commit `0524cee`, 434 tests
 - [x] Paridad de funciones con Astra AI: estrellas, desafíos y duelo — commit `81ff04c`, 444 tests
-- [ ] Ajuste visual y capturas
+- [x] Ajuste visual y capturas — commit `41c1117`, E2E visual 7/7, tema `#0d0d0d` como el manifest de Astra
+
+Ruling: el cambio de fondo a `#0d0d0d` se hizo en `tokens.css` + manifest PWA/TWA, sin tocar `app.css`, para mantener la reversibilidad. Coste si me equivoco: el azul espacial anterior se pierde; se puede revertir con un solo commit.
 
 Ruling: el duelo usa la API de práctica existente y un rival determinista por porcentaje, en lugar de un endpoint nuevo — evita tocar el proxy y mantiene "sin servicios de pago". Coste si me equivoco: menos imprevisibilidad que un rival real.
