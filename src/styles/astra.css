@@ -943,6 +943,145 @@
   font-weight: 750;
 }
 
+/* Duelo ------------------------------------------------------------------ */
+
+.duelHud {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.duelTimer {
+  color: var(--astra-violet);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.duelTrack {
+  height: 6px;
+  margin: 8px 0 18px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--glass);
+}
+
+.duelTrackFill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--astra-grad);
+  transition: width 200ms ease;
+}
+
+.duelPrompt {
+  margin: 0 0 14px;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.duelOptions {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.duelOption {
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--glass);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.duelOption:hover {
+  border-color: var(--astra-violet);
+  box-shadow: var(--astra-glow);
+}
+
+.duelResult {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.duelResultIcon {
+  color: var(--astra-violet);
+}
+
+.duelResult h3 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.duelScore,
+.duelStars,
+.duelDemo {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.duelStars {
+  color: var(--astra-violet);
+  font-weight: 700;
+}
+
+.duelDemo {
+  margin-top: 10px;
+  font-size: 0.75rem;
+}
+
+/* Desafíos diarios ------------------------------------------------------- */
+
+.challengeList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.challengeItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--glass);
+  font-size: 0.85rem;
+}
+
+.challengeItem.isDone {
+  border-color: color-mix(in srgb, var(--astra-violet) 50%, transparent);
+}
+
+.challengeCheck {
+  color: var(--astra-violet);
+  font-weight: 800;
+}
+
+.challengeCopy {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.challengeCopy small {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Insignias-concepto ----------------------------------------------------- */
 
 .learningIntro {

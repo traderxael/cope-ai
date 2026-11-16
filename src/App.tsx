@@ -23,6 +23,7 @@ import { TopBar } from './components/TopBar';
 import { QuizCard } from './features/quiz/QuizCard';
 import { TutorPanel } from './features/tutor/TutorPanel';
 import { BadgeDialog } from './features/achievements/BadgeDialog';
+import { DuelDialog } from './features/duel/DuelDialog';
 import { useChatApp } from './features/assistant/useChatApp';
 import {
   DEFAULT_PRACTICE_SETTINGS,
@@ -108,6 +109,7 @@ export default function App() {
   const [tutorOpen, setTutorOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
   const [badgesOpen, setBadgesOpen] = useState(false);
+  const [duelOpen, setDuelOpen] = useState(false);
   const [flashcardsOpen, setFlashcardsOpen] = useState(false);
   const [studyPlanOpen, setStudyPlanOpen] = useState(false);
   const [oralExamOpen, setOralExamOpen] = useState(false);
@@ -474,6 +476,10 @@ export default function App() {
             onSettings={() => setSettingsOpen(true)}
             onProgress={openProgress}
             onBadges={openBadges}
+            onDuel={() => {
+              setTutorOpen(false);
+              setDuelOpen(true);
+            }}
             onFocus={openFocus}
             onToggleTheme={toggleTheme}
           />
@@ -739,6 +745,10 @@ export default function App() {
           onSettings={() => setSettingsOpen(true)}
           onProgress={openProgress}
           onBadges={openBadges}
+          onDuel={() => {
+            setTutorOpen(false);
+            setDuelOpen(true);
+          }}
           onFocus={openFocus}
           onToggleTheme={toggleTheme}
         />
@@ -776,6 +786,13 @@ export default function App() {
         <BadgeDialog
           open={badgesOpen}
           onClose={() => setBadgesOpen(false)}
+        />
+
+        <DuelDialog
+          open={duelOpen}
+          onClose={() => setDuelOpen(false)}
+          tutor={tutor}
+          online={online}
         />
 
         <FlashcardsDialog

@@ -42,6 +42,7 @@ import {
 } from '../../lib/learningBadges';
 import { LearningBadgeArt } from './LearningBadgeArt';
 import { LearningConceptDialog } from './LearningConceptDialog';
+import { dailyChallenges, starsFromActivity } from '../../lib/studyRewards';
 
 interface BadgeDialogProps {
   open: boolean;
@@ -138,7 +139,21 @@ export function BadgeDialog({ open, onClose }: BadgeDialogProps) {
       studyLog: log,
     });
     const learning = buildLearningBadges(activity);
+    const today = new Date();
+    const todayQuestions = results
+      .filter(
+        (result) =>
+          dateOnlyFromEpochLocal(result.completedAt) ===
+          dateOnlyFromEpochLocal(today.getTime()),
+      )
+      .reduce((total, result) => total + result.questionCount, 0);
     return {
+      stars: starsFromActivity(activity),
+      challenges: dailyChallenges({
+        minutes: minutes,
+        questions: todayQuestions,
+        flashcardReviews: learningSources.flashcardReviews,
+      }),
       streak,
       best,
       badges,
@@ -207,6 +222,9 @@ export function BadgeDialog({ open, onClose }: BadgeDialogProps) {
                 </span>
                 <span className="badgeStat">
                   Insignias <strong>{view.unlocked}/{view.badges.length}</strong>
+                </span>
+                <span className="badgeStat">
+                  Estrellas <strong>{view.stars}</strong>
                 </span>
               </div>
             </div>
@@ -307,6 +325,32 @@ export function BadgeDialog({ open, onClose }: BadgeDialogProps) {
                 </div>
               </div>
             </div>
+          </section>
+
+          <section className="progressSection" aria-labelledby="badge-challenges">
+            <div className="badgeTier" id="badge-challenges">
+              Desafíos de hoy
+            </div>
+            <ul className="challengeList">
+              {view.challenges.map((challenge) => (
+                <li
+                  key={challenge.id}
+                  className={
+                    challenge.completed ? 'challengeItem isDone' : 'challengeItem'
+                  }
+                >
+                  <span className="challengeCheck" aria-hidden="true">
+                    {challenge.completed ? '✓' : '○'}
+                  </span>
+                  <span className="challengeCopy">
+                    {challenge.label}
+                    <small>
+                      {challenge.current}/{challenge.target}
+                    </small>
+                  </span>
+                </li>
+              ))}
+            </ul>
           </section>
 
           <section className="progressSection" aria-labelledby="badge-learning">

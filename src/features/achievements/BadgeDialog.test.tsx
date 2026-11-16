@@ -91,6 +91,13 @@ describe('BadgeDialog misiones', () => {
     expect(screen.getAllByRole('progressbar')).toHaveLength(10);
   });
 
+  it('muestra las estrellas y los desafíos de hoy', async () => {
+    render(<BadgeDialog open onClose={() => {}} />);
+    expect(await screen.findByText('Desafíos de hoy')).toBeInTheDocument();
+    expect(screen.getByText('Estudiar 15 minutos hoy')).toBeInTheDocument();
+    expect(screen.getByText(/Estrellas/)).toBeInTheDocument();
+  });
+
   it('abre el concepto al tocar una insignia de aprendizaje', async () => {
     const user = userEvent.setup();
     render(<BadgeDialog open onClose={() => {}} />);
