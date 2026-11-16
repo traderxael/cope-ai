@@ -231,6 +231,15 @@ Variables opcionales:
   prácticas, sesiones de enfoque y minutos de chat activo con el tutor.
 - **Misiones:** grilla de logros de práctica (primera práctica, racha de 3,
   diez prácticas y puntería ≥80 %) con barra de avance y contador por misión.
+- **Aprende:** seis insignias-concepto con arte 3D propio (repetición espaciada,
+  recuperación activa, técnica Feynman, Pomodoro, segunda ley de Newton y teorema
+  de Pitágoras). Se desbloquean con actividad real y al tocarlas explican el
+  concepto y cómo usarlo en la app; las bloqueadas muestran solo un adelanto.
+- **Estrellas y desafíos:** estrellas acumuladas por práctica, aciertos, repasos
+  y exámenes orales, más tres desafíos diarios con avance real (minutos,
+  preguntas y flashcards).
+- **Duelo:** cinco preguntas cronometradas contra un rival simulado, con
+  resultado y estrellas. Usa la misma API de práctica, sin servicios nuevos.
 - **PWA:** instalable, shell offline, fuentes empaquetadas y aviso de actualización.
 - **Temas:** claro, oscuro y sistema. El **oscuro es el tema por defecto**.
 
