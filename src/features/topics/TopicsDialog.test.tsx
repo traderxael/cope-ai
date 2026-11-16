@@ -5,6 +5,11 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { TopicsDialog } from './TopicsDialog';
 
+vi.mock('@google/model-viewer', () => ({}));
+
+import { installModelViewerMock } from '../../test/modelViewerMock';
+installModelViewerMock();
+
 describe('TopicsDialog', () => {
   it('muestra las áreas y los ocho temas', () => {
     render(<TopicsDialog open onClose={vi.fn()} />);
@@ -22,6 +27,8 @@ describe('TopicsDialog', () => {
     expect(await screen.findByRole('heading', { name: 'Qué es' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Cómo funciona' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Un ejemplo' })).toBeTruthy();
+    const viewer = document.querySelector('model-viewer');
+    expect(viewer?.getAttribute('src')).toBe('/models/motor-reaccion.glb');
     const link = screen.getByRole('link', { name: /Wikipedia/ });
     expect(link.getAttribute('href')).toContain('wikipedia.org');
     expect(link).toHaveAttribute('target', '_blank');

@@ -18,7 +18,7 @@ Agregar un catálogo navegable de temas de aprendizaje con contenido investigado
 
 ## Restricciones
 
-- Se usan íconos de `IconName` existentes; sin arte nuevo.
+- Íconos existentes para la lista; arte 3D nuevo para las fichas (ver abajo).
 - Mismo tema oscuro y componentes `Dialog`/`Icon` ya usados.
 - Sin secretos, sin llamadas de red en runtime.
 
@@ -33,6 +33,18 @@ Agregar un catálogo navegable de temas de aprendizaje con contenido investigado
 
 - `topics.test.ts`: 8 temas, 3 áreas, íconos válidos, fuentes https.
 - `TopicsDialog.test.tsx`: agrupa por área, abre la ficha, enlace con `rel="noreferrer"`.
+
+## Muestras 3D (segunda tanda)
+
+El usuario pidió modelos 3D interactivos por tema. Se generaron 8 GLB con
+Hyper3D Rodin (tier Gen-2.5-Low, 0.5 créditos c/u, 29.4 → 25.4 disponibles) y
+se optimizaron con Blender (decimación 0.15, sin texturas embebidas, colores
+Astra): 1.6–3 MB c/u en `public/models/`. Se agregó `@google/model-viewer`
+como dependencia npm (compatible con la CSP `script-src 'self'`) y un visor
+`ModelViewer.tsx` que permite girar y acercar. Cada tema incluye `model` y
+`preview`; el preview (generado por Rodin) sirve de respaldo visual si WebGL
+no está disponible. Los GLB no usan DRACO/KTX2, así que no se descargan
+decodificadores externos.
 
 ## Fuentes consultadas
 

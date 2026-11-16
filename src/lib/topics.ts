@@ -14,6 +14,10 @@ export interface Topic {
   what: string;
   how: string;
   example: string;
+  /** Modelo 3D interactivo servido desde /public/models. */
+  model: string;
+  /** Vista previa estática por si WebGL no está disponible. */
+  preview: string;
   source: { label: string; url: string };
 }
 
@@ -37,7 +41,7 @@ export const AREAS: Array<{ id: TopicArea; label: string; description: string }>
 
 export const TOPICS: Topic[] = [
   {
-    id: 'motores-reaccion',
+    id: 'motores-reaccion', model: '/models/motor-reaccion.glb', preview: '/models/preview/motor-reaccion.webp',
     label: 'Motores de reacción',
     area: 'tecnologia',
     icon: 'settings',
@@ -50,7 +54,7 @@ export const TOPICS: Topic[] = [
     },
   },
   {
-    id: 'computacion',
+    id: 'computacion', model: '/models/computacion.glb', preview: '/models/preview/computacion.webp',
     label: 'Computación',
     area: 'tecnologia',
     icon: 'monitor',
@@ -63,7 +67,7 @@ export const TOPICS: Topic[] = [
     },
   },
   {
-    id: 'inteligencia-artificial',
+    id: 'inteligencia-artificial', model: '/models/inteligencia-artificial.glb', preview: '/models/preview/inteligencia-artificial.webp',
     label: 'Inteligencia artificial',
     area: 'tecnologia',
     icon: 'sparkles',
@@ -76,7 +80,7 @@ export const TOPICS: Topic[] = [
     },
   },
   {
-    id: 'fisica',
+    id: 'fisica', model: '/models/fisica.glb', preview: '/models/preview/fisica.webp',
     label: 'Física',
     area: 'ciencias',
     icon: 'atom',
@@ -89,7 +93,7 @@ export const TOPICS: Topic[] = [
     },
   },
   {
-    id: 'ciencias-naturales',
+    id: 'ciencias-naturales', model: '/models/ciencias-naturales.glb', preview: '/models/preview/ciencias-naturales.webp',
     label: 'Ciencias naturales',
     area: 'ciencias',
     icon: 'flask',
@@ -102,7 +106,7 @@ export const TOPICS: Topic[] = [
     },
   },
   {
-    id: 'artes',
+    id: 'artes', model: '/models/artes.glb', preview: '/models/preview/artes.webp',
     label: 'Artes',
     area: 'humanidades',
     icon: 'image',
@@ -115,7 +119,7 @@ export const TOPICS: Topic[] = [
     },
   },
   {
-    id: 'historia',
+    id: 'historia', model: '/models/historia.glb', preview: '/models/preview/historia.webp',
     label: 'Historia',
     area: 'humanidades',
     icon: 'calendar',
@@ -128,7 +132,7 @@ export const TOPICS: Topic[] = [
     },
   },
   {
-    id: 'economia',
+    id: 'economia', model: '/models/economia.glb', preview: '/models/preview/economia.webp',
     label: 'Economía',
     area: 'humanidades',
     icon: 'chart',

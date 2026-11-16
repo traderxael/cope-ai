@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Dialog } from '../../components/Dialog';
 import { Icon, type IconName } from '../../components/Icon';
 import { AREAS, TOPICS, topicsByArea, type Topic } from '../../lib/topics';
+import { ModelViewer } from './ModelViewer';
 
 interface TopicsDialogProps {
   open: boolean;
@@ -35,6 +36,12 @@ export function TopicsDialog({ open, onClose }: TopicsDialogProps) {
             <Icon name="chevronDown" size={15} />
             Volver
           </button>
+          <ModelViewer
+            src={selected.model}
+            preview={selected.preview}
+            label={`Modelo 3D interactivo de ${selected.label}`}
+          />
+
           <div className="topicDetailHead">
             <span className="topicDetailIcon" aria-hidden="true">
               <Icon name={selected.icon as IconName} size={26} />

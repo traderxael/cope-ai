@@ -943,6 +943,49 @@
   font-weight: 750;
 }
 
+/* Visor 3D de temas ------------------------------------------------------ */
+
+.topicModel {
+  margin-bottom: 14px;
+}
+
+.topicModelStage {
+  position: relative;
+  min-height: 260px;
+  border-radius: 14px;
+  background-color: #14151c;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  overflow: hidden;
+}
+
+.topicModelHost {
+  min-height: 260px;
+}
+
+.topicModelFallback {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 6px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.topicModelHint {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+model-viewer::part(default-progress-bar) {
+  --progress-bar-color: var(--astra-violet);
+}
+
 /* Catálogo de temas ------------------------------------------------------ */
 
 .topicAreaDesc {

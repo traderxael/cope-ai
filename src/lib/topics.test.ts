@@ -18,6 +18,7 @@ describe('catálogo de temas', () => {
       expect(topic.example.length).toBeGreaterThan(20);
       expect(topic.source.url).toMatch(/^https:\/\/es\.wikipedia\.org\/wiki\//);
       expect(topic.source.label).toBeTruthy();
+      expect(topic.model).toMatch(/^\/models\/.+\.glb$/);
     }
   });
 
