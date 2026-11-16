@@ -1,4 +1,5 @@
-# Render 12 glossy 3D "space orbit" badge icons for Cope AI (Astra palette).
+# Render 18 glossy 3D badge icons for Cope AI (Astra palette):
+# 12 orbit badges + 6 learning-concept badges.
 # Reproducible: run headless with Blender 5.2 LTS, Cycles CPU, no denoiser
 # (old Sandy Bridge CPU without AVX2; OIDN may crash). Fixed seed.
 #
@@ -25,6 +26,8 @@ OUT_DIR = REPO + "/src/features/achievements/art"
 ICONS = [
     "rocket", "earth", "moon", "mars", "jupiter", "sun",
     "asteroid", "comet", "nebula", "galaxy", "supernova", "universe",
+    "spaced-repetition", "active-recall", "feynman", "pomodoro",
+    "newton", "pythagoras",
 ]
 SAMPLES = 64
 SIZE = 512
@@ -618,11 +621,120 @@ def build_universe():
         star(f"us{k}", loc, 0.045)
 
 
+# ------------------------- learning concepts -------------------------------
+
+def build_spaced_repetition():
+    """Three stacked cards with a glowing loop: review at the right time."""
+    face = glossy("sr_face", srgb("#e8edff"), rough=0.18)
+    edge = glossy("sr_edge", INDIGO, rough=0.25, metal=0.35)
+    for k, z in enumerate((-0.30, 0.0, 0.30)):
+        card = cube(f"sr_card{k}", size=1.0, loc=(0, -0.14 * k, z))
+        card.scale = (1.40, 0.06, 0.95)
+        card.rotation_euler = (0, 0, math.radians(4 * (1 - k)))
+        assign(card, face if k == 2 else edge)
+    loop = torus("sr_loop", major=1.3, minor=0.06,
+                 rot=(math.pi / 2, 0, 0))
+    assign(loop, glossy("sr_loop_m", CYAN, rough=0.16, metal=0.4,
+                        emit=CYAN, emit_str=0.35))
+    scale_all(1.05)
+
+
+def build_active_recall():
+    """Glowing bulb: the effort of recalling is what fixes the memory."""
+    bulb = uv_sphere("ar_bulb", r=0.78, loc=(0, 0, 0.38), seg=48, rings=24)
+    assign(bulb, glossy("ar_glass", srgb("#eafcff"), rough=0.08,
+                        emit=CYAN, emit_str=0.5))
+    base = cylinder("ar_base", r=0.38, depth=0.5, loc=(0, 0, -0.52))
+    assign(base, glossy("ar_base_m", INDIGO, rough=0.3, metal=0.5))
+    fil = torus("ar_fil", major=0.28, minor=0.045,
+                loc=(0, -0.55, 0.22), rot=(math.pi / 2, 0, 0))
+    assign(fil, emissive("ar_fil_m", WHITE, 3.0))
+    for k, loc in enumerate([(-1.05, 0, 0.95), (1.08, 0, 0.82),
+                             (0.92, 0, -0.62), (-0.98, 0, -0.5)]):
+        star(f"ar_spark{k}", loc, 0.05)
+
+
+def build_feynman():
+    """Open book with rising ideas: explain it simply."""
+    page = glossy("fy_page", srgb("#e8edff"), rough=0.38)
+    cover = glossy("fy_cover", VIOLET, rough=0.25, metal=0.2)
+    left = cube("fy_left", size=1.0, loc=(-0.52, 0, 0))
+    left.scale = (1.05, 0.12, 1.32)
+    left.rotation_euler = (0, 0, math.radians(8))
+    right = cube("fy_right", size=1.0, loc=(0.52, 0, 0))
+    right.scale = (1.05, 0.12, 1.32)
+    right.rotation_euler = (0, 0, math.radians(-8))
+    assign(left, page)
+    assign(right, page)
+    spine = cube("fy_spine", size=1.0, loc=(0, -0.04, 0))
+    spine.scale = (0.16, 0.18, 1.4)
+    assign(spine, cover)
+    for k, (x, z) in enumerate(((-0.55, 0.45), (0.0, 0.85), (0.55, 0.45))):
+        star(f"fy_idea{k}", (x, 0.0, z), 0.075, 2.6)
+
+
+def build_pomodoro():
+    """Hourglass: short focused blocks with real breaks."""
+    glass = glossy("pm_glass", srgb("#bfe6ff"), rough=0.08)
+    sand = emissive("pm_sand", srgb("#ffc46b"), 1.6)
+    top = cone("pm_top", r1=0.72, r2=0.07, depth=0.88, loc=(0, 0, 0.48))
+    bottom = cone("pm_bottom", r1=0.07, r2=0.72, depth=0.88, loc=(0, 0, -0.48))
+    assign(top, glass)
+    assign(bottom, glass)
+    upper = cone("pm_upper_sand", r1=0.5, r2=0.04, depth=0.5, loc=(0, 0, 0.6))
+    lower = cone("pm_lower_sand", r1=0.04, r2=0.5, depth=0.5, loc=(0, 0, -0.6))
+    assign(upper, sand)
+    assign(lower, sand)
+    for z in (-1.0, 1.0):
+        cap = cylinder(f"pm_cap{z}", r=0.82, depth=0.14, loc=(0, 0, z))
+        assign(cap, glossy(f"pm_cap{z}_m", INDIGO, rough=0.2, metal=0.5))
+
+
+def build_newton():
+    """Apple with an orbit ring: F = m·a."""
+    apple = uv_sphere("nw_apple", r=0.85, seg=48, rings=24)
+    apple.scale = (1.0, 0.92, 0.95)
+    assign(apple, glossy("nw_skin", srgb("#ff6b7a"), rough=0.22))
+    stem = cylinder("nw_stem", r=0.06, depth=0.45, loc=(0.05, 0, 0.88))
+    stem.rotation_euler = (0, math.radians(18), 0)
+    assign(stem, glossy("nw_stem_m", srgb("#7a5230"), rough=0.5))
+    leaf = uv_sphere("nw_leaf", r=0.22, loc=(0.36, 0, 1.0), seg=24, rings=12)
+    leaf.scale = (1.0, 0.35, 0.5)
+    assign(leaf, glossy("nw_leaf_m", srgb("#6fe0a0"), rough=0.3))
+    ring = torus("nw_orbit", major=1.38, minor=0.05,
+                 rot=(math.radians(62), math.radians(-14), 0))
+    assign(ring, glossy("nw_orbit_m", CYAN, rough=0.18, metal=0.4,
+                        emit=CYAN, emit_str=0.3))
+    scale_all(1.02)
+
+
+def build_pythagoras():
+    """Right triangle: a² + b² = c²."""
+    mat = glossy("py_bar", INDIGO, rough=0.18, metal=0.35,
+                 emit=INDIGO, emit_str=0.25)
+    a = Vector((-1.15, 0, -0.8))
+    b = Vector((1.15, 0, -0.8))
+    c = Vector((-1.15, 0, 0.95))
+    for name, p, q in (("py_base", a, b), ("py_leg", a, c), ("py_hyp", b, c)):
+        bar = cylinder(name, r=0.09, depth=(q - p).length,
+                       loc=tuple((p + q) / 2))
+        bar.rotation_mode = "QUATERNION"
+        bar.rotation_quaternion = (q - p).normalized().to_track_quat("Z", "Y")
+        assign(bar, mat)
+    for name, p in (("py_v1", a), ("py_v2", b), ("py_v3", c)):
+        assign(uv_sphere(name, r=0.15, loc=tuple(p), seg=24, rings=12),
+               emissive(name + "_m", CYAN, 2.4))
+
+
 BUILDERS = {
     "rocket": build_rocket, "earth": build_earth, "moon": build_moon,
     "mars": build_mars, "jupiter": build_jupiter, "sun": build_sun,
     "asteroid": build_asteroid, "comet": build_comet, "nebula": build_nebula,
     "galaxy": build_galaxy, "supernova": build_supernova, "universe": build_universe,
+    "spaced-repetition": build_spaced_repetition,
+    "active-recall": build_active_recall,
+    "feynman": build_feynman, "pomodoro": build_pomodoro,
+    "newton": build_newton, "pythagoras": build_pythagoras,
 }
 
 

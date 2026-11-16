@@ -17,7 +17,13 @@ import {
   summarizePractice,
   type Achievement,
 } from '../../lib/progress';
-import { listPracticeResults, type PracticeResult } from '../../lib/storage';
+import {
+  listFlashcardDecks,
+  listOralExams,
+  listPracticeResults,
+  listConversations,
+  type PracticeResult,
+} from '../../lib/storage';
 import {
   DAILY_GOAL_OPTIONS,
   readDailyGoal,
@@ -29,6 +35,13 @@ import {
   type StudyLog,
 } from '../../lib/studyLog';
 import { BadgeArt } from './BadgeArt';
+import {
+  buildLearningBadges,
+  deriveLearningActivity,
+  type LearningBadge,
+} from '../../lib/learningBadges';
+import { LearningBadgeArt } from './LearningBadgeArt';
+import { LearningConceptDialog } from './LearningConceptDialog';
 
 interface BadgeDialogProps {
   open: boolean;
@@ -59,14 +72,38 @@ export function BadgeDialog({ open, onClose }: BadgeDialogProps) {
   const [log, setLog] = useState<StudyLog>({});
   const [goal, setGoal] = useState(30);
   const [loading, setLoading] = useState(false);
+  const [learningSources, setLearningSources] = useState({
+    flashcardReviews: 0,
+    oralSessions: 0,
+    conversations: 0,
+  });
+  const [selectedConcept, setSelectedConcept] = useState<LearningBadge | null>(null);
 
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
     setLoading(true);
-    void listPracticeResults()
-      .then((stored) => {
-        if (!cancelled) setResults(stored);
+    void Promise.all([
+      listPracticeResults(),
+      listFlashcardDecks(),
+      listOralExams(),
+      listConversations(),
+    ])
+      .then(([practice, decks, exams, conversations]) => {
+        if (!cancelled) {
+          setResults(practice);
+          setLearningSources({
+            flashcardReviews: decks.reduce(
+              (total, deck) =>
+                total + deck.cards.filter((card) => card.lastReviewedAt).length,
+              0,
+            ),
+            oralSessions: exams.length,
+            conversations: conversations.filter(
+              (conversation) => conversation.messages.length > 0,
+            ).length,
+          });
+        }
       })
       .catch(() => {
         if (!cancelled) setResults([]);
@@ -93,6 +130,14 @@ export function BadgeDialog({ open, onClose }: BadgeDialogProps) {
     const minutes = studyMinutesOn(week[week.length - 1]?.date ?? '', log);
     const ratio = goal > 0 ? Math.min(1, minutes / goal) : 0;
     const missions = achievements(summarizePractice(results));
+    const activity = deriveLearningActivity({
+      practice: results,
+      flashcardReviews: learningSources.flashcardReviews,
+      oralSessions: learningSources.oralSessions,
+      conversations: learningSources.conversations,
+      studyLog: log,
+    });
+    const learning = buildLearningBadges(activity);
     return {
       streak,
       best,
@@ -103,8 +148,9 @@ export function BadgeDialog({ open, onClose }: BadgeDialogProps) {
       minutes,
       ratio,
       missions,
+      learning,
     };
-  }, [results, log, goal]);
+  }, [results, log, goal, learningSources]);
 
   const grouped = TIER_ORDER.map((tier) => ({
     tier,
@@ -263,6 +309,24 @@ export function BadgeDialog({ open, onClose }: BadgeDialogProps) {
             </div>
           </section>
 
+          <section className="progressSection" aria-labelledby="badge-learning">
+            <div className="badgeTier" id="badge-learning">
+              Aprende
+            </div>
+            <p className="learningIntro">
+              Cada insignia te enseña una idea que podés usar ya mismo. Tocala para abrirla.
+            </p>
+            <ul className="badgeGrid">
+              {view.learning.map((badge) => (
+                <LearningTile
+                  badge={badge}
+                  key={badge.id}
+                  onOpen={() => setSelectedConcept(badge)}
+                />
+              ))}
+            </ul>
+          </section>
+
           <section className="progressSection" aria-labelledby="badge-missions">
             <div className="badgeTier" id="badge-missions">
               Misiones
@@ -292,6 +356,11 @@ export function BadgeDialog({ open, onClose }: BadgeDialogProps) {
           ))}
         </>
       )}
+      <LearningConceptDialog
+        badge={selectedConcept}
+        open={Boolean(selectedConcept)}
+        onClose={() => setSelectedConcept(null)}
+      />
     </Dialog>
   );
 }
@@ -318,6 +387,49 @@ function BadgeTile({ badge }: { badge: Badge }) {
           ? 'Desbloqueada'
           : `Bloqueada. Faltan ${badge.missing} días de racha.`}
       </span>
+    </li>
+  );
+}
+
+function LearningTile({
+  badge,
+  onOpen,
+}: {
+  badge: LearningBadge;
+  onOpen: () => void;
+}) {
+  const percent = Math.round(badge.progress * 100);
+  return (
+    <li>
+      <button
+        type="button"
+        className={
+          badge.unlocked ? 'badgeTile badgeTileButton isUnlocked' : 'badgeTile badgeTileButton isLocked'
+        }
+        onClick={onOpen}
+        aria-label={`${badge.label}. ${badge.unlocked ? 'Desbloqueada' : `${badge.current} de ${badge.target}`}`}
+      >
+        <span className="badgeArt" aria-hidden="true">
+          <LearningBadgeArt icon={badge.icon} />
+        </span>
+        <h4>{badge.label}</h4>
+        <div
+          className="missionProgress"
+          role="progressbar"
+          aria-label={`Avance de ${badge.label}`}
+          aria-valuemin={0}
+          aria-valuemax={badge.target}
+          aria-valuenow={badge.current}
+        >
+          <div className="missionProgressFill" style={{ width: `${percent}%` }} />
+        </div>
+        <div className="missionMeta">
+          <span className="missionCount">
+            {badge.current}/{badge.target}
+          </span>
+          <span className="missionPct">{percent}%</span>
+        </div>
+      </button>
     </li>
   );
 }

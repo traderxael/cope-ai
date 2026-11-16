@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '@testing-library/react';
 import { dateOnlyFromEpochLocal } from '../../../shared/date';
 import { BadgeDialog } from './BadgeDialog';
@@ -66,10 +67,11 @@ describe('BadgeDialog misiones', () => {
     await savePracticeResult(result('a'));
     render(<BadgeDialog open onClose={() => {}} />);
     await screen.findByText('Misiones');
-    const bars = screen.getAllByRole('progressbar');
-    expect(bars).toHaveLength(4);
-    for (const [index, percent] of ['100%', '33%', '10%', '25%'].entries()) {
-      expect(within(bars[index]!.closest('li')!).getByText(percent)).toBeInTheDocument();
+    const percentages = ['100%', '33%', '10%', '25%'];
+    const labels = ['Primer paso', 'Racha de 3', 'Constancia', 'Puntería'];
+    for (const [index, label] of labels.entries()) {
+      const bar = screen.getByRole('progressbar', { name: `Avance de ${label}` });
+      expect(within(bar.closest('li')!).getByText(percentages[index]!)).toBeInTheDocument();
     }
   });
 
@@ -78,6 +80,22 @@ describe('BadgeDialog misiones', () => {
     await screen.findByText('Misiones');
     expect(screen.getByRole('heading', { name: 'Empezá tu primera racha' })).toBeInTheDocument();
     expect(document.querySelector('.badgeHero img')).toHaveAttribute('src', expect.stringContaining('rocket'));
-    expect(screen.getAllByText('0%')).toHaveLength(4);
+    expect(screen.getAllByText('0%').length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('muestra la grilla Aprende con los seis conceptos', async () => {
+    render(<BadgeDialog open onClose={() => {}} />);
+    expect(await screen.findByText('Aprende')).toBeInTheDocument();
+    expect(screen.getByText('Repetición espaciada')).toBeInTheDocument();
+    expect(screen.getByText('Teorema de Pitágoras')).toBeInTheDocument();
+    expect(screen.getAllByRole('progressbar')).toHaveLength(10);
+  });
+
+  it('abre el concepto al tocar una insignia de aprendizaje', async () => {
+    const user = userEvent.setup();
+    render(<BadgeDialog open onClose={() => {}} />);
+    await screen.findByText('Aprende');
+    await user.click(screen.getByRole('button', { name: /Segunda ley de Newton/ }));
+    expect(await screen.findByRole('heading', { name: 'Fuerza, masa y aceleración' })).toBeInTheDocument();
   });
 });
