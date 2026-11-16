@@ -8,6 +8,8 @@ Ruling: el usuario pidió además "casi igual a Astra AI". Se mantiene el aislam
 
 Tareas nuevas acordadas: insignias-concepto con explicación al desbloquear + arte 3D propio; paridad de funciones (duelos, estrellas, desafíos).
 
-- [ ] Nuevas insignias-concepto (datos + arte 3D + diálogo de concepto)
-- [ ] Paridad de funciones con Astra AI
+- [x] Nuevas insignias-concepto (datos + arte 3D + diálogo de concepto) — commit `0524cee`, 434 tests
+- [x] Paridad de funciones con Astra AI: estrellas, desafíos y duelo — commit `81ff04c`, 444 tests
 - [ ] Ajuste visual y capturas
+
+Ruling: el duelo usa la API de práctica existente y un rival determinista por porcentaje, en lugar de un endpoint nuevo — evita tocar el proxy y mantiene "sin servicios de pago". Coste si me equivoco: menos imprevisibilidad que un rival real.

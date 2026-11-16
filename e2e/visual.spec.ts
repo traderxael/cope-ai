@@ -77,9 +77,10 @@ test.describe('capturas de referencia', () => {
     const dialog = page.locator('dialog.badgeDialog');
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText('Misiones')).toBeVisible();
-    await expect(dialog.locator('.badgeArt img')).toHaveCount(16);
+    // 12 insignias de racha + 4 misiones + 6 insignias-concepto (el hero no usa .badgeArt).
+    await expect(dialog.locator('.badgeArt img')).toHaveCount(22);
     await expect(dialog.locator('.badgeHeroIcon img')).toHaveAttribute('src', /mars/);
-    await expect(dialog.locator('.missionPct')).toHaveText(['0%', '0%', '0%', '0%']);
+    await expect(dialog.locator('#badge-missions ~ ul .missionPct, #badge-missions + ul .missionPct')).toHaveText(['0%', '0%', '0%', '0%']);
     await page.waitForFunction(() =>
       [...document.querySelectorAll<HTMLImageElement>('.badgeDialog img')].every(
         (img) => img.complete && img.naturalWidth > 0,
@@ -90,10 +91,10 @@ test.describe('capturas de referencia', () => {
       animations: 'disabled',
     });
     await dialog.locator('.dialogBody').evaluate((body) => {
-      const missions = body.querySelector('#badge-missions');
-      if (!missions) return;
+      const learning = body.querySelector('#badge-learning');
+      if (!learning) return;
       body.scrollTop =
-        missions.getBoundingClientRect().top -
+        learning.getBoundingClientRect().top -
         body.getBoundingClientRect().top +
         body.scrollTop -
         12;
@@ -140,8 +141,8 @@ test.describe('capturas de referencia', () => {
         await page.locator('dialog[open]').getByRole('button', { name: 'Insignias' }).click();
       }
       await expect(dialog).toBeVisible();
-      await expect(dialog.locator('.missionPct')).toHaveText(['100%', '33%', '30%', '75%']);
-      await expect(dialog.getByText('3/10', { exact: true })).toBeVisible();
+      await expect(dialog.locator('#badge-missions ~ ul .missionPct, #badge-missions + ul .missionPct')).toHaveText(['100%', '33%', '30%', '75%']);
+      await expect(dialog.locator('#badge-missions ~ ul, #badge-missions + ul').getByText('3/10', { exact: true })).toBeVisible();
       await expect(dialog.locator('.badgeHeroIcon img')).toHaveAttribute('src', /mars/);
       await expect(dialog.locator('.dialogBody')).toHaveJSProperty('scrollLeft', 0);
       const body = dialog.locator('.dialogBody');
